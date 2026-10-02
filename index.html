@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1a1416">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-title" content="Bleed Control">
+<title>Bleed Control</title>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Saira+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#1a1416;--deck:#261c1f;--deck2:#33262a;--line:#4a3539;--ink:#f6f1f2;--soft:#c3b2b5;--red:#e5383b;--red2:#ff5a5d;--green:#39e36f;--amber:#ffc23d;--blue:#6fd3ff}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"Atkinson Hyperlegible",system-ui,sans-serif;-webkit-text-size-adjust:100%}
+body{max-width:540px;margin:0 auto;padding:calc(10px + env(safe-area-inset-top,0px)) calc(12px + env(safe-area-inset-right,0px)) calc(40px + env(safe-area-inset-bottom,0px)) calc(12px + env(safe-area-inset-left,0px))}
+h1,h2,h3,.num{font-family:"Saira Condensed","Arial Narrow",sans-serif}
+button{font-family:inherit;font-size:15px;border-radius:10px;padding:11px 12px;cursor:pointer;color:var(--ink);background:var(--deck2);border:1px solid var(--line);touch-action:manipulation;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;line-height:1.15}
+button:active{transform:translateY(1px)}button:disabled{opacity:.35;cursor:default}
+button:focus-visible{outline:2px solid var(--red2);outline-offset:2px}
+.go{background:var(--red);border-color:var(--red);color:#fff;font-weight:700}
+.on{background:#1f6b45!important;border-color:#2f9e66!important;color:#fff}
+.hot{background:var(--red)!important;border-color:var(--red)!important;color:#fff;animation:pulse 1s infinite}
+.hold{background:#7a1f22!important;border-color:var(--red2)!important;color:#fff;box-shadow:0 0 0 3px rgba(229,56,59,.35) inset}
+@keyframes pulse{50%{box-shadow:0 0 0 4px rgba(229,56,59,.35)}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+.hidden{display:none!important}
+.brand{font-family:"Saira Condensed",sans-serif;font-weight:700;font-size:15px;letter-spacing:1.5px;color:var(--red2)}
+.top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px}
+.top h1{margin:0;font-size:24px;font-weight:600;line-height:1.05}
+.meta{text-align:right;font-size:14px;color:var(--soft)}.meta b{color:var(--ink);font-family:"Saira Condensed";font-size:18px}
+.card{background:var(--deck);border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:10px}
+.card h2{margin:0 0 4px;font-size:22px;font-weight:600}
+.sub{font-size:14px;color:var(--soft);margin:0 0 8px}
+.row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}.row.three{grid-template-columns:repeat(3,minmax(0,1fr))}
+.grp{margin-bottom:10px}.grp:last-child{margin-bottom:0}.grp h3{margin:0 0 6px;font-size:17px;font-weight:600;color:var(--soft)}
+.grp h3 b{color:var(--red2);font-size:20px}
+.stat{font-size:13px;color:var(--soft);margin-top:6px;line-height:1.35}
+.vic{background:#0c0809;border:2px solid #3a2a2d;border-radius:14px;padding:10px 12px;margin-bottom:10px}
+.vic .hdr{display:flex;justify-content:space-between;font-size:13px;color:#a8969a;margin-bottom:4px}
+.bar{height:16px;border-radius:8px;background:#2a1d20;overflow:hidden;position:relative}.bar div{height:100%;background:var(--red);width:0}
+.bar span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff}
+.vrow{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}.v .l{font-size:12px;color:#a8969a}.v .n{font-family:"Saira Condensed";font-size:22px;font-weight:600}
+.steps{list-style:none;padding:0;margin:0}.steps li{display:flex;gap:10px;padding:6px 0;font-size:15px;border-top:1px solid #3a2a2d}.steps li:first-child{border-top:0}
+.steps .box{width:18px;height:18px;border:2px solid var(--soft);border-radius:5px;flex:0 0 auto;margin-top:1px}.steps li.done{color:#8f7f83;text-decoration:line-through}.steps li.done .box{background:#2f9e66;border-color:#2f9e66}
+.radio{font-size:15px;line-height:1.4;max-height:170px;overflow:auto}.radio div{padding:4px 0;border-top:1px dashed #3a2a2d}.radio div:first-child{border-top:0}
+.radio .who{color:var(--red2);font-weight:700}.radio .bad{color:#ff9a96}.radio .good{color:#7fe3a4}
+.overlay{position:fixed;inset:0;background:rgba(10,6,7,.92);display:flex;align-items:flex-start;justify-content:center;padding:calc(16px + env(safe-area-inset-top,0px)) 16px calc(16px + env(safe-area-inset-bottom,0px));z-index:10;overflow:auto}
+.overlay .box{background:var(--deck);border:1px solid var(--line);border-radius:16px;padding:18px;max-width:480px;width:100%;margin:auto}
+.overlay h2{font-size:27px;margin:0 0 8px;font-weight:600;line-height:1.1}
+.overlay p{font-size:16px;line-height:1.5;color:#e6dcde;margin:0 0 12px}
+.tag{display:inline-block;font-size:13px;font-weight:700;border-radius:6px;padding:2px 8px;margin-bottom:8px;background:var(--red);color:#fff}
+.opt{display:block;width:100%;text-align:left;margin-bottom:8px;padding:12px;font-size:16px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 12px}.chip{padding:7px 11px;font-size:14px;border-radius:16px;background:#3a1f22;border-color:#7a3a3e;color:#ffd6d6}
+.big{font-family:"Saira Condensed";font-size:60px;font-weight:700;color:var(--red2);line-height:1}
+.mrow{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-top:1px solid #3a2a2d;font-size:15px}.mrow:first-child{border-top:0}.mrow span{color:var(--soft)}
+.tiers{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:6px 0 10px}
+.scen{display:block;width:100%;text-align:left;padding:12px;margin-bottom:8px}.scen b{display:block;font-family:"Saira Condensed";font-size:21px;font-weight:600}.scen span{font-size:14px;color:var(--soft)}
+.sec{font-family:"Saira Condensed";font-size:15px;letter-spacing:1px;color:var(--red2);margin:14px 0 6px}
+.slide h2{font-size:30px}.slide .art{margin:6px 0 12px}.slide ul{margin:0 0 12px;padding-left:20px;font-size:16px;line-height:1.5}.slide li{margin-bottom:4px}
+.dots{display:flex;gap:4px;justify-content:center;margin:8px 0}.dots i{width:8px;height:8px;border-radius:50%;background:#4a3539}.dots i.on2{background:var(--red2)}
+textarea,input{font-family:inherit;font-size:16px;padding:10px;border-radius:8px;border:1px solid var(--line);background:#120d0e;color:var(--ink);width:100%}
+.legal{font-size:12px;color:#9c8b8f;line-height:1.45;margin-top:10px}
+.station svg{width:100%;max-width:420px;display:block;margin:0 auto}
+.meter{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--soft);margin:6px 0}.meter .bar{flex:1;height:12px}
+body.tv{max-width:1100px}@media (min-width:1000px){body.tv{zoom:1.3}}
+</style>
+</head>
+<body>
+
+<div id="home">
+  <div class="top"><div><div class="brand">BLEED CONTROL</div><h1>Stop a bleed. Save a life.</h1></div></div>
+  <p class="sub" style="font-size:15px">Practice for bleeding emergencies: learn the ABCs, drill the hands-on skills, then put them together under pressure.</p>
+  <div class="sec">1 · LEARN</div>
+  <button class="scen" id="h-learn"><b>The lesson</b><span>12 short slides in course order, each with a knowledge check · about 10 minutes</span></button>
+  <div class="sec">2 · PRACTICE THE SKILLS</div>
+  <button class="scen" data-st="tq-arm"><b>Tourniquet — arm</b><span>Place it, pull it tight, twist until the bleeding stops, lock it, mark the time</span></button>
+  <button class="scen" data-st="tq-leg"><b>Tourniquet — leg</b><span>Thigh wounds take more force — and sometimes a second tourniquet</span></button>
+  <button class="scen" data-st="pack"><b>Wound packing</b><span>Where a tourniquet can't go: pack it tight, then hold pressure</span></button>
+  <button class="scen" data-st="press"><b>Direct pressure</b><span>Both hands, push hard, don't lift to check</span></button>
+  <div class="sec">3 · PUT IT TOGETHER</div>
+  <button class="scen" data-sc="kitchen"><b>"He cut his arm on the glass"</b><span>Kitchen accident · one patient · the bleeding is spurting</span></button>
+  <button class="scen" data-sc="garage"><b>Table saw in the garage</b><span>Deep thigh wound · blood pooling on the floor</span></button>
+  <button class="scen" data-sc="glass"><b>Through the glass door</b><span>A wound high in the groin — where a tourniquet can't go</span></button>
+  <button class="scen" data-sc="crash"><b>Two-car crash</b><span>Two people bleeding, one of you, and traffic still moving</span></button>
+  <div class="tiers"><button data-tier="0">Guided</button><button data-tier="1">Recall</button><button data-tier="2">Chaos</button></div>
+  <p class="stat" id="tierhelp" style="margin:0 0 10px"></p>
+  <div class="sec">MORE</div>
+  <div class="row"><button id="h-drills">Quick drills</button><button id="h-ref">Pocket reference</button><button id="h-prog">My progress</button><button id="h-about">About this app</button></div>
+  <p class="legal">A practice tool. It does not replace hands-on training. Take an official in-person bleeding control course, such as the American College of Surgeons Stop the Bleed® course. Not affiliated with or endorsed by ACS or the U.S. Department of Defense.</p>
+</div>
+
+<div id="game" class="hidden">
+  <div class="top"><div><div class="brand">BLEED CONTROL</div><h1 id="g-title">Scenario</h1></div><div class="meta">Score <b id="g-score">100</b><div id="g-clock">—</div></div></div>
+  <div class="card" style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px"><span id="g-eta-l">EMS</span><b id="g-eta" style="font-family:'Saira Condensed';font-size:24px">—</b></div>
+  <div id="victims"></div>
+  <div class="card" id="deck"></div>
+  <div class="card"><h2 id="m-title">Checklist</h2><p class="sub" id="m-sub"></p><ul class="steps" id="steps"></ul>
+    <div class="row" style="margin-top:10px"><button id="g-restart">Restart</button><button id="g-menu">Menu</button></div></div>
+  <div class="card"><h2>What's happening</h2><div class="radio" id="radio"></div></div>
+</div>
+
+<!-- overlays -->
+<div class="overlay hidden" id="briefov"><div class="box"><span class="tag">Briefing</span><h2 id="brief-t"></h2><p id="brief-x"></p>
+  <div class="row"><button id="brief-menu">Back to menu</button><button class="go" id="brief-go">Start</button></div></div></div>
+<div class="overlay hidden" id="decov"><div class="box"><span class="tag">Decision</span><h2 id="dec-q" style="font-size:22px;line-height:1.25"></h2><div id="dec-opts"></div>
+  <div id="dec-fb" class="hidden"><p id="dec-res"></p><p id="dec-why" style="font-size:15px;color:var(--soft)"></p><button class="go" id="dec-go" style="width:100%;font-size:18px">Continue</button></div></div></div>
+<div class="overlay hidden" id="stov" style="z-index:14"><div class="box station"><span class="tag" id="st-tag">Skill</span><h2 id="st-title"></h2>
+  <p id="st-prompt" style="font-size:17px;margin-bottom:6px"></p><div id="st-art"></div>
+  <div class="meter"><span id="st-bleed-l">Bleeding</span><div class="bar"><div id="st-bleed"></div></div></div>
+  <div class="row" id="st-btns" style="margin-top:8px"></div>
+  <p id="st-fb" style="font-size:15px;min-height:40px;margin:8px 0 0"></p></div></div>
+<div class="overlay hidden" id="lessonov" style="z-index:12"><div class="box slide" id="lesson-box"></div></div>
+<div class="overlay hidden" id="doneov" style="z-index:13"><div class="box"><h2 id="done-t"></h2><div class="big" id="done-s"></div><div id="done-b"></div>
+  <div class="row" style="margin-top:10px"><button id="done-again">Again</button><button class="go" id="done-menu">Menu</button></div></div></div>
+<div class="overlay hidden" id="infoov" style="z-index:15"><div class="box"><div id="info-b"></div><button class="go" id="info-close" style="width:100%;margin-top:10px">Close</button></div></div>
+<div class="overlay hidden" id="drillov" style="z-index:12"><div class="box"><div style="display:flex;justify-content:space-between;align-items:baseline"><h2 id="dr-title" style="margin:0">Quick drills</h2><span id="dr-meta" class="stat"></span></div><div id="dr-body" style="margin-top:10px"></div><div id="dr-foot" style="margin-top:10px"></div></div></div>
+
+<script>
+/* =================== core =================== */
+const APP_VERSION='0.1.0';
+const $=id=>document.getElementById(id);
+const esc=t=>String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const shuf=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+const mmss=s=>{s=Math.max(0,Math.round(s));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');};
+let TIER=0,S={active:false},stepsDone=[],DEC_OPEN=null,SC=null,FORCE=null;
+const KEY='bleed-control';
+function load(){try{return JSON.parse(localStorage.getItem(KEY))||{runs:[]};}catch(e){return {runs:[]};}}
+function save(p){try{localStorage.setItem(KEY,JSON.stringify(p));}catch(e){}}
+function record(kind,id,score,extra){const p=load();p.runs=(p.runs||[]).concat([Object.assign({kind,id,score,d:new Date().toISOString(),tier:TIER},extra||{})]).slice(-500);save(p);}
+function radio(who,msg,cls=''){const r=$('radio');const d=document.createElement('div');d.innerHTML=`<span class="who">${esc(who)}:</span> <span class="${cls}">${esc(msg)}</span>`;r.prepend(d);while(r.children.length>16)r.lastChild.remove();if(S.log)S.log.push({c:clock(),who,msg});}
+function ding(p,why){S.score=Math.max(0,S.score-p);S.incidents.push(why);radio('Feedback',`${why} (−${p})`,'bad');}
+function clock(at){const s=S.t0+(at===undefined?S.t:at);const h=Math.floor(s/3600)%24,m=Math.floor(s%3600/60);return (h%12||12)+':'+String(m).padStart(2,'0')+(h<12?' a.m.':' p.m.');}
+function showHome(){['game','briefov','decov','stov','lessonov','doneov','drillov'].forEach(i=>$(i).classList.add('hidden'));$('home').classList.remove('hidden');S.active=false;S.running=false;
+  document.querySelectorAll('[data-tier]').forEach(b=>b.classList.toggle('on',+b.dataset.tier===TIER));$('tierhelp').textContent=['Guided: every step listed, with coaching.','Recall: no checklist. Run it from memory.','Chaos: no checklist, and things go wrong.'][TIER];}
+document.querySelectorAll('[data-tier]').forEach(b=>b.onclick=()=>{TIER=+b.dataset.tier;showHome();});
+/* =================== art =================== */
+const ART={
+ abc:`<svg viewBox="0 0 320 90"><g font-family="Saira Condensed,sans-serif" font-weight="700" text-anchor="middle">${[['A','Alert','#ff5a5d'],['B','Bleeding','#ffc23d'],['C','Compress','#39e36f']].map(([l,w,c],i)=>`<g transform="translate(${55+i*105},0)"><circle cx="0" cy="38" r="30" fill="none" stroke="${c}" stroke-width="4"/><text x="0" y="52" font-size="40" fill="${c}">${l}</text><text x="0" y="86" font-size="16" fill="#f6f1f2">${w}</text></g>`).join('')}</g></svg>`,
+ clock:`<svg viewBox="0 0 320 90"><circle cx="160" cy="45" r="38" fill="none" stroke="#ff5a5d" stroke-width="4"/><path d="M160 45 L160 17 M160 45 L182 58" stroke="#f6f1f2" stroke-width="4" stroke-linecap="round"/><text x="160" y="88" text-anchor="middle" font-size="13" fill="#c3b2b5" font-family="sans-serif">3–5 minutes</text></svg>`,
+ safe:`<svg viewBox="0 0 320 90"><path d="M160 8 L198 22 L198 48 Q198 74 160 86 Q122 74 122 48 L122 22 Z" fill="none" stroke="#ffc23d" stroke-width="4"/><path d="M144 47 L156 59 L178 35" stroke="#39e36f" stroke-width="6" fill="none" stroke-linecap="round"/></svg>`,
+ tq:`<svg viewBox="0 0 320 110"><path d="M20 40 Q160 30 300 44 L300 74 Q160 84 20 72 Z" fill="#e8c9a8" stroke="#a9876a"/><circle cx="118" cy="57" r="9" fill="#a31d22"/><rect x="170" y="32" width="14" height="48" rx="3" fill="#222" stroke="#666"/><rect x="164" y="22" width="26" height="8" rx="2" fill="#e5383b"/><path d="M128 95 L170 95" stroke="#ffc23d" stroke-width="2" marker-end="url(#a)"/><defs><marker id="a" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0 0 L6 3 L0 6 Z" fill="#ffc23d"/></marker></defs><text x="150" y="108" text-anchor="middle" font-size="11" fill="#ffc23d" font-family="sans-serif">2–3 inches above the wound · toward the heart</text><text x="300" y="30" text-anchor="end" font-size="11" fill="#c3b2b5" font-family="sans-serif">heart →</text></svg>`,
+ pack:`<svg viewBox="0 0 320 100"><ellipse cx="160" cy="55" rx="90" ry="34" fill="#e8c9a8" stroke="#a9876a"/><ellipse cx="160" cy="55" rx="30" ry="12" fill="#6e1215"/><path d="M160 55 q-20 -6 -6 -14 q20 -6 10 6 q-14 10 2 12" fill="none" stroke="#f6f1f2" stroke-width="5"/><path d="M150 10 L160 38 M170 10 L162 38" stroke="#ffc23d" stroke-width="3" stroke-linecap="round"/><text x="160" y="98" text-anchor="middle" font-size="11" fill="#c3b2b5" font-family="sans-serif">pack it tight, onto the source — then press with both hands</text></svg>`,
+ press:`<svg viewBox="0 0 320 100"><rect x="70" y="58" width="180" height="22" rx="6" fill="#e8c9a8" stroke="#a9876a"/><rect x="120" y="50" width="80" height="14" rx="3" fill="#f6f1f2"/><path d="M118 50 q0 -30 22 -34 h40 q22 4 22 34 Z" fill="#c9a281" stroke="#a9876a"/><path d="M160 2 L160 14" stroke="#ffc23d" stroke-width="4"/><path d="M152 8 L160 16 L168 8" stroke="#ffc23d" stroke-width="4" fill="none"/><text x="160" y="96" text-anchor="middle" font-size="11" fill="#c3b2b5" font-family="sans-serif">both hands · push hard · don't lift to check</text></svg>`,
+ kit:`<svg viewBox="0 0 320 90"><rect x="100" y="14" width="120" height="66" rx="10" fill="#7a1f22" stroke="#ff5a5d" stroke-width="3"/><rect x="152" y="30" width="16" height="36" fill="#f6f1f2"/><rect x="142" y="40" width="36" height="16" fill="#f6f1f2"/></svg>`};
+/* =================== the lesson =================== */
+const LESSON=[
+ {t:'Why this matters',art:'clock',pts:['Bleeding is the number one cause of preventable death after an injury.','A person can bleed to death in as little as 3 to 5 minutes.','Help often can\'t get there that fast. The people already on scene are the first responders.','Anyone can learn the three ways to stop bleeding.'],
+  q:'Why do bystanders matter so much in a bleeding emergency?',o:[['Someone can bleed to death before an ambulance can get there','good'],['Ambulances usually arrive within a minute or two of the call','bad'],['Bleeding almost always stops on its own if you just wait','bad']],why:'Severe bleeding can kill in minutes. The person next to the patient is the one who can stop it in time.'},
+ {t:'Your safety first',art:'safe',pts:['Before you go in, make sure it\'s safe: traffic, violence, fire, falling objects, electricity.','If it isn\'t safe, get yourself — and the injured person, if you can — somewhere safe first.','Protect yourself from blood if you can. Most bleeding control kits include gloves.','You can\'t help anyone if you become a patient too.'],
+  q:'A car hit a pole. The driver is bleeding and traffic is still moving past. What comes first?',o:[['Make sure you\'re safe from traffic before you go to the car','good'],['Run straight to the driver — every second counts here','bad'],['Wait in your car until the police show up to help','partial']],why:'Safety first — but then act. Use your hazard lights, watch the traffic, and go when it\'s safe to.'},
+ {t:'The ABCs of bleeding',art:'abc',pts:['A — Alert: call 911.','B — Bleeding: find the bleeding injury.','C — Compress: apply pressure to stop the bleeding.','Safety comes before all three.'],
+  q:'What does the C stand for?',o:[['Compress — pressure to stop the bleeding','good'],['Circulation — check for a pulse first','bad'],['Cover — put a bandage on and wait for help','bad']],why:'C is Compress: direct pressure, a tourniquet, or packing the wound and pressing.'},
+ {t:'A — Alert',art:null,pts:['Call 911 yourself, or point at one person: "You, in the red shirt — call 911."','Put the phone on speaker so your hands can stay on the wound.','Say where you are, what happened, and how many people are hurt.'],
+  q:'You\'re alone with someone who is bleeding badly. What about 911?',o:[['Call on speaker and start pressure while you talk','good'],['Stop the bleeding first, then call 911 after','bad'],['Yell "someone call 911!" and assume someone did','partial']],why:'Do both at once. A general shout often means everyone assumes someone else called.'},
+ {t:'B — Find the bleeding',art:null,pts:['Open or cut away clothing so you can see the wound.','Clothing can hide wounds and soak up a lot of blood.','Look all over, including underneath the person, where blood can pool out of sight.','Then decide: is this bleeding life-threatening?'],
+  q:'Their jacket is soaked, but you can\'t see a wound. What now?',o:[['Open the clothing to find exactly where it\'s coming from','good'],['Press hard on the jacket wherever it looks the wettest','bad'],['Ask them where it hurts the most and treat that spot first','partial']],why:'You can\'t control what you can\'t see. Expose the wound so your pressure goes exactly on the source.'},
+ {t:'B — Is it life-threatening?',art:null,pts:['Blood spurting out of the wound.','Blood that won\'t stop coming out.','Blood pooling on the ground.','Clothing or bandages soaked with blood.','Loss of all or part of an arm or leg.','Bleeding in someone who is now confused or unconscious.'],
+  q:'Which of these is life-threatening bleeding?',o:[['A steady flow that soaks through two towels','good'],['A scraped knee that\'s slowly oozing','bad'],['A nosebleed in someone who is alert and talking','bad']],why:'Soaking through bandages means the bleeding is serious. Act now.'},
+ {t:'C — Compress: three ways',art:'abc',pts:['Direct pressure with both hands.','A tourniquet, for an arm or leg.','Packing the wound, then pressing with both hands.','Which one depends on where the wound is and what you have.'],
+  q:'A deep wound in the groin is gushing. Which method?',o:[['Pack the wound, then press hard with both hands','good'],['Put a tourniquet right over the top of the wound','bad'],['Light pressure with a few fingers until help comes','partial']],why:'There\'s no room above a groin wound for a tourniquet. Pack it tightly, then push down hard.'},
+ {t:'Direct pressure',art:'press',pts:['Cover the wound with clean cloth or gauze, or use your gloved hands.','Both hands on top. Push down hard, using your body weight.','A firm surface underneath helps.','Don\'t lift to check. If blood soaks through, add more on top. Don\'t remove the first layer.','Keep pressing until professional help takes over.'],
+  q:'Blood soaks through the towel you\'re pressing on. What do you do?',o:[['Add another towel on top and keep pushing','good'],['Lift the towel off to see where it\'s coming from','bad'],['Replace it with a fresh, clean towel','partial']],why:'Lifting or removing the first layer breaks the seal and restarts the bleeding. Add on top.'},
+ {t:'Tourniquet',art:'tq',pts:['For life-threatening bleeding from an arm or leg.','Place it 2 to 3 inches above the wound — never on a joint. If that lands on the elbow or knee, go above the joint.','Pull the strap as tight as you can. Twist the rod until the bleeding stops. Lock it in place. Note the time.','It will hurt. That\'s expected, and it\'s working.','Still bleeding? Put a second tourniquet above the first. Never loosen or remove it.'],
+  q:'The wound is just below the elbow. Where does the tourniquet go?',o:[['Above the elbow, on the upper arm','good'],['Right on the elbow, 2 inches above the cut','bad'],['Directly over the wound so it presses on it','partial']],why:'A tourniquet on a joint can\'t squeeze the artery against bone. When 2–3 inches above lands on the elbow, go above the elbow.'},
+ {t:'Wound packing',art:'pack',pts:['For wounds where a tourniquet can\'t go — groin, armpit, neck — or for deep wounds.','Open the clothing. Push bleeding-control gauze (or any clean cloth) into the wound, directly onto the bleeding.','Pack it tight until it\'s full.','Then push down hard with both hands and hold until help takes over.'],
+  q:'You\'ve packed the wound tightly. Now what?',o:[['Push down hard with both hands and keep holding','good'],['Let go — the packing will do the work now','bad'],['Press for about 30 seconds, then check it','partial']],why:'Packing plus pressure is what stops the bleeding. Keep holding until responders take over.'},
+ {t:'Until help arrives',art:null,pts:['Keep the pressure on. Don\'t stop to check.','Keep the person warm and keep talking to them.','When responders arrive, tell them what happened, what you did, and when any tourniquet went on.','Never take off a tourniquet. That\'s for the hospital.'],
+  q:'The ambulance arrives. What do they most need from you?',o:[['What you did and what time the tourniquet went on','good'],['The person\'s full medical history, medications, and allergies','bad'],['Nothing — step back and they\'ll figure it out','partial']],why:'The tourniquet time tells the hospital how long the limb has been without blood flow.'},
+ {t:'Be ready',art:'kit',pts:['Bleeding control kits hold a tourniquet, gauze, gloves, and a marker.','Many schools, offices, and public buildings have them. Know where yours are.','Keep one in your car or bag.','Take an official hands-on course. This app is practice, not certification.'],
+  q:'What\'s the best way to be ready?',o:[['Know where the kits are, and take a hands-on course','good'],['Watch a video once, and you\'re all set','bad'],['Carry a kit, even if you\'ve never practiced with it','partial']],why:'Equipment plus hands-on practice. Skills fade without practice — that\'s what this app is for.'}];
+let LS=null;
+function lessonStart(){LS={i:0,first:{},answered:false,t0:Date.now()};$('lessonov').classList.remove('hidden');lessonRender();}
+function lessonRender(){const s=LESSON[LS.i];LS.answered=false;LS.ord=shuf(s.o.map((o,k)=>k));
+  $('lesson-box').innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center"><span class="tag">Lesson · ${LS.i+1} of ${LESSON.length}</span><button data-l="tv" style="padding:6px 10px;font-size:13px">${document.body.classList.contains('tv')?'Phone view':'Big-screen view'}</button></div>
+   <h2>${esc(s.t)}</h2>${s.art?`<div class="art">${ART[s.art]}</div>`:''}<ul>${s.pts.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>
+   <div style="border-top:1px solid var(--line);padding-top:10px"><p style="font-size:14px;color:var(--soft);margin:0 0 4px">Check your understanding</p><p style="font-size:17px;font-weight:700;margin:0 0 8px">${esc(s.q)}</p>
+   ${LS.ord.map(k=>`<button class="opt" data-l="ans" data-k="${k}">${esc(s.o[k][0])}</button>`).join('')}<p id="l-fb" style="font-size:15px"></p></div>
+   <div class="dots">${LESSON.map((_,k)=>`<i class="${k<=LS.i?'on2':''}"></i>`).join('')}</div>
+   <div class="row"><button data-l="prev" ${LS.i?'':'disabled'}>Back</button><button class="go" data-l="next" id="l-next" disabled>${LS.i+1<LESSON.length?'Next':'Finish'}</button></div>
+   <button data-l="quit" style="width:100%;margin-top:8px">Leave the lesson</button>`;
+  $('lessonov').scrollTop=0;}
+function lessonAct(ds){const a=ds.l;if(a==='ans'){if(LS.answered)return;const s=LESSON[LS.i],o=s.o[+ds.k],ok=o[1]==='good';if(LS.first[LS.i]===undefined)LS.first[LS.i]=ok;
+    if(ok){LS.answered=true;$('l-next').disabled=false;}$('l-fb').innerHTML=`<b style="color:${ok?'#7fe3a4':o[1]==='partial'?'#ffc23d':'#ff9a96'}">${ok?'Right.':o[1]==='partial'?'Not quite.':'No.'}</b> ${esc(ok?s.why:'Try again.')}`;}
+  else if(a==='next'){if(!LS.answered)return;if(LS.i+1<LESSON.length){LS.i++;lessonRender();}else lessonDone();}
+  else if(a==='prev'){if(LS.i){LS.i--;lessonRender();}}
+  else if(a==='tv'){document.body.classList.toggle('tv');lessonRender();}
+  else if(a==='quit'){$('lessonov').classList.add('hidden');LS=null;}}
+function lessonDone(){const right=Object.values(LS.first).filter(Boolean).length,score=Math.round(right/LESSON.length*100);$('lessonov').classList.add('hidden');record('lesson','lesson',score);
+  showDone('Lesson complete',score,`<p>${right} of ${LESSON.length} knowledge checks right on the first try.</p><p style="font-size:14px;color:var(--soft)">Next: practice the hands-on skills, then try a scenario.</p>`,()=>lessonStart());LS=null;}
+$('lesson-box').onclick=e=>{const b=e.target.closest&&e.target.closest('[data-l]');if(b)lessonAct(b.dataset);};
+/* =================== skill stations =================== */
+let ST=null;
+const PAR={tq:30,tqleg:45,pack:45,press:30};
+function limbSVG(limb,nearJoint,zones,placed){const arm=limb==='arm';const J=arm?170:150;const W=arm?(nearJoint?145:90):(nearJoint?125:225);
+  const shape=arm?'M14 50 Q20 34 40 36 L160 32 Q172 30 182 32 L300 26 L300 82 L182 76 Q172 78 160 76 L40 72 Q20 74 14 58 Z':'M14 52 Q18 30 46 34 L140 30 Q152 28 162 30 L300 18 L300 92 L162 80 Q152 82 140 80 L46 76 Q18 78 14 60 Z';
+  const lbl=arm?['hand','elbow','shoulder · heart →']:['foot','knee','hip · heart →'];
+  return `<svg viewBox="0 0 320 120"><path d="${shape}" fill="#e8c9a8" stroke="#a9876a"/><path d="M${J} ${arm?30:28} L${J} ${arm?78:82}" stroke="#a9876a" stroke-dasharray="3 3"/>
+    <text x="14" y="104" font-size="11" fill="#c3b2b5" font-family="sans-serif">${lbl[0]}</text><text x="${J}" y="104" font-size="11" fill="#c3b2b5" text-anchor="middle" font-family="sans-serif">${lbl[1]}</text><text x="306" y="104" font-size="11" fill="#c3b2b5" text-anchor="end" font-family="sans-serif">${lbl[2]}</text>
+    <ellipse cx="${W}" cy="55" rx="9" ry="6" fill="#a31d22"/><path d="M${W} 61 q-3 10 0 16" stroke="#a31d22" stroke-width="3" fill="none" id="st-drip"/>
+    <path d="M${W} 112 l0 -6 M${W+30} 112 l0 -6 M${W} 109 l30 0" stroke="#ffc23d" stroke-width="1.5"/><text x="${W+15}" y="119" font-size="9" fill="#ffc23d" text-anchor="middle" font-family="sans-serif">≈2 in</text>
+    ${(placed||[]).map(x=>`<rect x="${x-6}" y="${arm?24:16}" width="12" height="${arm?60:78}" rx="3" fill="#222" stroke="#555"/><rect x="${x-10}" y="${arm?16:8}" width="20" height="7" rx="2" fill="#e5383b"/>`).join('')}
+    ${zones.map(([z,x])=>`<g data-z="${z}" style="cursor:pointer"><rect x="${x-11}" y="${arm?20:12}" width="22" height="${arm?66:84}" rx="4" fill="rgba(255,90,93,.10)" stroke="#ff5a5d" stroke-dasharray="4 3"/></g>`).join('')}</svg>`;}
+function tqZones(){const s=ST;const arm=s.limb==='arm';const J=arm?170:150;const W=arm?(s.near?145:90):(s.near?125:225);
+  if(s.phase==='place2'){const T=s.placed[0];return [['onfirst',T],['abovefirst',Math.min(296,T+34)],['belowfirst',T-26]];}
+  return s.near?shuf([['on',W],['joint',J],['abovejoint',J+(arm?46:44)],['below',W-40]]):shuf([['on',W],['above',W+45>J-14&&W+45<J+14?W+38:W+45],['joint',J],['below',Math.max(30,W-42)]]);}
+function stationOpen(kind,opts,onDone){ST=Object.assign({kind,phase:'',err:0,t0:Date.now()/1000,rt:0,tension:0,occl:0,fill:0,holdT:0,holding:false,lastPack:null,soaked:false,placed:[],need2:false,count:1,onDone,fb:''},opts||{});
+  ST.par=kind==='tq'?(ST.limb==='leg'?PAR.tqleg:PAR.tq):PAR[kind];ST.holdN=ST.scenario?8:(kind==='pack'?20:16);
+  ST.phase=kind==='tq'?'place':kind==='pack'?'start':'cover';$('stov').classList.remove('hidden');stRender();}
+function stBleed(){const s=ST;if(!s)return 1;if(s.kind==='tq')return s.occl>=100?0:Math.max(.05,1-s.occl/100);if(s.kind==='pack')return s.phase==='hold'?(s.holding?.05:.5):s.phase==='packing'?(s.lapse?.8:.35):s.phase==='done'?.03:1;
+  return s.phase==='hold'||s.phase==='soak'?(s.holding?.12:.9):s.phase==='done'?.1:1;}
+function stRender(){const s=ST;if(!s)return;const B=[];let prompt='',art='';
+  const limbName=s.limb==='leg'?'leg':'arm',J=s.limb==='leg'?'knee':'elbow';
+  $('st-tag').textContent=s.scenario?'Your hands':'Skill station';
+  if(s.kind==='tq'){$('st-title').textContent=`Tourniquet — ${limbName}${s.count>1?' (second)':''}`;
+    if(s.phase==='place'||s.phase==='place2'){s.zones=s.zones||tqZones();prompt=s.phase==='place2'?'Tap where the second tourniquet goes.':`Tap where the tourniquet goes. The wound is ${s.near?`just below the ${J}`:s.limb==='leg'?'in the middle of the thigh':'in the middle of the forearm'}.`;art=limbSVG(s.limb,s.near,s.zones,s.placed);}
+    else art=limbSVG(s.limb,s.near,[],s.placed);
+    if(s.phase==='pull'){prompt='Pull the strap as tight as you can. Get every bit of slack out before you twist.';B.push(['pull','Pull the strap tighter'],['totwist','Start twisting the rod']);}
+    if(s.phase==='twist'){prompt='Twist the rod until the bleeding stops.';B.push(['twist','Twist the rod']);}
+    if(s.phase==='lock'){prompt=s.need2&&s.count===1?'The rod won\'t turn any further — lock it where it is.':'Bleeding stopped. Secure the rod so it can\'t unwind.';B.push(['lock','Lock the rod in the clip'],['letgo','Let go — it\'ll hold']);}
+    if(s.phase==='decide2'){prompt='The first tourniquet is as tight as it goes, and it\'s still bleeding. What now?';B.push(['second','Put a second tourniquet above the first'],['loosen','Loosen it and start over'],['harder','Force the rod another turn']);}
+    if(s.phase==='time'){prompt='Last step.';B.push(['time','Write the time on the tourniquet'],['notime','Skip it — the hospital will know']);}}
+  if(s.kind==='pack'){$('st-title').textContent=`Wound packing — ${s.site||'groin'}`;art=ART.pack;
+    if(s.phase==='start'){prompt=`A deep wound high in the ${s.site||'groin'}, pouring blood. What first?`;B.push(...shuf([['pressfirst','Press on it now, then start packing'],['tqhere','Put a tourniquet above it'],['cloth','Find a cleaner cloth first']]));}
+    if(s.phase==='packing'){prompt='Push gauze into the wound, right onto the bleeding. Keep a finger pressing as you feed in more. Pack it until it\'s full.';B.push(['pack','Pack more gauze in']);}
+    if(s.phase==='hold'){prompt='Packed tight. Both hands on top — push down hard, and hold.';B.push(['hold',s.holding?`Holding — ${Math.ceil(s.holdN-s.holdT)} s (tap to let go)`:'Both hands — push down hard']);}}
+  if(s.kind==='press'){$('st-title').textContent='Direct pressure';art=ART.press;
+    if(s.phase==='cover'){prompt='A deep cut on the forearm, bleeding steadily. You have a clean towel.';B.push(...shuf([['cover','Cover it with the towel, then press'],['look','Look closer at the wound first']]));}
+    if(s.phase==='hold'){prompt='Both hands. Push down hard, using your body weight.';B.push(['hold',s.holding?`Holding — ${Math.ceil(s.holdN-s.holdT)} s (tap to let go)`:'Both hands — push down hard']);}
+    if(s.phase==='soak'){prompt='Blood is soaking through the towel.';B.push(...shuf([['addon','Add more cloth on top, keep pushing'],['lift','Lift the towel to look'],['swap','Swap in a fresh towel']]));}}
+  if(s.phase==='done'){prompt='Done.';B.length=0;}
+  $('st-prompt').textContent=prompt;$('st-art').innerHTML=art;$('st-btns').innerHTML=B.map(([a,t])=>`<button data-s="${a}" class="${a==='hold'&&s.holding?'hold':''}">${esc(t)}</button>`).join('');
+  const bl=stBleed();$('st-bleed').style.width=(bl*100)+'%';$('st-bleed').style.background=bl<.1?'#39e36f':bl<.5?'#ffc23d':'#e5383b';$('st-bleed-l').textContent=bl<.08?'Stopped':bl<.4?'Slowing':'Bleeding';
+  $('st-fb').innerHTML=s.fb;}
+function stErr(msg){ST.err++;ST.fb=`<span style="color:#ff9a96">${esc(msg)}</span>`;if(ST.scenario&&typeof ding==='function'&&S.active)ding(3,msg);}
+function stOk(msg){ST.fb=`<span style="color:#7fe3a4">${esc(msg)}</span>`;}
+function stZone(z){const s=ST;if(!s||s.kind!=='tq'||(s.phase!=='place'&&s.phase!=='place2'))return;const J=s.limb==='leg'?'knee':'elbow';
+  const good=s.phase==='place2'?'abovefirst':s.near?'abovejoint':'above';
+  if(z===good){const x=s.zones.find(q=>q[0]===z)[1];s.placed.push(x);s.zones=null;s.phase=s.phase==='place2'?'pull':'pull';s.tension=0;stOk(s.count>1?'Right — just above the first one.':'Right — 2 to 3 inches above the wound, toward the heart'+(s.near?`, and above the ${J}.`:'.'));}
+  else stErr({on:'Not on the wound itself — go 2 to 3 inches above it, toward the heart.',joint:`Not on the ${J} — a tourniquet can't squeeze the artery against a joint.${s.near?` When 2–3 inches above lands on the ${J}, go above the ${J}.`:''}`,below:'That\'s below the wound — the tourniquet has to be between the wound and the heart.',above:`2–3 inches above lands right on the ${J} here. Go above the ${J}.`,onfirst:'Not on top of the first one — just above it.',belowfirst:'Between the wound and the first tourniquet won\'t help — go above the first one.'}[z]||'Not there.');
+  stRender();}
+function stAct(a){const s=ST;if(!s)return;
+  if(s.kind==='tq'){
+    if(a==='pull'&&s.phase==='pull'){s.tension=Math.min(100,s.tension+34);s.fb=`Strap: ${s.tension>=100?'<b style="color:#7fe3a4">tight — no slack</b>':s.tension>=66?'snug — a little slack left':'loose'}`;}
+    if(a==='totwist'&&s.phase==='pull'){if(s.tension<100){stErr('There\'s still slack in the strap. Pull it as tight as you can before you twist — otherwise you\'ll run out of turns.');}else{s.phase='twist';s.fb='';}}
+    if(a==='twist'&&s.phase==='twist'){const per=(s.limb==='leg'?17:26)*(s.tension/100);s.occl=Math.min(100,s.occl+per);
+      if(s.need2&&s.count===1&&s.occl>=78){s.occl=78;s.phase='lock';stOk('The rod won\'t turn any further.');}
+      else if(s.occl>=100){s.phase='lock';stOk('The bleeding has stopped. It hurts — that\'s expected.');}else s.fb=`<span style="color:#ffc23d">Still bleeding — keep twisting.</span>`;}
+    if(a==='lock'&&s.phase==='lock'){if(s.need2&&s.count===1){s.phase='decide2';s.fb='';}else{s.phase='time';stOk('Locked.');}}
+    if(a==='letgo'&&s.phase==='lock'){s.occl=Math.max(0,s.occl-55);s.phase='twist';stErr('The rod unwound and the bleeding started again. Always lock the rod in its clip.');}
+    if(a==='second'&&s.phase==='decide2'){s.count=2;s.phase='place2';s.occl=78;s.zones=null;stOk('Right — a second tourniquet, just above the first.');}
+    if((a==='loosen'||a==='harder')&&s.phase==='decide2')stErr(a==='loosen'?'Never loosen a tourniquet. Put a second one above the first.':'Forcing it can break the rod. Put a second tourniquet above the first.');
+    if(a==='time'&&s.phase==='time'){s.timed=true;stDone();return;}
+    if(a==='notime'&&s.phase==='time'){stErr('Write the time. The hospital needs to know how long the limb has been without blood flow.');}
+    if(s.phase==='pull'&&s.count===2&&a==='totwist'&&s.tension>=100){s.occl=78;}}
+  if(s.kind==='pack'){
+    if(s.phase==='start'){if(a==='pressfirst'){s.phase='packing';stOk('Good — pressure right away, then pack.');}else stErr(a==='tqhere'?'There\'s no room for a tourniquet above a wound this high. Press and pack.':'Don\'t delay. Press now with whatever you have.');}
+    else if(a==='pack'&&s.phase==='packing'){if(s.lastPack!==null&&s.rt-s.lastPack>3.5){stErr('You took your fingers off and the bleeding picked up. Keep pressure as you pack.');}else s.fb='';s.lastPack=s.rt;s.lapse=false;s.fill=Math.min(8,s.fill+1);s.fb+=`<br>Packed: ${'■'.repeat(s.fill)}${'□'.repeat(8-s.fill)}`;if(s.fill>=8){s.phase='hold';s.fb='Wound is full. Now hold.';}}
+    else if(a==='hold'&&s.phase==='hold'){s.holding=!s.holding;if(!s.holding&&s.holdT<s.holdN){stErr('Don\'t let up — keep pressing until help takes over.');s.holdT=0;}}}
+  if(s.kind==='press'){
+    if(s.phase==='cover'){if(a==='cover'){s.phase='hold';stOk('Covered. Now press.');}else if(a==='look')stErr('Don\'t delay — cover it and press. You can see enough.');}
+    else if(a==='hold'&&s.phase==='hold'){s.holding=!s.holding;if(!s.holding&&s.holdT<s.holdN){stErr('Don\'t lift to check — keep pressing.');s.holdT=0;}}
+    else if(s.phase==='soak'){if(a==='addon'){s.phase='hold';s.soaked=true;stOk('Right — add on top, never remove the first layer.');}else{stErr(a==='lift'?'Lifting breaks the seal and restarts the bleeding.':'Removing the first layer pulls off any clot. Add on top instead.');s.holdT=0;s.phase='hold';s.soaked=true;}}}
+  stRender();}
+function stTick(dtReal){const s=ST;if(!s)return;s.rt+=dtReal;
+  if(s.kind==='pack'&&s.phase==='packing'&&s.lastPack!==null&&s.rt-s.lastPack>3.5&&!s.lapse){s.lapse=true;}
+  if((s.phase==='hold')&&s.holding){s.holdT+=dtReal;if(s.kind==='press'&&!s.soaked&&s.holdT>=s.holdN/2){s.phase='soak';s.holding=false;}
+    if(s.holdT>=s.holdN){s.holding=false;stDone();return;}}
+  stRender();}
+function stDone(){const s=ST;s.phase='done';const secs=Math.round(Date.now()/1000-s.t0);const cb=s.onDone;$('stov').classList.add('hidden');ST=null;
+  if(cb)cb({err:s.err,secs,timed:!!s.timed,count:s.count,kind:s.kind});}
+$('st-btns').onclick=e=>{const b=e.target.closest&&e.target.closest('[data-s]');if(b)stAct(b.dataset.s);};
+$('st-art').onclick=e=>{const b=e.target.closest&&e.target.closest('[data-z]');if(b)stZone(b.dataset.z);};
+function practice(id){const def={'tq-arm':['tq',{limb:'arm',near:Math.random()<.45}],'tq-leg':['tq',{limb:'leg',near:false,need2:Math.random()<.5}],'pack':['pack',{site:pick(['groin','armpit'])}],'press':['press',{}]}[id];
+  const name={'tq-arm':'Tourniquet — arm','tq-leg':'Tourniquet — leg','pack':'Wound packing','press':'Direct pressure'}[id];
+  stationOpen(def[0],FORCE&&FORCE[id]?Object.assign(def[1],FORCE[id]):def[1],r=>{const score=Math.max(0,100-r.err*10-Math.max(0,r.secs-(def[0]==='tq'?(def[1].limb==='leg'?PAR.tqleg:PAR.tq):PAR[def[0]])));record('station',id,score);
+    showDone(name,score,`<p>${r.secs} seconds · ${r.err} mistake${r.err===1?'':'s'}${r.count>1?' · second tourniquet applied':''}</p><p style="font-size:14px;color:var(--soft)">${r.err?'Run it again until it\'s clean — the goal is doing it right, fast, without thinking.':'Clean. Now do it faster — or try a scenario.'}</p>`,()=>practice(id));});}
+document.querySelectorAll('[data-st]').forEach(b=>b.onclick=()=>practice(b.dataset.st));
+/* =================== scenarios =================== */
+const PRESF={arm:.15,leg:.32,groin:.45,scalp:.12};
+function mkV(o){return Object.assign({lost:150,vol:5000,exposed:false,identified:false,pressure:null,packed:false,tq:0,tqNeeded:1,tqMarked:false,tqT:null,warm:false,dead:false,covered:false,firstCompT:null},o);}
+const SCN={
+ kitchen:{title:'"He cut his arm on the glass"',t0:18*3600+42*60,eta:420,helper:'Dana',
+  brief:()=>`Your neighbor Dana is screaming from her kitchen. Her husband Rob, 45, slipped carrying a glass pitcher. There's a deep cut on his forearm, and blood is spurting onto the floor with every heartbeat. ${V.kit?'You have a bleeding control kit in your car — and you ran it inside with you.':'You don\'t have a bleeding control kit with you.'}`,
+  victims:()=>[mkV({id:'rob',name:'Rob',desc:'deep cut, forearm',type:'arm',base:5.5,life:true,near:V.near})],
+  steps:()=>[{t:'Make sure the scene is safe',f:()=>S.safe},{t:'Alert: get 911 called',f:()=>S.alerted},{t:'Bleeding: expose the wound',f:()=>vv().exposed},
+   {t:'Decision: is it life-threatening?',dec:'lifeThreat',f:()=>vv().exposed},{t:'Compress: direct pressure now',f:()=>vv().firstCompT!==null},
+   ...(V.kit?[{t:'Tourniquet — above the wound, not on a joint',f:()=>vv().tq>=1},{t:'Tourniquet time marked',f:()=>vv().tqMarked}]:[{t:'Decision: no tourniquet',dec:'noKit',any:true,f:()=>vv().firstCompT!==null},{t:'Hold pressure until EMS takes over',wait:true,f:()=>S.emsArr&&vv().pressure}]),
+   {t:'Keep him warm',f:()=>vv().warm},{t:'EMS arrives',wait:true,f:()=>S.emsArr},{t:'Decision: handoff',dec:'handoff',f:()=>S.emsArr}]},
+ garage:{title:'Table saw in the garage',t0:10*3600+15*60,eta:480,helper:'Marcus',
+  brief:()=>'Your friend Tom, 38, was ripping a board on a table saw when it kicked back. The blade cut deep into his right thigh. He\'s sitting on the garage floor, and blood is pooling around him. His son Marcus, 16, is standing in the doorway. There\'s a bleeding control kit on the workbench.',
+  victims:()=>[mkV({id:'tom',name:'Tom',desc:'deep cut, middle of the thigh',type:'leg',base:9,life:true,need2:V.need2,tqNeeded:V.need2?2:1})],
+  steps:()=>[{t:'Make sure the scene is safe',f:()=>S.safe},{t:'Alert: get 911 called',f:()=>S.alerted},{t:'Bleeding: expose the wound',f:()=>vv().exposed},
+   {t:'Decision: is it life-threatening?',dec:'lifeThreat',f:()=>vv().exposed},{t:'Compress: direct pressure now',f:()=>vv().firstCompT!==null},
+   {t:'Tourniquet — above the wound',f:()=>vv().tq>=1},{t:'Tourniquet time marked',f:()=>vv().tqMarked},{t:'Keep him warm',f:()=>vv().warm},
+   {t:'EMS arrives',wait:true,f:()=>S.emsArr},{t:'Decision: handoff',dec:'handoff',f:()=>S.emsArr}]},
+ glass:{title:'Through the glass door',t0:15*3600+5*60,eta:420,helper:'a coworker',
+  brief:()=>`A delivery driver, 29, slipped and went through a glass door at your workplace. A large shard cut deep into his ${V.site==='armpit'?'armpit':'groin, right where the leg meets the body'}. Blood is pooling fast. A coworker grabs the bleeding control kit off the wall.`,
+  victims:()=>[mkV({id:'drv',name:'Driver',desc:`deep wound, ${V.site}`,type:'groin',base:8,life:true,site:V.site})],
+  steps:()=>[{t:'Make sure the scene is safe',f:()=>S.safe},{t:'Alert: get 911 called',f:()=>S.alerted},{t:'Bleeding: expose the wound',f:()=>vv().exposed},
+   {t:'Compress: direct pressure now',f:()=>vv().firstCompT!==null},{t:'Decision: tourniquet or packing?',dec:'junction',f:()=>vv().firstCompT!==null},
+   {t:'Pack the wound',f:()=>vv().packed},{t:'Hold pressure until EMS takes over',wait:true,f:()=>S.emsArr&&vv().pressure},{t:'Keep him warm',f:()=>vv().warm},
+   {t:'EMS arrives',wait:true,f:()=>S.emsArr},{t:'Decision: handoff',dec:'handoff',f:()=>S.emsArr}]},
+ crash:{title:'Two-car crash',t0:21*3600+20*60,eta:540,helper:'a bystander',
+  brief:()=>'You come up on a two-car crash on a county road at night. One car is sideways across the lane. A driver is slumped against his door, and a woman is sitting on the shoulder holding her head, blood running down her face. Traffic is still squeezing past. You have a bleeding control kit in your trunk.',
+  victims:()=>[mkV({id:'d1',name:'Driver 1',desc:'deep cut, thigh — getting quiet',type:'leg',base:8.5,life:true}),mkV({id:'d2',name:'Driver 2',desc:'scalp cut — bleeding heavily over her face',type:'scalp',base:1.4,life:false,lost:250})],
+  steps:()=>[{t:'Decision: the traffic',dec:'crashSafety',f:()=>true},{t:'Make sure the scene is safe',f:()=>S.safe},{t:'Alert: 911 — two people hurt',f:()=>S.alerted},
+   {t:'Bleeding: check both people',f:()=>S.vs.every(v=>v.exposed)},{t:'Decision: who first?',dec:'triage',f:()=>S.vs.every(v=>v.exposed)},
+   {t:'Tourniquet on Driver 1',f:()=>S.vs[0].tq>=1},{t:'Tourniquet time marked',f:()=>S.vs[0].tqMarked},
+   {t:'Get a bystander holding pressure on Driver 2',f:()=>S.vs[1].pressure==='helper'},{t:'Keep them warm',f:()=>S.vs.every(v=>v.warm)},
+   {t:'EMS arrives',wait:true,f:()=>S.emsArr},{t:'Decision: handoff',dec:'handoff',f:()=>S.emsArr}]}};
+let V={};
+const VARIANTS={kitchen:()=>({kit:Math.random()<.65,near:Math.random()<.4}),garage:()=>({need2:Math.random()<.4}),glass:()=>({site:Math.random()<.6?'groin':'armpit'}),crash:()=>({})};
+function vlabel(id){return {kitchen:`${V.kit?'Tourniquet available':'No tourniquet — pressure only'}${V.kit?(V.near?' · wound just below the elbow':' · wound mid-forearm'):''}`,garage:V.need2?'Needed a second tourniquet':'One tourniquet was enough',glass:`Wound in the ${V.site}`,crash:'Two patients, one of you'}[id];}
+function vv(){return S.vs[S.sel||0];}
+function scStart(id){SC=SCN[id];V=Object.assign(VARIANTS[id](),FORCE&&FORCE[id]||{});
+  S={active:true,running:false,id,t:0,rt:0,t0:SC.t0,score:100,incidents:[],log:[],safe:false,alerted:false,alertT:null,emsArr:false,eta:SC.eta+(TIER===2?120:0),sel:0,helperFree:true,briefing:true,chaos:{}};
+  S.vs=SC.victims();S.steps=SC.steps();stepsDone=S.steps.map(()=>false);DEC_OPEN=null;
+  $('home').classList.add('hidden');$('game').classList.remove('hidden');$('radio').innerHTML='';$('g-title').textContent=SC.title;
+  $('steps').innerHTML=TIER===0?S.steps.map((s,j)=>`<li id="st-${j}"><span class="box"></span><span>${esc(s.t)}</span></li>`).join(''):`<li><span class="box"></span><span>Checklist hidden — ${S.steps.length} steps. <span id="rcn"></span></span></li>`;
+  $('m-title').textContent='Checklist';$('m-sub').textContent='Safety, then A, B, C.';
+  $('brief-t').textContent=SC.title;$('brief-x').textContent=SC.brief();$('briefov').classList.remove('hidden');scRender();}
+$('brief-go').onclick=()=>{$('briefov').classList.add('hidden');S.briefing=false;S.running=true;radio('You','Here we go. Safety, then A, B, C.');};
+$('brief-menu').onclick=()=>showHome();
+function rateOf(v){if(v.dead)return 0;if(v.tq>=v.tqNeeded)return 0;let f=1;
+  if(v.tq>=1)f=.3;else if(v.packed&&v.pressure)f=.03;else if(v.packed)f=.3;else if(v.pressure)f=PRESF[v.type];else if(v.covered)f=.9;return v.base*f;}
+function cond(v){const p=v.lost/v.vol;return v.dead?'Not breathing':p<.15?'Alert, scared':p<.3?'Pale, anxious, breathing fast':p<.4?'Confused, cold and clammy':'Barely responsive';}
+/* actions */
+function act(a){if(!S.active||!S.running)return;const v=vv();const H=SC.helper;
+  if(a==='safe'){if(S.safe)return;S.safe=true;radio('You',S.id==='crash'?'Hazards on, parked behind the wreck to shield it, watching traffic — clear to go.':S.id==='glass'?'Glass is everywhere — gloves on, kicking the big pieces aside. Okay.':'Floor\'s wet and there\'s broken glass — gloves on, watching my footing.');}
+  else if(a==='call'){if(S.alerted)return;S.alerted=true;S.alertT=S.t;radio('You',S.helperFree&&S.id!=='crash'?`${H}, call 911 — put it on speaker. Tell them where we are and that he's bleeding badly.`:'911 on speaker: "Two-car crash, County Road 7 at Mackinaw. Two people bleeding, one badly."');if(S.id==='crash')radio('Dispatcher','Help is on the way. Stay on the line if you can.');}
+  else if(a==='expose'){if(!v.exposed){v.exposed=true;radio('You',{rob:'Cutting the sleeve back… bright red, pulsing out of a deep cut.',tom:'Cutting his jeans open… a deep gash in the thigh. Blood is pooling under him.',drv:`Tearing the clothing away… deep wound, high in the ${V.site}. It\'s pouring.`,d1:'Driver 1: cutting his pant leg — deep thigh wound, jeans soaked through, he\'s getting quiet.',d2:'Driver 2: scalp cut — lots of blood over her face, but she\'s talking and yelling for help.'}[v.id]);}}
+  else if(a==='press'){if(v.pressure==='you'){v.pressure=null;radio('You','Letting go of the pressure.','bad');if(v.firstCompT!==null&&!(v.tq>=v.tqNeeded)&&!S.emsArr)ding(5,'Let go of pressure before help took over — the bleeding picked right back up');return;}
+    if(!v.exposed){radio('You','Find the wound first — expose it.','bad');return;}S.vs.forEach(x=>{if(x.pressure==='you')x.pressure=null;});v.pressure='you';v.covered=true;if(v.firstCompT===null)v.firstCompT=S.t;radio('You',`Both hands on ${v.id==='rob'||v.id==='tom'||v.id==='drv'?'it':v.name+'\'s wound'} — pushing down hard.`);}
+  else if(a==='helper'){if(S.id==='crash'){if(v.id!=='d2'){radio('You','A bystander should take the less serious one — you handle the life threat.','bad');return;}if(!v.exposed){radio('You','Check her first.','bad');return;}v.pressure='helper';v.covered=true;if(v.firstCompT===null)v.firstCompT=S.t;radio('You','You — sir! Gloves are in here. Press this gauze on her head with both hands, hard, and don\'t let up.');radio('Bystander','Okay — like this? Okay.');return;}
+    if(!S.alerted){radio('You',`Get 911 called first — then ${H} can take over pressure.`,'bad');return;}if(v.firstCompT===null){radio('You','Start the pressure yourself first.','bad');return;}v.pressure='helper';radio('You',`${H}, put both hands here, right where mine are — push hard and don't let up.`);radio(H,'Okay — I\'ve got it.');}
+  else if(a==='tq'){if(!(S.id!=='kitchen'||V.kit)){radio('You','There\'s no tourniquet here.','bad');return;}if(!v.exposed){radio('You','Expose the wound first.','bad');return;}if(v.type==='groin'||v.type==='scalp'){radio('You',v.type==='scalp'?'Not for a head wound — pressure.':`There\'s no room for a tourniquet above a wound in the ${V.site}.`,'bad');if(v.type==='groin')ding(3,'Tourniquet attempted on a junctional wound — pack it instead');return;}
+    if(v.tq>=v.tqNeeded)return;const had=v.pressure;if(had==='you')v.pressure=null;
+    S.inStation=true;stationOpen('tq',{limb:v.type,near:!!v.near,need2:!!v.need2,scenario:true},r=>{S.inStation=false;v.tq=r.count>=v.tqNeeded?v.tqNeeded:r.count;v.tqT=S.t;v.tqMarked=r.timed;if(v.firstCompT===null)v.firstCompT=S.t;radio('You',`Tourniquet${r.count>1?'s':''} on — bleeding stopped. Time written: ${clock()}.`,'good');if(v.pressure==='helper')v.pressure=null;scRender();});}
+  else if(a==='pack'){if(!v.exposed){radio('You','Expose the wound first.','bad');return;}if(v.type==='scalp'){radio('You','A scalp cut just needs firm pressure.');return;}if(v.packed)return;
+    S.inStation=true;stationOpen('pack',{site:V.site||'wound',scenario:true},r=>{S.inStation=false;v.packed=true;v.pressure='you';if(v.firstCompT===null)v.firstCompT=S.t;radio('You','Packed tight, both hands on top. Not letting go.','good');scRender();});}
+  else if(a==='warm'){if(v.warm)return;v.warm=true;radio('You',`Blanket over ${v.id==='d2'?'her':'him'} — keep the heat in.`);}
+  else if(a==='talk'){radio('You',pick(['Stay with me. Help is almost here.','You\'re doing great. Keep breathing.','Look at me — I\'ve got you.']));}
+  else if(a.startsWith('sel')){const i=+a.slice(3);if(Number.isInteger(i)&&i>=0&&i<S.vs.length)S.sel=i;}
+  scRender();}
+function scTick(dtReal){if(!S.active)return;S.rt+=dtReal;if(ST&&S.inStation)stTick(dtReal);if(!S.running)return;const dt=dtReal*2;S.t+=dt;
+  for(const v of S.vs){if(v.dead)continue;v.lost+=rateOf(v)*dt;if(v.lost>=v.vol*.55){v.dead=true;radio('You',`${v.name} has stopped breathing.`,'bad');}}
+  if(!S.emsArr){S.eta-=dt;if(S.eta<=0){S.emsArr=true;radio('EMS','Paramedics are here — we\'ve got him. What happened?','good');}}
+  if(!S.alerted&&S.t>90&&!S.alertDing){S.alertDing=true;ding(5,'No one has called 911 yet — Alert is the A in the ABCs');}
+  const v0=S.vs[0];if(v0.life&&v0.firstCompT===null&&S.t>120&&!S.compDing){S.compDing=true;ding(10,'Two minutes without pressure on a life-threatening bleed');}
+  if(TIER===2&&!S.chaos.slip&&S.t>200&&S.vs[0].pressure==='helper'){S.chaos.slip=true;S.vs[0].pressure=null;radio(SC.helper==='a bystander'?'Bystander':SC.helper,'I — I can\'t — I\'m going to be sick…','bad');radio('You','The pressure slipped! Get back on it.','bad');}
+  if(TIER===2&&!S.chaos.eta&&S.t>60){S.chaos.eta=true;radio('Dispatcher','Units are coming from farther away — it may be a few more minutes.','bad');}
+  if(S.vs.every(v=>v.dead||!v.life)&&S.vs[0].dead){S.running=false;scFinish(true);return;}
+  scCheck();scRender();}
+function scCheck(){let all=true,done=0;S.steps.forEach((s,j)=>{if(stepsDone[j]){done++;return;}const prev=j===0||stepsDone[j-1];
+  if(s.dec){if(!DEC_OPEN&&!S.inStation&&(prev||s.any)&&s.f())openDec(s.dec,j);all=false;return;}
+  if(prev&&s.f()){stepsDone[j]=true;done++;const el=$('st-'+j);if(el)el.classList.add('done');}else all=false;});
+  if($('rcn'))$('rcn').textContent=`${done} of ${S.steps.length} done`;if(all&&S.running){S.running=false;scFinish(false);}}
+function scRender(){if(!S.active)return;const H=SC.helper;$('g-score').textContent=S.score;$('g-clock').textContent=clock();
+  $('g-eta-l').textContent='Ambulance';$('g-eta').textContent=S.emsArr?'On scene':mmss(S.eta)+' out';
+  $('victims').innerHTML=S.vs.map((v,i)=>{const p=Math.min(1,v.lost/(v.vol*.55));const r=rateOf(v);return `<div class="vic" style="${S.vs.length>1&&i===S.sel?'border-color:#ff5a5d':''}"><div class="hdr"><span>${esc(v.name)} · ${esc(v.exposed?v.desc:'wound not found yet')}</span><span style="color:${r<.05?'#7fe3a4':r<=v.base*.5?'#ffc23d':'#ff9a96'}">${v.dead?'—':r<.05?'bleeding stopped':r<=v.base*.5?'bleeding slowed':'BLEEDING'}</span></div>
+    <div class="bar"><div style="width:${p*100}%;background:${p<.4?'#ffc23d':'#e5383b'}"></div><span>blood lost ≈ ${Math.round(v.lost/50)*50} mL</span></div>
+    <div class="vrow"><div class="v"><div class="l">Condition</div><div class="n" style="font-size:16px">${esc(cond(v))}</div></div><div class="v"><div class="l">Pressure</div><div class="n" style="font-size:16px">${v.pressure==='you'?'your hands':v.pressure==='helper'?esc(S.id==='crash'?'bystander':H):'none'}</div></div><div class="v"><div class="l">Tourniquet</div><div class="n" style="font-size:16px">${v.tq?(v.tq>1?'2 on':'on')+(v.tqMarked?' · '+clock(v.tqT):''):v.packed?'packed':'—'}</div></div></div>
+    ${S.vs.length>1?`<button data-a="sel${i}" style="width:100%;margin-top:8px" class="${i===S.sel?'on':''}">${i===S.sel?'Working on '+esc(v.name):'Go to '+esc(v.name)}</button>`:''}</div>`;}).join('');
+  const v=vv();const kit=S.id!=='kitchen'||V.kit;
+  $('deck').innerHTML=`<div class="grp"><h3><b>Safety</b></h3><div class="row"><button data-a="safe" class="${S.safe?'on':''}">Check the scene</button><span></span></div></div>
+   <div class="grp"><h3><b>A</b> · Alert</h3><div class="row"><button data-a="call" class="${S.alerted?'on':''}">${S.id==='crash'?'Call 911 on speaker':'Have '+esc(H)+' call 911'}</button><span></span></div></div>
+   <div class="grp"><h3><b>B</b> · Bleeding</h3><div class="row"><button data-a="expose" class="${v.exposed?'on':''}">Expose the wound</button><span></span></div></div>
+   <div class="grp"><h3><b>C</b> · Compress</h3><div class="row"><button data-a="press" class="${v.pressure==='you'?'hold':''}">${v.pressure==='you'?'Pressing — tap to let go':'Direct pressure — both hands'}</button>
+     <button data-a="helper" class="${v.pressure==='helper'?'on':''}">${S.id==='crash'?'Have a bystander hold pressure':'Have '+esc(H)+' hold pressure'}</button>
+     ${kit?`<button data-a="tq" class="${v.tq>=v.tqNeeded?'on':''}">Tourniquet</button>`:''}<button data-a="pack" class="${v.packed?'on':''}">Pack the wound</button></div></div>
+   <div class="grp"><h3>Care</h3><div class="row"><button data-a="warm" class="${v.warm?'on':''}">Blanket — keep warm</button><button data-a="talk">Talk to them</button></div></div>`;}
+$('deck').onclick=e=>{const b=e.target.closest&&e.target.closest('[data-a]');if(b)act(b.dataset.a);};
+$('victims').onclick=e=>{const b=e.target.closest&&e.target.closest('[data-a]');if(b)act(b.dataset.a);};
+$('g-menu').onclick=()=>showHome();$('g-restart').onclick=()=>scStart(S.id);
+document.querySelectorAll('[data-sc]').forEach(b=>b.onclick=()=>scStart(b.dataset.sc));
+/* =================== decisions =================== */
+const DEC={
+ lifeThreat:{q:()=>({kitchen:'Bright red blood is spurting from his forearm with each heartbeat, and the dish towel is already soaked. Is this life-threatening?',garage:'Blood is pooling on the concrete under his thigh and his jeans are soaked through. Is this life-threatening?'}[S.id]),
+  o:[['Yes — act now: pressure, then a tourniquet if you have one','good'],['No — limb wounds are rarely serious; bandage it and wait','bad'],['Maybe — watch it for a minute and see if it slows down','partial']],why:'Spurting, pooling, and soaked clothing are all signs of life-threatening bleeding. Every minute counts.'},
+ noKit:{q:'There\'s no tourniquet in the house. Dana grabs a leather belt: "Can we use this?" What do you do?',
+  o:[['Keep firm pressure with both hands','good'],['Use the belt — any tourniquet beats pressure alone','bad'],['Try the belt, and switch to pressure if it fails','partial']],why:'Improvised tourniquets like belts usually can\'t be tightened enough and can make bleeding worse. Firm, steady direct pressure with both hands works — and if the wound is deep, pack it with a clean cloth first.'},
+ junction:{q:()=>`The wound is high in the ${V.site}, right where the ${V.site==='armpit'?'arm':'leg'} meets the body. Your coworker holds out the tourniquet from the kit. Will it work here?`,
+  o:[['No — there\'s no room above it. Pack it, then press','good'],['Yes — cinch it as high up on the limb as it will go','bad'],['Try it first, and pack if it doesn\'t stop','partial']],why:'Junctional wounds — groin, armpit, neck — are too close to the body for a tourniquet. Pack the wound tightly and hold firm pressure with both hands.'},
+ crashSafety:{q:'One car is sideways across the lane. Traffic is still squeezing past in the dark. What first?',
+  o:[['Hazards on, park behind it as a shield, watch traffic, then go','good'],['Run straight across the lane to the closest driver','bad'],['Stay in your car until police block the road','partial']],why:'Protect yourself first — you can\'t help anyone if you\'re hit. Then go, and stay aware of traffic.'},
+ triage:{q:'Driver 1 has a deep thigh wound, jeans soaked, and he\'s gotten quiet. Driver 2 has a scalp cut with blood all over her face, and she\'s screaming for help. Who gets your hands first?',
+  o:[['Driver 1 — the quiet one with the soaked thigh','good'],['Driver 2 — she\'s screaming and covered in blood','bad'],['Whoever you get to first, then the other one','partial']],why:'Quiet plus soaked means life-threatening bleeding and early shock. Scalp cuts bleed dramatically but usually stop with firm pressure — and someone screaming is breathing and has blood to their brain. Put a bystander on her head wound.'},
+ handoff:{q:'The paramedics take over. What do you tell them?',
+  o:[['What happened, what you did, and when you did it','good'],['Nothing — they can see the blood and know what to do','bad'],['That he\'s lost a lot of blood and they need to hurry','partial']],why:'Tell them the injury, your interventions, and the times — especially when any tourniquet went on, so the hospital knows how long the limb has gone without blood flow.'}};
+function openDec(key,j){const d=DEC[key];DEC_OPEN={key,j};S.running=false;const q=typeof d.q==='function'?d.q():d.q;const ord=shuf(d.o.map((_,i)=>i));
+  $('dec-q').textContent=q;$('dec-opts').innerHTML=ord.map(i=>`<button class="opt" data-i="${i}">${esc(d.o[i][0])}</button>`).join('');$('dec-opts').classList.remove('hidden');$('dec-fb').classList.add('hidden');$('decov').classList.remove('hidden');}
+$('dec-opts').onclick=e=>{const b=e.target.closest&&e.target.closest('[data-i]');if(!b||!DEC_OPEN)return;const d=DEC[DEC_OPEN.key],o=d.o[+b.dataset.i];const r=o[1];
+  $('dec-res').innerHTML=`<b style="color:${r==='good'?'#7fe3a4':r==='partial'?'#ffc23d':'#ff9a96'}">${r==='good'?'Right call.':r==='partial'?'Not the best call.':'That would cost a life.'}</b>`;$('dec-why').textContent=d.why;
+  if(r==='bad')ding(10,'Decision: '+DEC_OPEN.key);else if(r==='partial')ding(5,'Decision: '+DEC_OPEN.key);S.decisions=(S.decisions||[]).concat([[DEC_OPEN.key,r]]);
+  if(DEC_OPEN.key==='crashSafety')S.safe=true;$('dec-opts').classList.add('hidden');$('dec-fb').classList.remove('hidden');};
+$('dec-go').onclick=()=>{if(!DEC_OPEN)return;$('decov').classList.add('hidden');stepsDone[DEC_OPEN.j]=true;const el=$('st-'+DEC_OPEN.j);if(el)el.classList.add('done');DEC_OPEN=null;if(S.active&&!S.briefing)S.running=true;scRender();};
+/* =================== finish + debrief =================== */
+function scFinish(died){S.active=false;const v=S.vs[0];const lostP=Math.round(v.lost/v.vol*100);
+  const score=died?Math.min(S.score,20):Math.max(0,S.score-Math.max(0,lostP-20));if(!died&&lostP>20)S.incidents.push(`Blood lost before control: ${lostP}% (every point over 20% costs a point)`);record('scenario',S.id,score,{variant:vlabel(S.id),died});
+  const rows=[['This patient',vlabel(S.id)],['Time to first pressure',v.firstCompT!==null?mmss(v.firstCompT):'never'],['911 called',S.alertT!==null?mmss(S.alertT)+' in':'no'],
+   ...(v.tq?[['Tourniquet',`${v.tq>1?'two':'one'} · ${v.tqMarked?'time marked':'time NOT marked'}`]]:[]),...(v.packed?[['Wound','packed and held']]:[]),
+   ['Blood lost',`≈ ${Math.round(v.lost/50)*50} mL (${lostP}% of his blood)`],['Outcome',died?'did not survive':lostP<30?'stable when EMS took over':'in shock, but alive when EMS took over']];
+  const msg=died?'Without fast pressure, a life-threatening bleed can kill in minutes. Run it again: safety, call, find it, and get your hands on it immediately.':lostP<20?'Fast, clean bleeding control. This is what saves lives before the ambulance gets there.':'He made it — but every minute before pressure cost blood. Get your hands on the wound sooner.';
+  showDone(died?'He didn\'t make it':'Handed off to EMS',score,`<div style="margin-top:6px">${rows.map(([a,b])=>`<div class="mrow"><span>${a}</span><b style="text-align:right">${esc(b)}</b></div>`).join('')}</div><p style="font-size:14px;color:var(--soft);margin-top:10px">${msg}</p>${S.incidents.length?`<p style="font-size:14px"><b>Feedback:</b> ${S.incidents.map(esc).join(' · ')}</p>`:''}`,()=>scStart(S.id));}
+let AGAIN=null;
+function showDone(t,score,html,again){$('done-t').textContent=t;$('done-s').textContent=score;$('done-b').innerHTML=html;AGAIN=again;$('doneov').classList.remove('hidden');}
+$('done-again').onclick=()=>{$('doneov').classList.add('hidden');if(AGAIN)AGAIN();};$('done-menu').onclick=()=>{$('doneov').classList.add('hidden');showHome();};
+/* =================== quick drills =================== */
+const DRILLS={
+ threat:{name:'Life-threatening or not?',items:()=>shuf([['Blood spurting from a cut on the wrist','Life-threatening'],['A scraped knee that is slowly oozing','Not life-threatening'],['Blood pooling on the floor under a thigh wound','Life-threatening'],['A shirt soaked through from a shoulder wound','Life-threatening'],['A paper cut on a finger','Not life-threatening'],['Bleeding from the arm in someone who is now confused','Life-threatening'],['A nosebleed in someone alert and talking','Not life-threatening'],['A leg partly cut off by machinery','Life-threatening'],['Two towels soaked through from a forearm cut','Life-threatening'],['A small cut on the chin that stops with light pressure','Not life-threatening']]).slice(0,8).map(([q,a])=>({q,a,opts:['Life-threatening','Not life-threatening']})),why:'Life-threatening: spurting, won\'t stop, pooling, soaked clothing or bandages, loss of part of a limb, or bleeding with confusion or unconsciousness.'},
+ method:{name:'Which technique?',items:()=>shuf([['Spurting wound, middle of the forearm','Tourniquet'],['Deep wound in the groin','Pack it, then press'],['Deep wound in the armpit','Pack it, then press'],['Gushing thigh wound','Tourniquet'],['Heavy bleeding from a scalp cut','Direct pressure'],['Deep wound at the base of the neck','Pack it, then press'],['Deep cut on the forearm, no tourniquet available','Direct pressure'],['Bleeding lower leg after a crash, kit in hand','Tourniquet']]).map(([q,a])=>({q,a,opts:['Tourniquet','Pack it, then press','Direct pressure']})),why:'Arms and legs: tourniquet. Groin, armpit, neck (junctional): pack and press. Scalp, or no tourniquet: firm direct pressure (pack it if it\'s deep).'},
+ place:{name:'Tourniquet placement',items:()=>shuf([['Wound in the middle of the forearm','2–3 inches above the wound'],['Wound just below the elbow','Above the elbow'],['Wound in the middle of the thigh','2–3 inches above the wound'],['Wound just below the knee','Above the knee'],['Wound on the upper arm, near the shoulder','2–3 inches above the wound'],['First tourniquet on, still bleeding','A second one above the first']]).map(([q,a])=>({q,a,opts:shuf(['2–3 inches above the wound','Above the elbow','Above the knee','A second one above the first','Directly over the wound','On the joint']).filter(x=>x!==a).slice(0,3).concat([a])})),why:'2–3 inches above the wound, toward the heart, never on a joint. If that would land on a joint, go above the joint. Still bleeding? A second tourniquet above the first.'}};
+let DR=null;
+function drillMenu(){DR=null;$('dr-title').textContent='Quick drills';$('dr-meta').textContent='';const p=load();const best=id=>{const r=(p.runs||[]).filter(x=>x.kind==='drill'&&x.id===id);return r.length?Math.max(...r.map(x=>x.score)):null;};
+  $('dr-body').innerHTML=Object.keys(DRILLS).map(k=>{const b=best(k);return `<button class="scen" data-d="go" data-k="${k}"><b>${DRILLS[k].name}${b!==null?`<span style="float:right;font-size:16px;color:var(--red2)">best ${b}</span>`:''}</b></button>`;}).join('');
+  $('dr-foot').innerHTML='<button data-d="close" class="go" style="width:100%">Back</button>';$('drillov').classList.remove('hidden');}
+function drillStart(k){DR={k,i:0,right:0,qs:DRILLS[k].items()};drillQ();}
+function drillQ(){const q=DR.qs[DR.i];q.ord=shuf(q.opts);$('dr-title').textContent=DRILLS[DR.k].name;$('dr-meta').textContent=`${DR.i+1} of ${DR.qs.length} · ${DR.right} right`;
+  $('dr-body').innerHTML=`<p style="font-size:18px;margin:0 0 10px">${esc(q.q)}</p>${q.ord.map((o,i)=>`<button class="opt" data-d="ans" data-i="${i}">${esc(o)}</button>`).join('')}<p id="dr-fb" style="font-size:15px"></p>`;$('dr-foot').innerHTML='<button data-d="menu" style="width:100%">Quit</button>';}
+function drillAct(ds){const a=ds.d;if(a==='go')drillStart(ds.k);else if(a==='close'){$('drillov').classList.add('hidden');DR=null;}else if(a==='menu')drillMenu();
+  else if(a==='ans'){const q=DR.qs[DR.i];if(q.done)return;q.done=true;const ok=q.ord[+ds.i]===q.a;if(ok)DR.right++;$('dr-fb').innerHTML=`<b style="color:${ok?'#7fe3a4':'#ff9a96'}">${ok?'Right.':'Answer: '+esc(q.a)+'.'}</b> ${esc(DRILLS[DR.k].why)}`;$('dr-foot').innerHTML=`<button data-d="next" class="go" style="width:100%">${DR.i+1<DR.qs.length?'Next':'Results'}</button>`;}
+  else if(a==='next'){DR.i++;if(DR.i<DR.qs.length)drillQ();else{const sc=Math.round(DR.right/DR.qs.length*100);record('drill',DR.k,sc);$('dr-body').innerHTML=`<div class="big">${sc}</div><p>${DR.right} of ${DR.qs.length} right.</p>`;$('dr-foot').innerHTML=`<div class="row"><button data-d="menu">All drills</button><button data-d="go" data-k="${DR.k}" class="go">Again</button></div>`;}}}
+$('dr-body').onclick=e=>{const b=e.target.closest&&e.target.closest('[data-d]');if(b)drillAct(b.dataset);};$('dr-foot').onclick=$('dr-body').onclick;
+/* =================== reference, about, progress =================== */
+function info(html){$('info-b').innerHTML=html;$('infoov').classList.remove('hidden');}
+$('info-close').onclick=()=>$('infoov').classList.add('hidden');
+$('h-ref').onclick=()=>info(`<h2>Pocket reference</h2><p><b>Safety first.</b> Make sure it's safe for you. Gloves if you have them.</p><p><b style="color:#ff5a5d">A — Alert.</b> Call 911, or point at one person to call. Speakerphone.</p><p><b style="color:#ffc23d">B — Bleeding.</b> Expose the wound. Life-threatening: spurting, won't stop, pooling, soaked clothing or bandages, part of a limb missing, or the person is confused or unconscious.</p><p><b style="color:#39e36f">C — Compress.</b></p><p>• <b>Direct pressure:</b> clean cloth, both hands, push hard, don't lift, add on top.</p><p>• <b>Tourniquet (arm or leg):</b> 2–3 inches above the wound, never on a joint (go above it). Pull tight, twist until the bleeding stops, lock, write the time. Still bleeding: a second one above the first. Never remove it.</p><p>• <b>Pack (groin, armpit, neck, deep wounds):</b> stuff gauze into the wound onto the bleeding, pack it full, then press hard with both hands.</p><p><b>Keep pressure until help takes over.</b> Tell EMS what you did and when.</p>`);
+$('h-about').onclick=()=>info(`<h2>About Bleed Control</h2><p>Bleed Control is a free practice tool for bleeding emergencies, from the same family as Charge the Line and Patient Contact. It follows the principles taught in national bleeding control courses: safety first, then the ABCs (Alert, find the Bleeding, Compress), with direct pressure, tourniquets, and wound packing.</p><p><b>It is practice, not certification.</b> Nothing replaces hands-on training. Find an official in-person course through the American College of Surgeons Stop the Bleed® program at stopthebleed.org.</p><p class="legal">STOP THE BLEED® is a registered trademark of the U.S. Department of Defense, Defense Health Agency. The American College of Surgeons Stop the Bleed program operates under a license from the Department of Defense. This app is independent and is not affiliated with or endorsed by the Department of Defense or the American College of Surgeons. Version ${APP_VERSION}.</p>`);
+$('h-prog').onclick=()=>{const p=load();const R=p.runs||[];const best=(k,id)=>{const r=R.filter(x=>x.kind===k&&x.id===id);return r.length?Math.max(...r.map(x=>x.score)):null;};
+  const line=(n,b)=>`<div class="mrow"><span>${esc(n)}</span><b style="${b===null?'color:var(--soft)':''}">${b===null?'not yet':b}</b></div>`;
+  info(`<h2>My progress</h2><input id="p-name" placeholder="Your name" value="${esc(p.name||'')}" style="margin-bottom:6px"><input id="p-dept" placeholder="Department, school, or organization" value="${esc(p.dept||'')}" style="margin-bottom:10px">
+   <div class="sec">LESSON</div>${line('The lesson',best('lesson','lesson'))}<div class="sec">SKILLS</div>${[['tq-arm','Tourniquet — arm'],['tq-leg','Tourniquet — leg'],['pack','Wound packing'],['press','Direct pressure']].map(([i,n])=>line(n,best('station',i))).join('')}
+   <div class="sec">SCENARIOS</div>${Object.keys(SCN).map(k=>line(SCN[k].title,best('scenario',k))).join('')}<div class="sec">DRILLS</div>${Object.keys(DRILLS).map(k=>line(DRILLS[k].name,best('drill',k))).join('')}
+   <button id="p-csv" style="width:100%;margin-top:10px">Download practice record (CSV)</button>`);
+  $('p-csv').onclick=()=>{const q=load();q.name=$('p-name').value.trim();q.dept=$('p-dept').value.trim();save(q);const nm={lesson:'Lesson',station:'Skill',scenario:'Scenario',drill:'Drill'};
+    const label=r=>r.kind==='scenario'?SCN[r.id].title:r.kind==='drill'?DRILLS[r.id].name:r.kind==='station'?{'tq-arm':'Tourniquet — arm','tq-leg':'Tourniquet — leg',pack:'Wound packing',press:'Direct pressure'}[r.id]:'The lesson';
+    const rows=[['Name','Organization','Type','Activity','Patient','Date','Tier','Score']].concat((q.runs||[]).map(r=>[q.name||'',q.dept||'',nm[r.kind],label(r),r.variant||'',r.d.slice(0,16).replace('T',' '),r.kind==='scenario'?['Guided','Recall','Chaos'][r.tier]:'',r.score]));
+    const csv=rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');try{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='bleed-control-practice-record.csv';a.click();}catch(e){}};};
+$('h-learn').onclick=()=>lessonStart();$('h-drills').onclick=()=>drillMenu();
+/* =================== boot =================== */
+if('serviceWorker' in navigator&&location.protocol==='https:')window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+showHome();
+let LAST=performance.now();setInterval(()=>{const now=performance.now();const dt=Math.min(.5,(now-LAST)/1000);LAST=now;if(S.active&&S.id)scTick(dt);else if(ST)stTick(dt);},250);
+</script>
+</body>
+</html>

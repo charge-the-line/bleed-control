@@ -1,0 +1,60 @@
+# Bleed Control — testing guide
+
+Read this before changing the app. It's the third module in the same family as Charge the Line and Patient Contact, and it follows the same testing rules.
+
+## Run the tests
+
+You need [Node.js](https://nodejs.org) 18 or newer. No install step needed.
+
+```
+node tests/run_all.js          # everything — a few seconds
+node tests/run_all.js quick    # syntax, balance, lesson, drills, record, fuzz
+for i in 1 2 3 4 5; do node tests/run_all.js | tail -1; done    # before every release
+```
+
+**Optional real-browser check** (actually taps the tourniquet diagram on phone-sized screens):
+
+```
+pip install playwright && playwright install chromium
+python3 tests/browser_check.py
+```
+
+## What the suite checks
+
+| Section | What it proves |
+|---|---|
+| `syntax` | The script compiles; the trademark notice and "not affiliated" statement are present; the app's name doesn't use the trademarked phrase |
+| `balance` | The right answer is neither usually the longest nor usually the shortest, across the lesson checks and scenario decisions |
+| `lesson` | All 12 slides work; first-try-right scores 100, first-try-wrong scores 0; you can't skip a slide without answering its check |
+| `stations` | Every skill station (arm and leg tourniquets, near-joint wounds, second tourniquet, packing, pressure) scores 100 when done right, and catches mistakes like a tourniquet on the elbow or skipping the time |
+| `scenarios` | All four scenarios survive with a perfect score on every tier |
+| `human` | Every scenario and variant survives at human pace (one tap about every 1.2 seconds, 2–3 second reactions) |
+| `wrong` | Wrong decisions are survivable but cost points |
+| `slow` | Scores fall as response time grows, and **no bleeding control at all is fatal** |
+| `drills` | All drills score correctly; 300 generated sets are well-formed |
+| `record` | Results save, and the CSV export works |
+| `fuzz` | Random actions in every scenario never crash or produce impossible blood-loss values |
+
+Verified to catch planted bugs: a station that accepts a tourniquet on the joint, direct pressure that does nothing, and a removed trademark notice all fail loudly.
+
+## Content rules
+
+1. **Follow the official course's principles; write everything in our own words.** The ACS course materials are copyrighted. The structure (lecture, then skills) and the core principles (safety first; Alert, find the Bleeding, Compress; tourniquet 2–3 inches above the wound and never on a joint; pack and press) are what we model. Never copy slides, images, or text.
+2. **Don't use "Stop the Bleed" as our name.** STOP THE BLEED® is a registered trademark of the U.S. Department of Defense, licensed to the American College of Surgeons. We may *refer* to the official course and send people to it. The `syntax` check enforces both the notice and the name.
+3. **Practice, not certification.** Never imply this app certifies anyone. The certificate comes only from the official course.
+4. **Run any medical content change past a current instructor** before release.
+
+## Engineering rules (carried over from the other two apps)
+
+1. **Test at human speed.** The human-pace bot found a real-world problem that the instant bot never could.
+2. **Bots use the same controls a person does.** Prefer the app's own handlers over editing state.
+3. **Don't let answer length give anything away.** Run `balance` after writing any question.
+4. **Outcomes should teach.** Blood loss is scored, so speed matters in the score the way it matters in real life.
+5. **Run the suite several times.** Random variants make bugs intermittent.
+
+## How it's organized (one file: `index.html`)
+
+- `LESSON`: the 12 slides, with points, art, and knowledge checks.
+- **Stations** (`stationOpen`, `stAct`, `stZone`, `stTick`): tourniquet, packing, and pressure. Used on their own in Practice and inside scenarios as "your hands."
+- `SCN`: the scenarios (briefing, victims, checklist steps); `VARIANTS` randomizes each run; `rateOf()` turns interventions into bleeding rates; `DEC` holds the decisions.
+- `DRILLS`, the pocket reference, About, and progress/CSV.
