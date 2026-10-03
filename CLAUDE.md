@@ -75,6 +75,7 @@ Each of these cost a real bug. Don't relearn them.
 10. **Startup order:** load saved settings in the boot section at the bottom. Earlier, `load()` fails silently and settings stop being remembered.
 11. **Randomness makes bugs intermittent.** Run each suite several times before release (`for i in 1 2 3 4 5; do node tests/run_all.js | tail -1; done`). An intermittent failure is usually a real bug in one random variant; it found one.
 12. **Prove a test can fail.** For important checks, plant the bug in a scratch copy and confirm the suite catches it.
+13. **Every overlay has a way back.** A briefing, card, sheet, drill, or station always offers Back, Close, Quit, or Stop and go back, so nobody is trapped into starting something. Max found Charge the Line's briefing with only "Start mission" (fixed in 2.5.1). The one deliberate exception: a decision point, which must be answered.
 
 ## Content and legal rules
 
