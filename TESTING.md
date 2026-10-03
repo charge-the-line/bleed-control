@@ -89,3 +89,7 @@ Foundation fixes: fonts served from this site, screen wake lock, finger-sized bu
 
 - `drill` section: with a session on, ten starts of each scenario give the standard patient, the bar reads "Up: Jo", and the saved lesson is stamped with who, instructor and night. Removing `pcDrillStamp` from `record()` in a scratch copy fails this check.
 - Browser check: with a session in storage the picker opens on load and the bar shows after a pick.
+
+## Milestone 6 checks (added October 2026)
+
+- `drill` section: a penalty plays the bad tone and buzzes, the result screen chimes.
