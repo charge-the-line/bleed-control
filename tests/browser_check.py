@@ -32,6 +32,7 @@ with sync_playwright() as p:
         pg.goto(URL); pg.wait_for_timeout(300); rows.append((w, 'home', (pg.evaluate(OVER)+1000*pg.evaluate(SMALL)), True))
         pg.click('#h-learn'); pg.wait_for_timeout(200); rows.append((w, 'lesson', (pg.evaluate(OVER)+1000*pg.evaluate(SMALL)), True)); pg.click('[data-l="quit"]')
         pg.click('#h-set'); pg.wait_for_timeout(150); rows.append((w, 'settings', (pg.evaluate(OVER)+1000*pg.evaluate(SMALL)), True)); pg.click('#set-close')
+        pg.evaluate("localStorage.setItem('preconnect-drill',JSON.stringify({on:true,inst:'Max',roster:['Jo','Sam'],who:'',start:new Date().toISOString()}))"); pg.goto(URL); pg.wait_for_timeout(300); rows.append((w, 'drill picker', (pg.evaluate(OVER)+1000*pg.evaluate(SMALL)), True)); pg.click('.pc-drill-name'); pg.wait_for_timeout(200); rows.append((w, 'drill bar', (pg.evaluate(OVER)+1000*pg.evaluate(SMALL)), True)); pg.evaluate("localStorage.removeItem('preconnect-drill')")
         for st in ('tq-arm','tq-leg','pack','press'):
             pg.goto(URL); pg.wait_for_timeout(200); pg.click(f'[data-st="{st}"]'); pg.wait_for_timeout(200)
             rows.append((w, st, (pg.evaluate(OVER)+1000*pg.evaluate(SMALL)), station(pg)))

@@ -99,6 +99,7 @@ body.tv{max-width:1100px}@media (min-width:1000px){body.tv{zoom:1.3}}
 </style>
 </head>
 <body>
+<div id="pc-drill" class="pc-drillbar hidden" data-hub="../"></div>
 
 <div id="home">
   <div class="flex" style="margin:0 0 8px"><a href="../" style="display:inline-flex;align-items:center;min-height:44px;font-family:'Saira Condensed';font-size:15px;font-weight:600;letter-spacing:1px;color:#ff8a3d;text-decoration:none">◂ PRECONNECT</a><div class="sp"></div><a href="../feedback.html?from=bc" style="display:inline-flex;align-items:center;min-height:44px;font-size:14px;font-weight:700;color:var(--soft);text-decoration:none;margin-right:12px">Feedback</a><button class="gear" id="h-set">Settings</button></div>
@@ -147,6 +148,7 @@ body.tv{max-width:1100px}@media (min-width:1000px){body.tv{zoom:1.3}}
 <div class="overlay hidden" id="lessonov" style="z-index:12"><div class="box slide" id="lesson-box"></div></div>
 <div class="overlay hidden" id="doneov" style="z-index:13"><div class="box"><h2 id="done-t"></h2><div class="big" id="done-s"></div><div id="done-b"></div>
   <div class="row" style="margin-top:10px"><button id="done-again">Again</button><button class="go" id="done-menu">Menu</button></div></div></div>
+<div class="overlay hidden" id="pc-drillov" style="z-index:25"><div class="box" id="pc-drillbox"></div></div>
 <div class="overlay hidden" id="setov" style="z-index:20"><div class="box">
  <div class="flex"><h2 style="margin:0">Settings</h2><div class="sp"></div><button class="gear" id="set-close">Done</button></div>
  <div class="sec">Display</div>
@@ -165,7 +167,7 @@ body.tv{max-width:1100px}@media (min-width:1000px){body.tv{zoom:1.3}}
 
 <script>
 /* =================== core =================== */
-const APP_VERSION='0.8.0';
+const APP_VERSION='0.9.0';
 /* Screen wake lock (Milestone 1): keeps the phone from dimming or locking during a timed skill.
    On only while an activity runs: keepAwake(true) when it starts, keepAwake(false) back at the menu or on the result screen. */
 const WAKE={s:null,want:false};
@@ -184,7 +186,7 @@ const pca=(f,...a)=>{try{const P=typeof window!=='undefined'&&window.PCA;if(P&&P
 const KEY='bleed-control';
 function load(){try{return JSON.parse(localStorage.getItem(KEY))||{runs:[]};}catch(e){return {runs:[]};}}
 function save(p){try{localStorage.setItem(KEY,JSON.stringify(p));}catch(e){}}
-function record(kind,id,score,extra){const p=load();p.runs=(p.runs||[]).concat([Object.assign({kind,id,score,d:new Date().toISOString(),tier:TIER},extra||{})]).slice(-500);save(p);}
+function record(kind,id,score,extra){const p=load();p.runs=(p.runs||[]).concat([pcDrillStamp(Object.assign({kind,id,score,d:new Date().toISOString(),tier:TIER},extra||{}))]).slice(-500);save(p);}
 function setHTML(el,html){if(el&&el._last!==html){el.innerHTML=html;el._last=html;}}
 function radio(who,msg,cls=''){if(S&&S.active){S.prev=S.now;S.now={who,msg,cls};}const r=$('radio');const d=document.createElement('div');d.innerHTML=`<span class="who">${esc(who)}:</span> <span class="${cls}">${esc(msg)}</span>`;r.prepend(d);while(r.children.length>16)r.lastChild.remove();if(S.log)S.log.push({c:clock(),who,msg});}
 function ding(p,why){S.score=Math.max(0,S.score-p);S.incidents.push(why);radio('Feedback',`${why} (−${p})`,'bad');}
@@ -359,9 +361,11 @@ const SCN={
    {t:'EMS arrives',wait:true,f:()=>S.emsArr},{t:'Decision: handoff',dec:'handoff',f:()=>S.emsArr}]}};
 let V={};
 const VARIANTS={kitchen:()=>({kit:Math.random()<.65,near:Math.random()<.4}),garage:()=>({need2:Math.random()<.4}),glass:()=>({site:Math.random()<.6?'groin':'armpit'}),crash:()=>({})};
+/* Drill Night: the same patient for everyone in the room */
+const STD_V={kitchen:{kit:true,near:false},garage:{need2:false},glass:{site:'groin'},crash:{}};
 function vlabel(id){return {kitchen:`${V.kit?'Tourniquet available':'No tourniquet — pressure only'}${V.kit?(V.near?' · wound just below the elbow':' · wound mid-forearm'):''}`,garage:V.need2?'Needed a second tourniquet':'One tourniquet was enough',glass:`Wound in the ${V.site}`,crash:'Two patients, one of you'}[id];}
 function vv(){return S.vs[S.sel||0];}
-function scStart(id){keepAwake(true);SC=SCN[id];pca('begin','bc',id,()=>{const j=stepsDone.findIndex(x=>!x);return j<0?'':`step-${j+1}`;});V=Object.assign(VARIANTS[id](),FORCE&&FORCE[id]||{});
+function scStart(id){keepAwake(true);SC=SCN[id];pca('begin','bc',id,()=>{const j=stepsDone.findIndex(x=>!x);return j<0?'':`step-${j+1}`;});V=Object.assign(VARIANTS[id](),pcDrill()?STD_V[id]:{},FORCE&&FORCE[id]||{});
   S={active:true,running:false,doneAt:{},talks:0,now:null,id,t:0,rt:0,t0:SC.t0,score:100,incidents:[],log:[],safe:false,alerted:false,alertT:null,emsArr:false,eta:SC.eta+(TIER===2?120:0),sel:0,helperFree:true,briefing:true,chaos:{}};
   S.vs=SC.victims();S.steps=SC.steps();stepsDone=S.steps.map(()=>false);DEC_OPEN=null;
   $('home').classList.add('hidden');$('game').classList.remove('hidden');$('radio').innerHTML='';$('g-title').textContent=SC.title;
@@ -497,7 +501,7 @@ $('h-prog').onclick=()=>{const p=load();const R=p.runs||[];const best=(k,id)=>{c
 $('h-learn').onclick=()=>lessonStart();$('h-drills').onclick=()=>drillMenu();
 /* =================== boot =================== */
 if('serviceWorker' in navigator&&location.protocol==='https:')window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
-applySettings();settingsBind();showHome();
+applySettings();settingsBind();pcDrillBind();showHome();
 let LAST=performance.now();setInterval(()=>{const now=performance.now();const dt=Math.min(.5,(now-LAST)/1000);LAST=now;if(S.active&&S.id)scTick(dt);else if(ST)stTick(dt);},250);
 </script>
 </body>

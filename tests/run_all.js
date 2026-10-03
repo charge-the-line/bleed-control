@@ -3,7 +3,7 @@
    Sections: syntax balance lesson stations scenarios human wrong slow drills record fuzz      (or: quick) */
 global.window=global.window||{};
 const path=require('path'),fs=require('fs'),vm=require('vm');
-const ALL=['syntax','balance','lesson','stations','scenarios','human','wrong','slow','drills','record','smooth','fuzz'];
+const ALL=['syntax','balance','lesson','stations','scenarios','human','wrong','slow','drills','record','drill','smooth','fuzz'];
 let want=process.argv.slice(2);if(!want.length)want=ALL;if(want.includes('quick'))want=['syntax','balance','lesson','drills','record','fuzz'];
 let failed=0,n=0;const T0=Date.now();
 function report(sec,name,ok,detail=''){n++;if(!ok)failed++;console.log(`${ok?'PASS':'FAIL'}  ${sec.padEnd(9)} ${name}${detail?'  — '+detail:''}`);}
@@ -64,6 +64,11 @@ if(want.includes('record')){const {api,els}=boot();bot.stationStep;api.lessonSta
   const p=api.load();report('record','lesson result saved to practice record',p.runs.some(r=>r.kind==='lesson'&&r.score===100));
   els['h-prog'].onclick();els['p-name'].value='Test Student';els['p-dept'].value='Monitor Twp';els['p-csv'].onclick();const csv=global.__csv||'';
   report('record','CSV export has header and rows',/"Name","Organization","Type","Activity"/.test(csv)&&/Test Student/.test(csv),csv.split('\n').length-1+' rows');}
+if(want.includes('drill')){const start=new Date().toISOString();const {api,els}=boot({'preconnect-drill':JSON.stringify({on:true,inst:'Max',roster:['Jo'],who:'Jo',start})});let std=true;
+  for(let k=0;k<10;k++){api.scStart('kitchen');const v=api.V();if(!(v.kit===true&&v.near===false))std=false;api.scStart('glass');if(api.V().site!=='groin')std=false;api.scStart('garage');if(api.V().need2!==false)std=false;}
+  api.showHome();api.lessonStart();while(api.LS()){const s=api.LESSON[api.LS().i];api.lessonAct({l:'ans',k:String(s.o.findIndex(x=>x[1]==='good'))});api.lessonAct({l:'next'});}const runs=api.load().runs;const r=runs[runs.length-1];
+  report('drill','Drill Night: the same patient in every scenario, bar shows who is up, the saved lesson names them with the instructor and the night',std&&/Up: Jo/.test(els['pc-drill'].innerHTML)&&(r.who||[])[0]==='Jo'&&r.inst==='Max'&&r.night===start,`who ${r.who}, inst ${r.inst}`);}
+
 if(want.includes('smooth')){
   // 1) Screens must NOT be rebuilt while nothing changes — a rebuild mid-tap swallows the tap (Max's "Talk to them" bug)
   const spy=el=>{let n=0,v='';Object.defineProperty(el,'innerHTML',{get:()=>v,set:x=>{v=x;n++;},configurable:true});return ()=>n;};
