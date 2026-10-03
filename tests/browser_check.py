@@ -56,6 +56,16 @@ with sync_playwright() as p:
             order1 = pg.locator('#st-btns button').all_text_contents(); pg.wait_for_timeout(1500); order2 = pg.locator('#st-btns button').all_text_contents()
             slow_tap('[data-s="pressfirst"]'); ok = pg.evaluate("ST&&ST.phase==='packing'")
             rows.append((w, 'packing choices stay put + slow tap', 0 if (order1 == order2 and ok) else 99, order1 == order2 and ok))
+    pg = b.new_page(viewport={'width': 844, 'height': 390}, device_scale_factor=2, is_mobile=True, has_touch=True); pg.on('pageerror', lambda e: errs.append(str(e)))
+    pg.goto(URL); pg.wait_for_timeout(300)
+    if pg.is_visible('#b-start'): pg.click('#b-start'); pg.wait_for_timeout(200)
+    rows.append((844, 'landscape', (pg.evaluate(OVER)+1000*pg.evaluate(SMALL)), True))
+    pg.evaluate("localStorage.setItem('preconnect-settings',JSON.stringify({contrast:'day'}))"); pg.goto(URL); pg.wait_for_timeout(300)
+    if pg.is_visible('#b-start'): pg.click('#b-start'); pg.wait_for_timeout(200)
+    rows.append((844, 'daylight', (pg.evaluate(OVER)+1000*pg.evaluate(SMALL)), True))
+    pg.click('#h-set'); pg.wait_for_timeout(200)
+    rows.append((844, 'settings land', (pg.evaluate(OVER)+1000*pg.evaluate(SMALL)), True))
+    pg.close()
     b.close()
 bad = [r for r in rows if r[2] > 1 or not r[3]]
 rows=[r if len(r)==4 else (r[0],r[1],r[2],True) for r in rows]

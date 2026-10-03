@@ -97,3 +97,7 @@ Foundation fixes: fonts served from this site, screen wake lock, finger-sized bu
 ## Milestone 9 checks (added October 2026)
 
 - `?drill=threat` on load opens that drill; an unknown id is ignored. Browser check adds a daily-link row.
+
+## Milestone 10 checks (added October 2026)
+
+- Browser check: landscape, Daylight and landscape-settings rows.
