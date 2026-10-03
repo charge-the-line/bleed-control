@@ -125,5 +125,8 @@ v0.2 rebuilt every button four times a second, so real taps vanished. `setHTML()
 ## Tests
 `node tests/run_all.js` (63 checks): includes trademark and name checks, balance, lesson, every station and variant, human pace, wrong answers, slow response and a fatal no-control run, drills, records, smoothness, fuzz. `python3 tests/browser_check.py` adds real-tap station runs and slow-tap tests.
 
+## Repo housekeeping (done October 3, 2026)
+When this repo was created, the test files were uploaded flat at the root. On October 3, 2026 (approved by Max) they were moved into `tests/` with `git mv`, so `node tests/run_all.js` works in place as TESTING.md describes. Nothing left to clean up here.
+
 ## Open questions for Max (as the instructor)
 Does the lesson match the course as he teaches it? Packing: does his version teach a minimum hold time (such as 3 minutes), beyond "until help takes over"? Improvised tourniquets: we teach "don't; use firm pressure." Does that match? Also worth asking ACS (stopthebleed@facs.org) about endorsement or use of the name.
