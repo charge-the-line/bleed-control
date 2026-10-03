@@ -11,6 +11,6 @@ global.window=Object.assign(global.window||{},{addEventListener(){}});global.loc
 Object.defineProperty(globalThis,'navigator',{value:{userAgent:'qa'},configurable:true,writable:true});
 global.setInterval=()=>{};global.performance=global.performance||{now:()=>0};
 global.Blob=function(p){this.parts=p;};global.URL={createObjectURL:b=>{global.__csv=b.parts.join('');return 'x';}};
-const api=new Function(require('fs').readFileSync(require('path').join(__dirname,'..','preconnect-core.js'),'utf8')+'\n'+js+';return {pcSpacing,pcBestPrev,pcDebriefBody,S:()=>S,ST:()=>ST,LS:()=>LS,DR:()=>DR,V:()=>V,DEC,LESSON,SCN,DRILLS,scStart,scTick,stTick,stationOpen,practice,lessonStart,lessonAct,drillMenu,drillAct,act,rateOf,stepsDone:()=>stepsDone,DECO:()=>DEC_OPEN,$,load,setTier:t=>{TIER=t},setForce:f=>{FORCE=f},showHome};')();
+const api=new Function(require('fs').readFileSync(require('path').join(__dirname,'..','preconnect-core.js'),'utf8')+'\n'+js+';return {settings,setSetting,pcSpacing,pcBestPrev,pcDebriefBody,S:()=>S,ST:()=>ST,LS:()=>LS,DR:()=>DR,V:()=>V,DEC,LESSON,SCN,DRILLS,scStart,scTick,stTick,stationOpen,practice,lessonStart,lessonAct,drillMenu,drillAct,act,rateOf,stepsDone:()=>stepsDone,DECO:()=>DEC_OPEN,$,load,setTier:t=>{TIER=t},setForce:f=>{FORCE=f},showHome};')();
 return {api,els,store};}
 module.exports={boot};

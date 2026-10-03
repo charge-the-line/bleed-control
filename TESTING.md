@@ -76,3 +76,7 @@ Foundation fixes: fonts served from this site, screen wake lock, finger-sized bu
 - Spacing: 1, 3, 7, 14, 30 days after each clear at 70+; a miss resets; overdue reads as due.
 - Debrief body: compare line (best, last time, new best), metrics table, what cost points, lesson chips, steps table.
 - Scenario, station and lesson results all build through `pcDebriefBody` (covered by the existing record and smooth tests).
+
+## Milestone 4 checks (added October 2026)
+
+- Settings sheet present and wired to the shared key; browser check opens it from home.

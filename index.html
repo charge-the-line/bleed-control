@@ -31,6 +31,7 @@
 </script>
 
 <title>Bleed Control</title>
+<script src="preconnect-core.js"></script>
 <style>
 /* Fonts are served from this site (fonts/, SIL Open Font License). Nothing loads from Google: works offline and makes no outside request. */
 @font-face{font-family:"Atkinson Hyperlegible";font-style:normal;font-weight:400;font-display:swap;src:url(fonts/atkinson-hyperlegible-latin-400-normal.woff2) format("woff2")}
@@ -42,15 +43,15 @@
 button{min-height:48px}
 </style>
 <style>
-:root{--bg:#1a1416;--deck:#261c1f;--deck2:#33262a;--line:#4a3539;--ink:#f6f1f2;--soft:#c3b2b5;--red:#e5383b;--red2:#ff5a5d;--green:#39e36f;--amber:#ffc23d;--blue:#6fd3ff}
+:root{--bg:#0a0c0f;--deck:#14171c;--deck2:#1c2026;--line:#2a2f37;--ink:#f6f7f9;--soft:#aab2bd;--acc:#e5383b;--acc-ink:#fff;--red:#e5383b;--red2:#ff5a5d;--green:#39e36f;--amber:#ffc23d;--blue:#6fd3ff}
 *{box-sizing:border-box}
 html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"Atkinson Hyperlegible",system-ui,sans-serif;-webkit-text-size-adjust:100%}
 body{max-width:540px;margin:0 auto;padding:calc(10px + env(safe-area-inset-top,0px)) calc(12px + env(safe-area-inset-right,0px)) calc(40px + env(safe-area-inset-bottom,0px)) calc(12px + env(safe-area-inset-left,0px))}
 h1,h2,h3,.num{font-family:"Saira Condensed","Arial Narrow",sans-serif}
-button{font-family:inherit;font-size:15px;border-radius:10px;padding:11px 12px;cursor:pointer;color:var(--ink);background:var(--deck2);border:1px solid var(--line);touch-action:manipulation;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;line-height:1.15}
+button{font-family:inherit;font-size:15px;border-radius:6px;padding:11px 12px;cursor:pointer;color:var(--ink);background:var(--deck2);border:1px solid var(--line);touch-action:manipulation;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;line-height:1.15}
 button:active{transform:translateY(1px)}button:disabled{opacity:.35;cursor:default}
 button:focus-visible{outline:2px solid var(--red2);outline-offset:2px}
-.go{background:var(--red);border-color:var(--red);color:#fff;font-weight:700}
+.go{background:var(--acc);border-color:var(--acc);color:var(--acc-ink);font-family:"Saira Condensed",sans-serif;font-weight:600;font-size:18px;letter-spacing:.5px;text-transform:uppercase}
 .on{background:#1f6b45!important;border-color:#2f9e66!important;color:#fff}
 .hot{background:var(--red)!important;border-color:var(--red)!important;color:#fff;animation:pulse 1s infinite}
 .hold{background:#7a1f22!important;border-color:var(--red2)!important;color:#fff;box-shadow:0 0 0 3px rgba(229,56,59,.35) inset}
@@ -61,14 +62,14 @@ button:focus-visible{outline:2px solid var(--red2);outline-offset:2px}
 .top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px}
 .top h1{margin:0;font-size:24px;font-weight:600;line-height:1.05}
 .meta{text-align:right;font-size:14px;color:var(--soft)}.meta b{color:var(--ink);font-family:"Saira Condensed";font-size:18px}
-.card{background:var(--deck);border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:10px}
+.card{background:var(--deck);border:1px solid var(--line);border-radius:6px;padding:12px;margin-bottom:10px}
 .card h2{margin:0 0 4px;font-size:22px;font-weight:600}
 .sub{font-size:14px;color:var(--soft);margin:0 0 8px}
 .row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}.row.three{grid-template-columns:repeat(3,minmax(0,1fr))}
 .grp{margin-bottom:10px}.grp:last-child{margin-bottom:0}.grp h3{margin:0 0 6px;font-size:17px;font-weight:600;color:var(--soft)}
 .grp h3 b{color:var(--red2);font-size:20px}
 .stat{font-size:13px;color:var(--soft);margin-top:6px;line-height:1.35}
-.vic{background:#0c0809;border:2px solid #3a2a2d;border-radius:14px;padding:10px 12px;margin-bottom:10px}
+.vic{background:#0a0c0f;border:2px solid var(--line);border-radius:8px;padding:10px 12px;margin-bottom:10px}
 .vic .hdr{display:flex;justify-content:space-between;font-size:13px;color:#a8969a;margin-bottom:4px}
 .bar{height:16px;border-radius:8px;background:#2a1d20;overflow:hidden;position:relative}.bar div{height:100%;background:var(--red);width:0}
 .bar span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff}
@@ -78,17 +79,16 @@ button:focus-visible{outline:2px solid var(--red2);outline-offset:2px}
 .radio{font-size:15px;line-height:1.4;max-height:170px;overflow:auto}.radio div{padding:4px 0;border-top:1px dashed #3a2a2d}.radio div:first-child{border-top:0}
 .radio .who{color:var(--red2);font-weight:700}.radio .bad{color:#ff9a96}.radio .good{color:#7fe3a4}
 .overlay{position:fixed;inset:0;background:rgba(10,6,7,.92);display:flex;align-items:flex-start;justify-content:center;padding:calc(16px + env(safe-area-inset-top,0px)) 16px calc(16px + env(safe-area-inset-bottom,0px));z-index:10;overflow:auto}
-.overlay .box{background:var(--deck);border:1px solid var(--line);border-radius:16px;padding:18px;max-width:480px;width:100%;margin:auto}
+.overlay .box{background:var(--deck);border:1px solid var(--line);border-radius:8px;padding:18px;max-width:480px;width:100%;margin:auto}
 .overlay h2{font-size:27px;margin:0 0 8px;font-weight:600;line-height:1.1}
 .overlay p{font-size:16px;line-height:1.5;color:#e6dcde;margin:0 0 12px}
-.tag{display:inline-block;font-size:13px;font-weight:700;border-radius:6px;padding:2px 8px;margin-bottom:8px;background:var(--red);color:#fff}
+.tag{display:inline-block;font-family:"Saira Condensed",sans-serif;font-size:14px;font-weight:600;letter-spacing:.5px;border-radius:4px;padding:2px 8px;margin-bottom:8px;background:var(--acc);color:var(--acc-ink)}
 .opt{display:block;width:100%;text-align:left;margin-bottom:8px;padding:12px;font-size:16px}
-.chips{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 12px}.chip{padding:7px 11px;font-size:14px;border-radius:16px;background:#3a1f22;border-color:#7a3a3e;color:#ffd6d6}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 12px}.chips .chip{padding:7px 11px;font-size:14px;border-radius:6px;background:#3a1f22;border-color:#7a3a3e;color:#ffd6d6;font-family:inherit;font-weight:400;letter-spacing:0;text-transform:none;line-height:1.2;white-space:normal}
 .big{font-family:"Saira Condensed";font-size:60px;font-weight:700;color:var(--red2);line-height:1}
 .mrow{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-top:1px solid #3a2a2d;font-size:15px}.mrow:first-child{border-top:0}.mrow span{color:var(--soft)}
 .tiers{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:6px 0 10px}
-.scen{display:block;width:100%;text-align:left;padding:12px;margin-bottom:8px}.scen b{display:block;font-family:"Saira Condensed";font-size:21px;font-weight:600}.scen span{font-size:14px;color:var(--soft)}
-.sec{font-family:"Saira Condensed";font-size:15px;letter-spacing:1px;color:var(--red2);margin:14px 0 6px}
+.scen{display:block;width:100%;text-align:left;padding:12px 14px;margin-bottom:8px;background:var(--deck);border:0;border-left:4px solid var(--acc);border-radius:6px}.scen b{display:block;font-family:"Saira Condensed";font-size:21px;font-weight:600}.scen span{font-size:14px;color:var(--soft)}
 .slide h2{font-size:30px}.slide .art{margin:6px 0 12px}.slide ul{margin:0 0 12px;padding-left:20px;font-size:16px;line-height:1.5}.slide li{margin-bottom:4px}
 .dots{display:flex;gap:4px;justify-content:center;margin:8px 0}.dots i{width:8px;height:8px;border-radius:50%;background:#4a3539}.dots i.on2{background:var(--red2)}
 textarea,input{font-family:inherit;font-size:16px;padding:10px;border-radius:8px;border:1px solid var(--line);background:#120d0e;color:var(--ink);width:100%}
@@ -101,8 +101,8 @@ body.tv{max-width:1100px}@media (min-width:1000px){body.tv{zoom:1.3}}
 <body>
 
 <div id="home">
-  <div style="display:flex;justify-content:space-between;align-items:center;margin:0 0 6px"><a href="../" style="display:inline-block;font-size:13px;font-weight:700;letter-spacing:.5px;color:#ff8a3d;text-decoration:none;margin:0">◂ PRECONNECT</a><a href="../feedback.html?from=bc" style="font-size:13px;font-weight:700;color:#9aa3ad;text-decoration:none">Feedback</a></div>
-  <div class="top"><div><div class="brand">BLEED CONTROL</div><h1>Stop a bleed. Save a life.</h1></div></div>
+  <div class="flex" style="margin:0 0 8px"><a href="../" style="display:inline-flex;align-items:center;min-height:44px;font-family:'Saira Condensed';font-size:15px;font-weight:600;letter-spacing:1px;color:#ff8a3d;text-decoration:none">◂ PRECONNECT</a><div class="sp"></div><a href="../feedback.html?from=bc" style="display:inline-flex;align-items:center;min-height:44px;font-size:14px;font-weight:700;color:var(--soft);text-decoration:none;margin-right:12px">Feedback</a><button class="gear" id="h-set">Settings</button></div>
+  <div class="top"><div><div class="brand" style="font-size:34px;letter-spacing:3px;color:var(--acc)">BLEED CONTROL</div><h1 style="font-size:19px;font-weight:400;font-family:'Atkinson Hyperlegible',system-ui,sans-serif;margin-top:2px">Stop a bleed. Save a life.</h1></div></div>
   <p class="sub" style="font-size:15px">Practice for bleeding emergencies: learn the ABCs, drill the hands-on skills, then put them together under pressure.</p>
   <div class="sec">1 · LEARN</div>
   <button class="scen" id="h-learn"><b>The lesson</b><span>12 short slides in course order, each with a knowledge check · about 10 minutes</span></button>
@@ -147,13 +147,25 @@ body.tv{max-width:1100px}@media (min-width:1000px){body.tv{zoom:1.3}}
 <div class="overlay hidden" id="lessonov" style="z-index:12"><div class="box slide" id="lesson-box"></div></div>
 <div class="overlay hidden" id="doneov" style="z-index:13"><div class="box"><h2 id="done-t"></h2><div class="big" id="done-s"></div><div id="done-b"></div>
   <div class="row" style="margin-top:10px"><button id="done-again">Again</button><button class="go" id="done-menu">Menu</button></div></div></div>
+<div class="overlay hidden" id="setov" style="z-index:20"><div class="box">
+ <div class="flex"><h2 style="margin:0">Settings</h2><div class="sp"></div><button class="gear" id="set-close">Done</button></div>
+ <div class="sec">Display</div>
+ <div class="set"><div class="k">Text size</div><div class="seg2" data-set="text"><button data-val="normal">Normal</button><button data-val="large">Large</button></div></div>
+ <div class="set"><div class="k">High contrast<small>Black background, brighter text: for daylight.</small></div><div class="seg2" data-set="contrast"><button data-val="normal">Off</button><button data-val="high">On</button></div></div>
+ <div class="set"><div class="k">Motion<small>Auto follows your phone's Reduce Motion setting.</small></div><div class="seg2" data-set="motion"><button data-val="auto">Auto</button><button data-val="off">Off</button></div></div>
+ <div class="sec">Feedback</div>
+ <div class="set"><div class="k">Sound<small>Monitor beeps, metronome, voice prompts, in modules that have them.</small></div><div class="seg2" data-set="sound"><button data-val="off">Off</button><button data-val="on">On</button></div></div>
+ <div class="set"><div class="k">Haptics<small>A tap you can feel on compressions and mistakes.</small></div><div class="seg2" data-set="haptics"><button data-val="off">Off</button><button data-val="on">On</button></div></div>
+ <div class="sec">Privacy</div>
+ <div class="set"><div class="k">Anonymous statistics<small>Counts like "someone finished the infant station." Never names. <a href="../privacy.html" style="color:var(--acc)">Details</a></small></div><div class="seg2" data-set="stats"><button data-val="off">Off</button><button data-val="on">On</button></div></div>
+ <p class="stat" style="margin-top:10px">Settings apply to every Preconnect module on this phone.</p>
+</div></div>
 <div class="overlay hidden" id="infoov" style="z-index:15"><div class="box"><div id="info-b"></div><button class="go" id="info-close" style="width:100%;margin-top:10px">Close</button></div></div>
 <div class="overlay hidden" id="drillov" style="z-index:12"><div class="box"><div style="display:flex;justify-content:space-between;align-items:baseline"><h2 id="dr-title" style="margin:0">Quick drills</h2><span id="dr-meta" class="stat"></span></div><div id="dr-body" style="margin-top:10px"></div><div id="dr-foot" style="margin-top:10px"></div></div></div>
 
-<script src="preconnect-core.js"></script>
 <script>
 /* =================== core =================== */
-const APP_VERSION='0.6.0';
+const APP_VERSION='0.7.0';
 /* Screen wake lock (Milestone 1): keeps the phone from dimming or locking during a timed skill.
    On only while an activity runs: keepAwake(true) when it starts, keepAwake(false) back at the menu or on the result screen. */
 const WAKE={s:null,want:false};
@@ -499,7 +511,7 @@ $('h-prog').onclick=()=>{const p=load();const R=p.runs||[];const best=(k,id)=>{c
 $('h-learn').onclick=()=>lessonStart();$('h-drills').onclick=()=>drillMenu();
 /* =================== boot =================== */
 if('serviceWorker' in navigator&&location.protocol==='https:')window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
-showHome();
+applySettings();settingsBind();showHome();
 let LAST=performance.now();setInterval(()=>{const now=performance.now();const dt=Math.min(.5,(now-LAST)/1000);LAST=now;if(S.active&&S.id)scTick(dt);else if(ST)stTick(dt);},250);
 </script>
 </body>
