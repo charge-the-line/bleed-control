@@ -75,6 +75,12 @@ if(want.includes('drill')){const fakeAudio=()=>{const log=[];const AC=function()
 if(want.includes('drill')){global.__loc={search:'?drill=threat'};const {api,els}=boot();global.__loc={search:'?drill=nope'};const b=boot();global.__loc=undefined;
   report('drill','daily-drill deep link: ?drill=threat opens that drill on load; an unknown id is ignored',!!api.DR()&&api.DR().cfg&&api.DR().cfg.id==='threat'&&!els.drillov.classList.contains('hidden')&&!b.api.DR(),`title ${els['dr-title'].textContent}`);}
 
+if(want.includes('drill')){const {api,els}=boot();api.setTier(0);const hiddenOff=els['inst-fab'].classList.contains('hidden');api.setInst(true);api.scStart('garage');const S=api.S();els['brief-go'].onclick();S.running=true;const shown=!els['inst-fab'].classList.contains('hidden');
+  const v=S.vs[0];v.exposed=true;v.tq=v.tqNeeded;const stopped=api.rateOf(v)===0;const eta0=S.eta;api.instOpen();const paused=S.running===false&&!els.instov.classList.contains('hidden');const html=els['inst-body'].innerHTML;const looseOn=/data-inj="loose">/.test(html),helperOff=/data-inj="helper" disabled/.test(html);
+  api.instAct('ems');const etaUp=S.eta===eta0+120&&S.running===true;api.instOpen();api.instAct('loose');const bleeding=v.tq===v.tqNeeded-1&&api.rateOf(v)>0;api.instOpen();api.instAct('freeze');const frozen=!S.running&&api.INSTHOLD();api.instOpen();api.instAct('resume');const back=S.running&&!api.INSTHOLD();
+  api.scFinish(false);const r=api.load().runs.slice(-1)[0];const marked=r.kind==='scenario'&&r.inst===1&&S.injects.length===2;
+  report('drill','instructor mode: hidden until on and active, pauses while open, ambulance delay and a slipped tourniquet change the scene, unavailable injects disabled, freeze holds the clock, injected runs marked',hiddenOff&&shown&&stopped&&paused&&looseOn&&helperOff&&etaUp&&bleeding&&frozen&&back&&marked,`eta ${etaUp}, bleeding ${bleeding}, freeze ${frozen}/${back}, marked ${marked}`);}
+
 if(want.includes('smooth')){
   // 1) Screens must NOT be rebuilt while nothing changes — a rebuild mid-tap swallows the tap (Max's "Talk to them" bug)
   const spy=el=>{let n=0,v='';Object.defineProperty(el,'innerHTML',{get:()=>v,set:x=>{v=x;n++;},configurable:true});return ()=>n;};

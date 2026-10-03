@@ -96,6 +96,7 @@ textarea,input{font-family:inherit;font-size:16px;padding:10px;border-radius:8px
 .station svg{width:100%;max-width:420px;display:block;margin:0 auto}
 .meter{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--soft);margin:6px 0}.meter .bar{flex:1;height:12px}
 body.tv{max-width:1100px}@media (min-width:1000px){body.tv{zoom:1.3}}
+.fab{position:fixed;right:calc(14px + env(safe-area-inset-right,0px));bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:9;border-radius:24px;padding:12px 16px;background:#3b2a6b;border-color:#7a5cff;color:#fff;font-weight:700;box-shadow:0 4px 14px rgba(0,0,0,.4)}#b-inst.on{background:#3b2a6b;border-color:#7a5cff;color:#fff}
 </style>
 </head>
 <body>
@@ -119,6 +120,9 @@ body.tv{max-width:1100px}@media (min-width:1000px){body.tv{zoom:1.3}}
   <button class="scen" data-sc="crash"><b>Two-car crash</b><span>Two people bleeding, one of you, and traffic still moving</span></button>
   <div class="tiers"><button data-tier="0">Guided</button><button data-tier="1">Recall</button><button data-tier="2">Chaos</button></div>
   <p class="stat" id="tierhelp" style="margin:0 0 10px"></p>
+  <div class="sec">DRILL NIGHT</div>
+  <button id="b-inst" style="width:100%;margin-bottom:8px">Instructor mode: off</button>
+  <p class="stat" style="margin:0 0 6px">Live injects and a freeze while a scenario runs. On by itself during a Drill Night.</p>
   <div class="sec">MORE</div>
   <div class="row"><button id="h-drills">Quick drills</button><button id="h-ref">Pocket reference</button><button id="h-prog">My progress</button><button id="h-about">About this app</button></div>
   <p class="legal">A practice tool. It does not replace hands-on training. Take an official in-person bleeding control course, such as the American College of Surgeons Stop the Bleed® course. Not affiliated with or endorsed by ACS or the U.S. Department of Defense.</p>
@@ -148,6 +152,11 @@ body.tv{max-width:1100px}@media (min-width:1000px){body.tv{zoom:1.3}}
 <div class="overlay hidden" id="lessonov" style="z-index:12"><div class="box slide" id="lesson-box"></div></div>
 <div class="overlay hidden" id="doneov" style="z-index:13"><div class="box"><h2 id="done-t"></h2><div class="big" id="done-s"></div><div id="done-b"></div>
   <div class="row" style="margin-top:10px"><button id="done-again">Again</button><button class="go" id="done-menu">Menu</button></div></div></div>
+<button id="inst-fab" class="fab hidden">Instructor</button>
+<div class="overlay hidden" id="instov" style="z-index:22"><div class="box">
+  <div style="display:flex;justify-content:space-between;align-items:center"><span class="chip" style="background:#7a5cff;color:#fff">INSTRUCTOR</span><button id="inst-close" class="go">Close — resume</button></div>
+  <div id="inst-body" style="margin-top:10px"></div>
+</div></div>
 <div class="overlay hidden" id="pc-drillov" style="z-index:25"><div class="box" id="pc-drillbox"></div></div>
 <div class="overlay hidden" id="setov" style="z-index:20"><div class="box">
  <div class="flex"><h2 style="margin:0">Settings</h2><div class="sp"></div><button class="gear" id="set-close">Done</button></div>
@@ -167,7 +176,7 @@ body.tv{max-width:1100px}@media (min-width:1000px){body.tv{zoom:1.3}}
 
 <script>
 /* =================== core =================== */
-const APP_VERSION='0.12.0';
+const APP_VERSION='0.13.0';
 /* Screen wake lock (Milestone 1): keeps the phone from dimming or locking during a timed skill.
    On only while an activity runs: keepAwake(true) when it starts, keepAwake(false) back at the menu or on the result screen. */
 const WAKE={s:null,want:false};
@@ -191,7 +200,7 @@ function setHTML(el,html){if(el&&el._last!==html){el.innerHTML=html;el._last=htm
 function radio(who,msg,cls=''){if(S&&S.active){S.prev=S.now;S.now={who,msg,cls};}const r=$('radio');const d=document.createElement('div');d.innerHTML=`<span class="who">${esc(who)}:</span> <span class="${cls}">${esc(msg)}</span>`;r.prepend(d);while(r.children.length>16)r.lastChild.remove();if(S.log)S.log.push({c:clock(),who,msg});}
 function ding(p,why){S.score=Math.max(0,S.score-p);S.incidents.push(why);radio('Feedback',`${why} (−${p})`,'bad');pcFx('bad');}
 function clock(at){const s=S.t0+(at===undefined?S.t:at);const h=Math.floor(s/3600)%24,m=Math.floor(s%3600/60);return (h%12||12)+':'+String(m).padStart(2,'0')+(h<12?' a.m.':' p.m.');}
-function showHome(){keepAwake(false);['game','briefov','decov','stov','lessonov','doneov','drillov'].forEach(i=>$(i).classList.add('hidden'));$('home').classList.remove('hidden');S.active=false;S.running=false;
+function showHome(){keepAwake(false);INSTHOLD=false;setTimeout(instSync,0);['game','briefov','decov','stov','lessonov','doneov','drillov'].forEach(i=>$(i).classList.add('hidden'));$('home').classList.remove('hidden');S.active=false;S.running=false;
   document.querySelectorAll('[data-tier]').forEach(b=>b.classList.toggle('on',+b.dataset.tier===TIER));$('tierhelp').textContent=['Guided: every step listed, with coaching.','Recall: no checklist. Run it from memory.','Chaos: no checklist, and things go wrong.'][TIER];}
 document.querySelectorAll('[data-tier]').forEach(b=>b.onclick=()=>{TIER=+b.dataset.tier;showHome();});
 /* =================== art =================== */
@@ -366,8 +375,8 @@ const STD_V={kitchen:{kit:true,near:false},garage:{need2:false},glass:{site:'gro
 function vlabel(id){return {kitchen:`${V.kit?'Tourniquet available':'No tourniquet — pressure only'}${V.kit?(V.near?' · wound just below the elbow':' · wound mid-forearm'):''}`,garage:V.need2?'Needed a second tourniquet':'One tourniquet was enough',glass:`Wound in the ${V.site}`,crash:'Two patients, one of you'}[id];}
 function vv(){return S.vs[S.sel||0];}
 function scStart(id){keepAwake(true);SC=SCN[id];pca('begin','bc',id,()=>{const j=stepsDone.findIndex(x=>!x);return j<0?'':`step-${j+1}`;});V=Object.assign(VARIANTS[id](),pcDrill()?STD_V[id]:{},FORCE&&FORCE[id]||{});
-  S={active:true,running:false,doneAt:{},talks:0,now:null,id,t:0,rt:0,t0:SC.t0,score:100,incidents:[],log:[],safe:false,alerted:false,alertT:null,emsArr:false,eta:SC.eta+(TIER===2?120:0),sel:0,helperFree:true,briefing:true,chaos:{}};
-  S.vs=SC.victims();S.steps=SC.steps();stepsDone=S.steps.map(()=>false);DEC_OPEN=null;
+  S={active:true,running:false,doneAt:{},talks:0,now:null,id,t:0,rt:0,t0:SC.t0,score:100,incidents:[],log:[],safe:false,alerted:false,alertT:null,emsArr:false,eta:SC.eta+(TIER===2?120:0),sel:0,helperFree:true,briefing:true,chaos:{},injects:[]};
+  S.vs=SC.victims();S.steps=SC.steps();stepsDone=S.steps.map(()=>false);DEC_OPEN=null;INSTHOLD=false;instSync();
   $('home').classList.add('hidden');$('game').classList.remove('hidden');$('radio').innerHTML='';$('g-title').textContent=SC.title;
   $('steps').innerHTML=TIER===0?S.steps.map((s,j)=>`<li id="st-${j}"><span class="box"></span><span>${esc(s.t)}</span></li>`).join(''):`<li><span class="box"></span><span>Checklist hidden — ${S.steps.length} steps. <span id="rcn"></span></span></li>`;
   $('m-title').textContent='Checklist';$('m-sub').textContent='Safety, then A, B, C.';
@@ -459,7 +468,7 @@ $('dec-go').onclick=()=>{if(!DEC_OPEN)return;$('decov').classList.add('hidden');
 /* =================== finish + debrief =================== */
 function scFinish(died){S.active=false;const v=S.vs[0];const lostP=Math.round(v.lost/v.vol*100);
   const att=(load().runs||[]).filter(r=>r.kind==='scenario'&&r.id===S.id).length+1;const compare=pcBestPrev((load().runs||[]).filter(r=>r.kind==='scenario'&&r.id===S.id));
-  const score=died?Math.min(S.score,20):Math.max(0,S.score-Math.max(0,lostP-20));if(!died&&lostP>20)S.incidents.push(`Blood lost before control: ${lostP}% (every point over 20% costs a point)`);pca('end',`${['guided','recall','chaos'][TIER]}/${pca('att',att)}/${died?'patient-died':pca('bkt',score)}`);record('scenario',S.id,score,{variant:vlabel(S.id),died});
+  const score=died?Math.min(S.score,20):Math.max(0,S.score-Math.max(0,lostP-20));if(!died&&lostP>20)S.incidents.push(`Blood lost before control: ${lostP}% (every point over 20% costs a point)`);pca('end',`${['guided','recall','chaos'][TIER]}/${pca('att',att)}/${died?'patient-died':pca('bkt',score)}`);record('scenario',S.id,score,Object.assign({variant:vlabel(S.id),died},S.injects&&S.injects.length?{inst:1}:{}));
   const rows=[['This patient',vlabel(S.id)],['Time to first pressure',v.firstCompT!==null?mmss(v.firstCompT):'never'],['911 called',S.alertT!==null?mmss(S.alertT)+' in':'no'],
    ...(v.tq?[['Tourniquet',`${v.tq>1?'two':'one'} · ${v.tqMarked?'time marked':'time NOT marked'}`]]:[]),...(v.packed?[['Wound','packed and held']]:[]),
    ['Blood lost',`≈ ${Math.round(v.lost/50)*50} mL (${lostP}% of his blood)`],['Outcome',died?'did not survive':lostP<30?'stable when EMS took over':'in shock, but alive when EMS took over']];
@@ -501,7 +510,25 @@ $('h-prog').onclick=()=>{const p=load();const R=p.runs||[];const best=(k,id)=>{c
 $('h-learn').onclick=()=>lessonStart();$('h-drills').onclick=()=>drillMenu();
 /* =================== boot =================== */
 if('serviceWorker' in navigator&&location.protocol==='https:')window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
-applySettings();settingsBind();pcDrillBind();showHome();
+/* ===== instructor mode (October 2026): live injects and a freeze during a scenario, for drill nights. On by itself during a Drill Night. ===== */
+let INST=false,INSTHOLD=false;
+const instOn=()=>INST||!!pcDrill();
+const INJECTS=[
+ {id:'ems',label:'Ambulance held up two more minutes',ok:()=>S.active&&!S.emsArr,run:()=>{S.eta+=120;radio('Dispatcher','Update: the ambulance is held at the drawbridge. About two more minutes.','bad');}},
+ {id:'loose',label:'Tourniquet strap slips; bleeding again',ok:()=>S.active&&!S.emsArr&&S.vs.some(v=>!v.dead&&v.tq>0&&v.tq>=v.tqNeeded),run:()=>{const v=S.vs.find(x=>!x.dead&&x.tq>0&&x.tq>=x.tqNeeded);v.tq=Math.max(0,v.tq-1);radio(v.name||'Patient','It\'s bleeding again! The strap slipped!','bad');}},
+ {id:'helper',label:'Bystander lets go of the pressure',ok:()=>S.active&&!S.emsArr&&S.vs.some(v=>v.pressure==='helper'),run:()=>{const v=S.vs.find(x=>x.pressure==='helper');v.pressure=null;radio('Bystander','I can\'t do this, I\'m going to be sick.','bad');}},
+ {id:'talk',label:'Patient panics and tries to sit up',ok:()=>S.active&&!S.emsArr&&S.vs.some(v=>!v.dead&&v.pressure==='you'),run:()=>{const v=S.vs.find(x=>!x.dead&&x.pressure==='you');v.pressure=null;radio(v.name||'Patient','Get off me, I need to see it!','bad');}}];
+function inject(id){const x=INJECTS.find(y=>y.id===id);if(!x||!x.ok())return false;x.run();S.injects=(S.injects||[]).concat(x.label);return true;}
+function instSync(){const b=$('b-inst');if(b){b.textContent='Instructor mode: '+(INST?'on':pcDrill()?'on (Drill Night)':'off');b.classList.toggle('on',instOn());}$('inst-fab').classList.toggle('hidden',!(instOn()&&S.active));$('inst-fab').textContent=INSTHOLD?'Frozen — tap to resume':'Instructor';}
+function instOpen(){if(!S.active)return;S.instWasRunning=S.running;S.running=false;
+  $('inst-body').innerHTML=`<p class="stat" style="margin:0 0 4px">${esc(SC?SC.title:'')} · score ${S.score} · ambulance ${S.emsArr?'on scene':Math.max(0,Math.round(S.eta))+' s out'}</p><div class="sec">Inject now</div>`+INJECTS.map(x=>{const ok=x.ok();return `<button class="scen" data-inj="${x.id}"${ok?'':' disabled'}><b>${esc(x.label)}</b><span>${ok?'Tap to inject. The radio line will call it.':'Not available at this point'}</span></button>`;}).join('')+`<div class="sec">Clock</div><button data-inj="${INSTHOLD?'resume':'freeze'}" style="width:100%">${INSTHOLD?'Resume the clock':'Freeze and discuss'}</button>`;
+  $('instov').classList.remove('hidden');}
+function instClose(){$('instov').classList.add('hidden');if(S.active&&!DEC_OPEN&&!S.briefing&&!INSTHOLD&&S.instWasRunning!==false)S.running=true;instSync();}
+function instAct(a){if(a==='freeze'){INSTHOLD=true;S.running=false;}else if(a==='resume'){INSTHOLD=false;S.instWasRunning=true;}else{inject(a);S.instWasRunning=true;}instClose();}
+$('inst-body').onclick=e=>{const b=e.target.closest&&e.target.closest('[data-inj]');if(!b||b.disabled)return;instAct(b.dataset.inj);};
+$('inst-fab').onclick=instOpen;$('inst-close').onclick=instClose;
+$('b-inst').onclick=()=>{INST=!INST;const p=load();p.inst=INST;save(p);instSync();};
+applySettings();settingsBind();INST=!!load().inst;pcDrillBind();showHome();instSync();
 /* the home page's daily drill deep-links here: bleed-control/?drill=threat */
 {const q=new URLSearchParams((typeof location!=='undefined'&&location.search)||'').get('drill');if(q&&DRILLS[q])drillStart(q);}
 let LAST=performance.now();setInterval(()=>{const now=performance.now();const dt=Math.min(.5,(now-LAST)/1000);LAST=now;if(S.active&&S.id)scTick(dt);else if(ST)stTick(dt);},250);

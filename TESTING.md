@@ -101,3 +101,8 @@ Foundation fixes: fonts served from this site, screen wake lock, finger-sized bu
 ## Milestone 10 checks (added October 2026)
 
 - Browser check: landscape, Daylight and landscape-settings rows.
+
+## Instructor mode checks (added October 3, 2026)
+
+- `drill`: with instructor mode on and the garage scenario active, the Instructor button shows; opening the sheet pauses the clock; the ambulance inject pushes `S.eta` by 120 s; the slipped-tourniquet inject makes a controlled victim bleed again (`rateOf` > 0); injects whose guard fails are rendered disabled; Freeze holds the clock after the sheet closes and Resume releases it; the finished run carries `inst:1`.
+- Browser check: an `instructor` row at 320 and 390 px (store `{inst:true}`, start the garage scenario, tap the Instructor button, check overflow and button sizes).
