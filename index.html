@@ -165,7 +165,7 @@ body.tv{max-width:1100px}@media (min-width:1000px){body.tv{zoom:1.3}}
 
 <script>
 /* =================== core =================== */
-const APP_VERSION='0.7.0';
+const APP_VERSION='0.8.0';
 /* Screen wake lock (Milestone 1): keeps the phone from dimming or locking during a timed skill.
    On only while an activity runs: keepAwake(true) when it starts, keepAwake(false) back at the menu or on the result screen. */
 const WAKE={s:null,want:false};
@@ -228,24 +228,11 @@ const LESSON=[
  {t:'Be ready',art:'kit',pts:['Bleeding control kits hold a tourniquet, gauze, gloves, and a marker.','Many schools, offices, and public buildings have them. Know where yours are.','Keep one in your car or bag.','Take an official hands-on course. This app is practice, not certification.'],
   q:'What\'s the best way to be ready?',o:[['Know where the kits are, and take a hands-on course','good'],['Watch a video once, and you\'re all set','bad'],['Carry a kit, even if you\'ve never practiced with it','partial']],why:'Equipment plus hands-on practice. Skills fade without practice — that\'s what this app is for.'}];
 let LS=null;
-function lessonStart(){keepAwake(true);pca('begin','bc','lesson',()=>LS?`slide-${LS.i+1}`:'');LS={i:0,first:{},answered:false,t0:Date.now()};$('lessonov').classList.remove('hidden');lessonRender();}
-function lessonRender(){const s=LESSON[LS.i];LS.answered=false;LS.ord=shuf(s.o.map((o,k)=>k));
-  $('lesson-box').innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center"><span class="tag">Lesson · ${LS.i+1} of ${LESSON.length}</span><button data-l="tv" style="padding:6px 10px;font-size:13px">${document.body.classList.contains('tv')?'Phone view':'Big-screen view'}</button></div>
-   <h2>${esc(s.t)}</h2>${s.art?`<div class="art">${ART[s.art]}</div>`:''}<ul>${s.pts.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>
-   <div style="border-top:1px solid var(--line);padding-top:10px"><p style="font-size:14px;color:var(--soft);margin:0 0 4px">Check your understanding</p><p style="font-size:17px;font-weight:700;margin:0 0 8px">${esc(s.q)}</p>
-   ${LS.ord.map(k=>`<button class="opt" data-l="ans" data-k="${k}">${esc(s.o[k][0])}</button>`).join('')}<p id="l-fb" style="font-size:15px"></p></div>
-   <div class="dots">${LESSON.map((_,k)=>`<i class="${k<=LS.i?'on2':''}"></i>`).join('')}</div>
-   <div class="row"><button data-l="prev" ${LS.i?'':'disabled'}>Back</button><button class="go" data-l="next" id="l-next" disabled>${LS.i+1<LESSON.length?'Next':'Finish'}</button></div>
-   <button data-l="quit" style="width:100%;margin-top:8px">Leave the lesson</button>`;
-  $('lessonov').scrollTop=0;}
-function lessonAct(ds){const a=ds.l;if(a==='ans'){if(LS.answered)return;const s=LESSON[LS.i],o=s.o[+ds.k],ok=o[1]==='good';if(LS.first[LS.i]===undefined)LS.first[LS.i]=ok;
-    if(ok){LS.answered=true;$('l-next').disabled=false;}$('l-fb').innerHTML=`<b style="color:${ok?'#7fe3a4':o[1]==='partial'?'#ffc23d':'#ff9a96'}">${ok?'Right.':o[1]==='partial'?'Not quite.':'No.'}</b> ${esc(ok?s.why:'Try again.')}`;}
-  else if(a==='next'){if(!LS.answered)return;if(LS.i+1<LESSON.length){LS.i++;lessonRender();}else lessonDone();}
-  else if(a==='prev'){if(LS.i){LS.i--;lessonRender();}}
-  else if(a==='tv'){document.body.classList.toggle('tv');lessonRender();}
-  else if(a==='quit'){pca('abandon');$('lessonov').classList.add('hidden');LS=null;}}
-function lessonDone(){const right=Object.values(LS.first).filter(Boolean).length,score=Math.round(right/LESSON.length*100);pca('end',pca('bkt',score));$('lessonov').classList.add('hidden');record('lesson','lesson',score);
-  showDone('Lesson complete',score,pcDebriefBody({score,compare:pcBestPrev((load().runs||[]).filter(x=>x.kind==='lesson').slice(0,-1)),kicker:'Next: practice the hands-on skills, then try a scenario.',metrics:[['Right on the first try',`${right} of ${LESSON.length}`]],clean:false}),()=>lessonStart());LS=null;}
+function lessonStart(){keepAwake(true);pca('begin','bc','lesson',()=>LS?`slide-${LS.i+1}`:'');LS=pcLessonStart({slides:LESSON,art:k=>ART[k],onDone:lessonDone,onQuit:()=>{pca('abandon');LS=null;}});}
+function lessonRender(){pcLessonRender(LS);}
+function lessonAct(ds){pcLessonAct(LS,ds);}
+function lessonDone(score,right,n){pca('end',pca('bkt',score));record('lesson','lesson',score);
+  showDone('Lesson complete',score,pcDebriefBody({score,compare:pcBestPrev((load().runs||[]).filter(x=>x.kind==='lesson').slice(0,-1)),kicker:'Next: practice the hands-on skills, then try a scenario.',metrics:[['Right on the first try',`${right} of ${n}`]],clean:false}),()=>lessonStart());LS=null;}
 $('lesson-box').onclick=e=>{const b=e.target.closest&&e.target.closest('[data-l]');if(b)lessonAct(b.dataset);};
 /* =================== skill stations =================== */
 let ST=null;
@@ -486,13 +473,12 @@ let DR=null;
 function drillMenu(){DR=null;$('dr-title').textContent='Quick drills';$('dr-meta').textContent='';const p=load();const best=id=>{const r=(p.runs||[]).filter(x=>x.kind==='drill'&&x.id===id);return r.length?Math.max(...r.map(x=>x.score)):null;};
   $('dr-body').innerHTML=Object.keys(DRILLS).map(k=>{const b=best(k);return `<button class="scen" data-d="go" data-k="${k}"><b>${DRILLS[k].name}${b!==null?`<span style="float:right;font-size:16px;color:var(--red2)">best ${b}</span>`:''}</b></button>`;}).join('');
   $('dr-foot').innerHTML='<button data-d="close" class="go" style="width:100%">Back</button>';$('drillov').classList.remove('hidden');}
-function drillStart(k){pca('begin','bc','drill-'+k,()=>DR?`question-${DR.i+1}`:'');DR={k,i:0,right:0,qs:DRILLS[k].items()};drillQ();}
-function drillQ(){const q=DR.qs[DR.i];q.ord=shuf(q.opts);$('dr-title').textContent=DRILLS[DR.k].name;$('dr-meta').textContent=`${DR.i+1} of ${DR.qs.length} · ${DR.right} right`;
-  $('dr-body').innerHTML=`<p style="font-size:18px;margin:0 0 10px">${esc(q.q)}</p>${q.ord.map((o,i)=>`<button class="opt" data-d="ans" data-i="${i}">${esc(o)}</button>`).join('')}<p id="dr-fb" style="font-size:15px"></p>`;$('dr-foot').innerHTML='<button data-d="menu" style="width:100%">Quit</button>';}
-function drillAct(ds){const a=ds.d;if(a==='go')drillStart(ds.k);else if(a==='close'){pca('abandon');$('drillov').classList.add('hidden');DR=null;}else if(a==='menu'){pca('abandon');drillMenu();}
-  else if(a==='ans'){const q=DR.qs[DR.i];if(q.done)return;q.done=true;const ok=q.ord[+ds.i]===q.a;if(ok)DR.right++;$('dr-fb').innerHTML=`<b style="color:${ok?'#7fe3a4':'#ff9a96'}">${ok?'Right.':'Answer: '+esc(q.a)+'.'}</b> ${esc(DRILLS[DR.k].why)}`;$('dr-foot').innerHTML=`<button data-d="next" class="go" style="width:100%">${DR.i+1<DR.qs.length?'Next':'Results'}</button>`;}
-  else if(a==='next'){DR.i++;if(DR.i<DR.qs.length)drillQ();else{const sc=Math.round(DR.right/DR.qs.length*100);pca('end',pca('bkt',sc));record('drill',DR.k,sc);$('dr-body').innerHTML=`<div class="big">${sc}</div><p>${DR.right} of ${DR.qs.length} right.</p>`;$('dr-foot').innerHTML=`<div class="row"><button data-d="menu">All drills</button><button data-d="go" data-k="${DR.k}" class="go">Again</button></div>`;}}}
-$('dr-body').onclick=e=>{const b=e.target.closest&&e.target.closest('[data-d]');if(b)drillAct(b.dataset);};$('dr-foot').onclick=$('dr-body').onclick;
+function drillStart(k){pca('begin','bc','drill-'+k,()=>DR?`question-${DR.i+1}`:'');const items=DRILLS[k].items().map(q=>Object.assign({},q,{d:(q.opts||[]).filter(o=>o!==q.a)}));
+  DR=pcQuizStart({name:DRILLS[k].name,qs:items,kind:'drill',id:k,why:DRILLS[k].why,ov:'drillov',titleEl:'dr-title',metaEl:'dr-meta',bodyEl:'dr-body',footEl:'dr-foot',menuAction:'menu',menuLabel:'All drills',
+    onDone:sc=>{pca('end',pca('bkt',sc));record('drill',k,sc);},onQuit:()=>{pca('abandon');drillMenu();}});DR.k=k;}
+function drillQ(){pcQuizQ(DR);}
+function drillAct(ds){const a=ds.d||ds.q;if(a==='go'){drillStart(ds.k);return;}if(a==='close'){pca('abandon');$('drillov').classList.add('hidden');DR=null;return;}if(a==='menu'){pca('abandon');drillMenu();return;}if(a==='again'){drillStart(DR.k);return;}pcQuizAct(DR,{q:a,i:ds.i});}
+$('dr-body').onclick=e=>{const b=e.target.closest&&e.target.closest('[data-d],[data-q]');if(b)drillAct(b.dataset);};$('dr-foot').onclick=$('dr-body').onclick;
 /* =================== reference, about, progress =================== */
 function info(html){$('info-b').innerHTML=html;$('infoov').classList.remove('hidden');}
 $('info-close').onclick=()=>$('infoov').classList.add('hidden');

@@ -80,3 +80,7 @@ Foundation fixes: fonts served from this site, screen wake lock, finger-sized bu
 ## Milestone 4 checks (added October 2026)
 
 - Settings sheet present and wired to the shared key; browser check opens it from home.
+
+## Milestone 5 part one checks (added October 2026)
+
+- The existing `lesson` and `drills` sections now exercise the shared core engines through this module's wrappers; nothing was relaxed.
