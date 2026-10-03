@@ -62,3 +62,10 @@ Verified to catch planted bugs: a station that accepts a tourniquet on the joint
 - **Stations** (`stationOpen`, `stAct`, `stZone`, `stTick`): tourniquet, packing, and pressure. Used on their own in Practice and inside scenarios as "your hands."
 - `SCN`: the scenarios (briefing, victims, checklist steps); `VARIANTS` randomizes each run; `rateOf()` turns interventions into bleeding rates; `DEC` holds the decisions.
 - `DRILLS`, the pocket reference, About, and progress/CSV.
+
+## Milestone 1 checks (added October 2026)
+
+Foundation fixes: fonts served from this site, screen wake lock, finger-sized buttons. The `syntax` section (the hub: the plain list) now also proves:
+- Fonts self-hosted in `fonts/`, no Google reference, every file in the cache list.
+- Screen wake lock: requested when a lesson, station, or scenario starts, released at home or on the result screen.
+- Browser check: any visible button under 44 px tall fails the screen; the slow-tap test scrolls to the button first, as a person would.

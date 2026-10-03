@@ -31,7 +31,16 @@
 </script>
 
 <title>Bleed Control</title>
-<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Saira+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+/* Fonts are served from this site (fonts/, SIL Open Font License). Nothing loads from Google: works offline and makes no outside request. */
+@font-face{font-family:"Atkinson Hyperlegible";font-style:normal;font-weight:400;font-display:swap;src:url(fonts/atkinson-hyperlegible-latin-400-normal.woff2) format("woff2")}
+@font-face{font-family:"Atkinson Hyperlegible";font-style:normal;font-weight:700;font-display:swap;src:url(fonts/atkinson-hyperlegible-latin-700-normal.woff2) format("woff2")}
+@font-face{font-family:"Saira Condensed";font-style:normal;font-weight:500;font-display:swap;src:url(fonts/saira-condensed-latin-500-normal.woff2) format("woff2")}
+@font-face{font-family:"Saira Condensed";font-style:normal;font-weight:600;font-display:swap;src:url(fonts/saira-condensed-latin-600-normal.woff2) format("woff2")}
+@font-face{font-family:"Saira Condensed";font-style:normal;font-weight:700;font-display:swap;src:url(fonts/saira-condensed-latin-700-normal.woff2) format("woff2")}
+/* Milestone 1: every button is at least 48 px tall (finger-sized, gloves on). */
+button{min-height:48px}
+</style>
 <style>
 :root{--bg:#1a1416;--deck:#261c1f;--deck2:#33262a;--line:#4a3539;--ink:#f6f1f2;--soft:#c3b2b5;--red:#e5383b;--red2:#ff5a5d;--green:#39e36f;--amber:#ffc23d;--blue:#6fd3ff}
 *{box-sizing:border-box}
@@ -143,7 +152,15 @@ body.tv{max-width:1100px}@media (min-width:1000px){body.tv{zoom:1.3}}
 
 <script>
 /* =================== core =================== */
-const APP_VERSION='0.4.0';
+const APP_VERSION='0.5.0';
+/* Screen wake lock (Milestone 1): keeps the phone from dimming or locking during a timed skill.
+   On only while an activity runs: keepAwake(true) when it starts, keepAwake(false) back at the menu or on the result screen. */
+const WAKE={s:null,want:false};
+function keepAwake(on){WAKE.want=!!on;const wl=(typeof navigator!=='undefined')&&navigator.wakeLock;if(!wl||!wl.request)return;
+  if(on){if(WAKE.s)return;try{wl.request('screen').then(s=>{WAKE.s=s;if(s.addEventListener)s.addEventListener('release',()=>{if(WAKE.s===s)WAKE.s=null;});}).catch(()=>{});}catch(e){}}
+  else if(WAKE.s){const s=WAKE.s;WAKE.s=null;try{Promise.resolve(s.release&&s.release()).catch(()=>{});}catch(e){}}}
+if(typeof document!=='undefined'&&document.addEventListener)document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&WAKE.want&&!WAKE.s)keepAwake(true);});
+
 const $=id=>document.getElementById(id);
 const esc=t=>String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;');
 const pick=a=>a[Math.floor(Math.random()*a.length)];
@@ -159,7 +176,7 @@ function setHTML(el,html){if(el&&el._last!==html){el.innerHTML=html;el._last=htm
 function radio(who,msg,cls=''){if(S&&S.active){S.prev=S.now;S.now={who,msg,cls};}const r=$('radio');const d=document.createElement('div');d.innerHTML=`<span class="who">${esc(who)}:</span> <span class="${cls}">${esc(msg)}</span>`;r.prepend(d);while(r.children.length>16)r.lastChild.remove();if(S.log)S.log.push({c:clock(),who,msg});}
 function ding(p,why){S.score=Math.max(0,S.score-p);S.incidents.push(why);radio('Feedback',`${why} (−${p})`,'bad');}
 function clock(at){const s=S.t0+(at===undefined?S.t:at);const h=Math.floor(s/3600)%24,m=Math.floor(s%3600/60);return (h%12||12)+':'+String(m).padStart(2,'0')+(h<12?' a.m.':' p.m.');}
-function showHome(){['game','briefov','decov','stov','lessonov','doneov','drillov'].forEach(i=>$(i).classList.add('hidden'));$('home').classList.remove('hidden');S.active=false;S.running=false;
+function showHome(){keepAwake(false);['game','briefov','decov','stov','lessonov','doneov','drillov'].forEach(i=>$(i).classList.add('hidden'));$('home').classList.remove('hidden');S.active=false;S.running=false;
   document.querySelectorAll('[data-tier]').forEach(b=>b.classList.toggle('on',+b.dataset.tier===TIER));$('tierhelp').textContent=['Guided: every step listed, with coaching.','Recall: no checklist. Run it from memory.','Chaos: no checklist, and things go wrong.'][TIER];}
 document.querySelectorAll('[data-tier]').forEach(b=>b.onclick=()=>{TIER=+b.dataset.tier;showHome();});
 /* =================== art =================== */
@@ -198,7 +215,7 @@ const LESSON=[
  {t:'Be ready',art:'kit',pts:['Bleeding control kits hold a tourniquet, gauze, gloves, and a marker.','Many schools, offices, and public buildings have them. Know where yours are.','Keep one in your car or bag.','Take an official hands-on course. This app is practice, not certification.'],
   q:'What\'s the best way to be ready?',o:[['Know where the kits are, and take a hands-on course','good'],['Watch a video once, and you\'re all set','bad'],['Carry a kit, even if you\'ve never practiced with it','partial']],why:'Equipment plus hands-on practice. Skills fade without practice — that\'s what this app is for.'}];
 let LS=null;
-function lessonStart(){pca('begin','bc','lesson',()=>LS?`slide-${LS.i+1}`:'');LS={i:0,first:{},answered:false,t0:Date.now()};$('lessonov').classList.remove('hidden');lessonRender();}
+function lessonStart(){keepAwake(true);pca('begin','bc','lesson',()=>LS?`slide-${LS.i+1}`:'');LS={i:0,first:{},answered:false,t0:Date.now()};$('lessonov').classList.remove('hidden');lessonRender();}
 function lessonRender(){const s=LESSON[LS.i];LS.answered=false;LS.ord=shuf(s.o.map((o,k)=>k));
   $('lesson-box').innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center"><span class="tag">Lesson · ${LS.i+1} of ${LESSON.length}</span><button data-l="tv" style="padding:6px 10px;font-size:13px">${document.body.classList.contains('tv')?'Phone view':'Big-screen view'}</button></div>
    <h2>${esc(s.t)}</h2>${s.art?`<div class="art">${ART[s.art]}</div>`:''}<ul>${s.pts.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>
@@ -232,7 +249,7 @@ function limbSVG(limb,nearJoint,zones,placed){const arm=limb==='arm';const J=arm
 function tqZones(){const s=ST;const arm=s.limb==='arm';const J=arm?170:150;const W=arm?(s.near?145:90):(s.near?125:225);
   if(s.phase==='place2'){const T=s.placed[0];return [['onfirst',T],['abovefirst',Math.min(296,T+34)],['belowfirst',T-26]];}
   return s.near?shuf([['on',W],['joint',J],['abovejoint',J+(arm?46:44)],['below',W-40]]):shuf([['on',W],['above',W+45>J-14&&W+45<J+14?W+38:W+45],['joint',J],['below',Math.max(30,W-42)]]);}
-function stationOpen(kind,opts,onDone){ST=Object.assign({ord:{},kind,phase:'',err:0,t0:Date.now()/1000,rt:0,tension:0,occl:0,fill:0,holdT:0,holding:false,lastPack:null,soaked:false,placed:[],need2:false,count:1,onDone,fb:''},opts||{});
+function stationOpen(kind,opts,onDone){keepAwake(true);ST=Object.assign({ord:{},kind,phase:'',err:0,t0:Date.now()/1000,rt:0,tension:0,occl:0,fill:0,holdT:0,holding:false,lastPack:null,soaked:false,placed:[],need2:false,count:1,onDone,fb:''},opts||{});
   ST.par=kind==='tq'?(ST.limb==='leg'?PAR.tqleg:PAR.tq):PAR[kind];ST.holdN=ST.scenario?8:(kind==='pack'?20:16);
   ST.phase=kind==='tq'?'place':kind==='pack'?'start':'cover';$('stov').classList.remove('hidden');stRender();}
 function stBleed(){const s=ST;if(!s)return 1;if(s.kind==='tq')return s.occl>=100?0:Math.max(.05,1-s.occl/100);if(s.kind==='pack')return s.phase==='hold'?(s.holding?.05:.5):s.phase==='packing'?(s.lapse?.8:.35):s.phase==='done'?.03:1;
@@ -344,7 +361,7 @@ let V={};
 const VARIANTS={kitchen:()=>({kit:Math.random()<.65,near:Math.random()<.4}),garage:()=>({need2:Math.random()<.4}),glass:()=>({site:Math.random()<.6?'groin':'armpit'}),crash:()=>({})};
 function vlabel(id){return {kitchen:`${V.kit?'Tourniquet available':'No tourniquet — pressure only'}${V.kit?(V.near?' · wound just below the elbow':' · wound mid-forearm'):''}`,garage:V.need2?'Needed a second tourniquet':'One tourniquet was enough',glass:`Wound in the ${V.site}`,crash:'Two patients, one of you'}[id];}
 function vv(){return S.vs[S.sel||0];}
-function scStart(id){SC=SCN[id];pca('begin','bc',id,()=>{const j=stepsDone.findIndex(x=>!x);return j<0?'':`step-${j+1}`;});V=Object.assign(VARIANTS[id](),FORCE&&FORCE[id]||{});
+function scStart(id){keepAwake(true);SC=SCN[id];pca('begin','bc',id,()=>{const j=stepsDone.findIndex(x=>!x);return j<0?'':`step-${j+1}`;});V=Object.assign(VARIANTS[id](),FORCE&&FORCE[id]||{});
   S={active:true,running:false,doneAt:{},talks:0,now:null,id,t:0,rt:0,t0:SC.t0,score:100,incidents:[],log:[],safe:false,alerted:false,alertT:null,emsArr:false,eta:SC.eta+(TIER===2?120:0),sel:0,helperFree:true,briefing:true,chaos:{}};
   S.vs=SC.victims();S.steps=SC.steps();stepsDone=S.steps.map(()=>false);DEC_OPEN=null;
   $('home').classList.add('hidden');$('game').classList.remove('hidden');$('radio').innerHTML='';$('g-title').textContent=SC.title;
@@ -446,7 +463,7 @@ function scFinish(died){S.active=false;const v=S.vs[0];const lostP=Math.round(v.
   const stepsHTML=`<div class="sec" style="margin-top:12px">YOUR STEPS</div>${S.steps.map((st,j)=>`<div class="mrow"><span>${stepsDone[j]?'<b style="color:#7fe3a4">✓</b>':'<b style="color:#ff9a96">✗</b>'} ${esc(st.t)}</span><b style="white-space:nowrap;${stepsDone[j]?'':'color:#ff9a96'}">${stepsDone[j]?mmss(S.doneAt[j]||0):'missed'}</b></div>`).join('')}`;
   showDone(died?'He didn\'t make it':'Handed off to EMS',score,`<div style="margin-top:6px">${rows.map(([a,b])=>`<div class="mrow"><span>${a}</span><b style="text-align:right">${esc(b)}</b></div>`).join('')}</div><p style="font-size:14px;color:var(--soft);margin-top:10px">${msg}</p>${S.incidents.length?`<p style="font-size:14px"><b>Feedback:</b> ${S.incidents.map(esc).join(' · ')}</p>`:''}${stepsHTML}`,()=>scStart(S.id));}
 let AGAIN=null;
-function showDone(t,score,html,again){$('done-t').textContent=t;$('done-s').textContent=score;$('done-b').innerHTML=html;AGAIN=again;$('doneov').classList.remove('hidden');}
+function showDone(t,score,html,again){keepAwake(false);$('done-t').textContent=t;$('done-s').textContent=score;$('done-b').innerHTML=html;AGAIN=again;$('doneov').classList.remove('hidden');}
 $('done-again').onclick=()=>{$('doneov').classList.add('hidden');if(AGAIN)AGAIN();};$('done-menu').onclick=()=>{$('doneov').classList.add('hidden');showHome();};
 /* =================== quick drills =================== */
 const DRILLS={
