@@ -98,6 +98,7 @@ body.tv{max-width:1100px}@media (min-width:1000px){body.tv{zoom:1.3}}
   <div class="top"><div><div class="brand">BLEED CONTROL</div><h1 id="g-title">Scenario</h1></div><div class="meta">Score <b id="g-score">100</b><div id="g-clock">—</div></div></div>
   <div class="card" style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px"><span id="g-eta-l">EMS</span><b id="g-eta" style="font-family:'Saira Condensed';font-size:24px">—</b></div>
   <div id="victims"></div>
+  <div class="card" id="g-now" style="padding:10px 12px;font-size:15px;line-height:1.4;min-height:44px"></div>
   <div class="card" id="deck"></div>
   <div class="card"><h2 id="m-title">Checklist</h2><p class="sub" id="m-sub"></p><ul class="steps" id="steps"></ul>
     <div class="row" style="margin-top:10px"><button id="g-restart">Restart</button><button id="g-menu">Menu</button></div></div>
@@ -122,7 +123,7 @@ body.tv{max-width:1100px}@media (min-width:1000px){body.tv{zoom:1.3}}
 
 <script>
 /* =================== core =================== */
-const APP_VERSION='0.2.0';
+const APP_VERSION='0.3.0';
 const $=id=>document.getElementById(id);
 const esc=t=>String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;');
 const pick=a=>a[Math.floor(Math.random()*a.length)];
@@ -133,7 +134,8 @@ const KEY='bleed-control';
 function load(){try{return JSON.parse(localStorage.getItem(KEY))||{runs:[]};}catch(e){return {runs:[]};}}
 function save(p){try{localStorage.setItem(KEY,JSON.stringify(p));}catch(e){}}
 function record(kind,id,score,extra){const p=load();p.runs=(p.runs||[]).concat([Object.assign({kind,id,score,d:new Date().toISOString(),tier:TIER},extra||{})]).slice(-500);save(p);}
-function radio(who,msg,cls=''){const r=$('radio');const d=document.createElement('div');d.innerHTML=`<span class="who">${esc(who)}:</span> <span class="${cls}">${esc(msg)}</span>`;r.prepend(d);while(r.children.length>16)r.lastChild.remove();if(S.log)S.log.push({c:clock(),who,msg});}
+function setHTML(el,html){if(el&&el._last!==html){el.innerHTML=html;el._last=html;}}
+function radio(who,msg,cls=''){if(S&&S.active){S.prev=S.now;S.now={who,msg,cls};}const r=$('radio');const d=document.createElement('div');d.innerHTML=`<span class="who">${esc(who)}:</span> <span class="${cls}">${esc(msg)}</span>`;r.prepend(d);while(r.children.length>16)r.lastChild.remove();if(S.log)S.log.push({c:clock(),who,msg});}
 function ding(p,why){S.score=Math.max(0,S.score-p);S.incidents.push(why);radio('Feedback',`${why} (−${p})`,'bad');}
 function clock(at){const s=S.t0+(at===undefined?S.t:at);const h=Math.floor(s/3600)%24,m=Math.floor(s%3600/60);return (h%12||12)+':'+String(m).padStart(2,'0')+(h<12?' a.m.':' p.m.');}
 function showHome(){['game','briefov','decov','stov','lessonov','doneov','drillov'].forEach(i=>$(i).classList.add('hidden'));$('home').classList.remove('hidden');S.active=false;S.running=false;
@@ -209,12 +211,12 @@ function limbSVG(limb,nearJoint,zones,placed){const arm=limb==='arm';const J=arm
 function tqZones(){const s=ST;const arm=s.limb==='arm';const J=arm?170:150;const W=arm?(s.near?145:90):(s.near?125:225);
   if(s.phase==='place2'){const T=s.placed[0];return [['onfirst',T],['abovefirst',Math.min(296,T+34)],['belowfirst',T-26]];}
   return s.near?shuf([['on',W],['joint',J],['abovejoint',J+(arm?46:44)],['below',W-40]]):shuf([['on',W],['above',W+45>J-14&&W+45<J+14?W+38:W+45],['joint',J],['below',Math.max(30,W-42)]]);}
-function stationOpen(kind,opts,onDone){ST=Object.assign({kind,phase:'',err:0,t0:Date.now()/1000,rt:0,tension:0,occl:0,fill:0,holdT:0,holding:false,lastPack:null,soaked:false,placed:[],need2:false,count:1,onDone,fb:''},opts||{});
+function stationOpen(kind,opts,onDone){ST=Object.assign({ord:{},kind,phase:'',err:0,t0:Date.now()/1000,rt:0,tension:0,occl:0,fill:0,holdT:0,holding:false,lastPack:null,soaked:false,placed:[],need2:false,count:1,onDone,fb:''},opts||{});
   ST.par=kind==='tq'?(ST.limb==='leg'?PAR.tqleg:PAR.tq):PAR[kind];ST.holdN=ST.scenario?8:(kind==='pack'?20:16);
   ST.phase=kind==='tq'?'place':kind==='pack'?'start':'cover';$('stov').classList.remove('hidden');stRender();}
 function stBleed(){const s=ST;if(!s)return 1;if(s.kind==='tq')return s.occl>=100?0:Math.max(.05,1-s.occl/100);if(s.kind==='pack')return s.phase==='hold'?(s.holding?.05:.5):s.phase==='packing'?(s.lapse?.8:.35):s.phase==='done'?.03:1;
   return s.phase==='hold'||s.phase==='soak'?(s.holding?.12:.9):s.phase==='done'?.1:1;}
-function stRender(){const s=ST;if(!s)return;const B=[];let prompt='',art='';
+function stRender(){const s=ST;if(!s)return;const B=[];let prompt='',art='';const so=(k,arr)=>{if(!s.ord[k])s.ord[k]=shuf(arr.map((_,i)=>i));return s.ord[k].map(i=>arr[i]);};
   const limbName=s.limb==='leg'?'leg':'arm',J=s.limb==='leg'?'knee':'elbow';
   $('st-tag').textContent=s.scenario?'Your hands':'Skill station';
   if(s.kind==='tq'){$('st-title').textContent=`Tourniquet — ${limbName}${s.count>1?' (second)':''}`;
@@ -226,17 +228,17 @@ function stRender(){const s=ST;if(!s)return;const B=[];let prompt='',art='';
     if(s.phase==='decide2'){prompt='The first tourniquet is as tight as it goes, and it\'s still bleeding. What now?';B.push(['second','Put a second tourniquet above the first'],['loosen','Loosen it and start over'],['harder','Force the rod another turn']);}
     if(s.phase==='time'){prompt='Last step.';B.push(['time','Write the time on the tourniquet'],['notime','Skip it — the hospital will know']);}}
   if(s.kind==='pack'){$('st-title').textContent=`Wound packing — ${s.site||'groin'}`;art=ART.pack;
-    if(s.phase==='start'){prompt=`A deep wound high in the ${s.site||'groin'}, pouring blood. What first?`;B.push(...shuf([['pressfirst','Press on it now, then start packing'],['tqhere','Put a tourniquet above it'],['cloth','Find a cleaner cloth first']]));}
+    if(s.phase==='start'){prompt=`A deep wound high in the ${s.site||'groin'}, pouring blood. What first?`;B.push(...so('start',[['pressfirst','Press on it now, then start packing'],['tqhere','Put a tourniquet above it'],['cloth','Find a cleaner cloth first']]));}
     if(s.phase==='packing'){prompt='Push gauze into the wound, right onto the bleeding. Keep a finger pressing as you feed in more. Pack it until it\'s full.';B.push(['pack','Pack more gauze in']);}
-    if(s.phase==='hold'){prompt='Packed tight. Both hands on top — push down hard, and hold.';B.push(['hold',s.holding?`Holding — ${Math.ceil(s.holdN-s.holdT)} s (tap to let go)`:'Both hands — push down hard']);}}
+    if(s.phase==='hold'){prompt='Packed tight. Both hands on top — push down hard, and hold.';B.push(['hold',s.holding?'Holding — tap to let go':'Both hands — push down hard']);if(s.holding)prompt+=` ${Math.ceil(s.holdN-s.holdT)} seconds to go.`;}}
   if(s.kind==='press'){$('st-title').textContent='Direct pressure';art=ART.press;
-    if(s.phase==='cover'){prompt='A deep cut on the forearm, bleeding steadily. You have a clean towel.';B.push(...shuf([['cover','Cover it with the towel, then press'],['look','Look closer at the wound first']]));}
-    if(s.phase==='hold'){prompt='Both hands. Push down hard, using your body weight.';B.push(['hold',s.holding?`Holding — ${Math.ceil(s.holdN-s.holdT)} s (tap to let go)`:'Both hands — push down hard']);}
-    if(s.phase==='soak'){prompt='Blood is soaking through the towel.';B.push(...shuf([['addon','Add more cloth on top, keep pushing'],['lift','Lift the towel to look'],['swap','Swap in a fresh towel']]));}}
+    if(s.phase==='cover'){prompt='A deep cut on the forearm, bleeding steadily. You have a clean towel.';B.push(...so('cover',[['cover','Cover it with the towel, then press'],['look','Look closer at the wound first']]));}
+    if(s.phase==='hold'){prompt='Both hands. Push down hard, using your body weight.';B.push(['hold',s.holding?'Holding — tap to let go':'Both hands — push down hard']);if(s.holding)prompt+=` ${Math.ceil(s.holdN-s.holdT)} seconds to go.`;}
+    if(s.phase==='soak'){prompt='Blood is soaking through the towel.';B.push(...so('soak',[['addon','Add more cloth on top, keep pushing'],['lift','Lift the towel to look'],['swap','Swap in a fresh towel']]));}}
   if(s.phase==='done'){prompt='Done.';B.length=0;}
-  $('st-prompt').textContent=prompt;$('st-art').innerHTML=art;$('st-btns').innerHTML=B.map(([a,t])=>`<button data-s="${a}" class="${a==='hold'&&s.holding?'hold':''}">${esc(t)}</button>`).join('');
+  $('st-prompt').textContent=prompt;setHTML($('st-art'),art);setHTML($('st-btns'),B.map(([a,t])=>`<button data-s="${a}" class="${a==='hold'&&s.holding?'hold':''}">${esc(t)}</button>`).join(''));
   const bl=stBleed();$('st-bleed').style.width=(bl*100)+'%';$('st-bleed').style.background=bl<.1?'#39e36f':bl<.5?'#ffc23d':'#e5383b';$('st-bleed-l').textContent=bl<.08?'Stopped':bl<.4?'Slowing':'Bleeding';
-  $('st-fb').innerHTML=s.fb;}
+  setHTML($('st-fb'),s.fb);}
 function stErr(msg){ST.err++;ST.fb=`<span style="color:#ff9a96">${esc(msg)}</span>`;if(ST.scenario&&typeof ding==='function'&&S.active)ding(3,msg);}
 function stOk(msg){ST.fb=`<span style="color:#7fe3a4">${esc(msg)}</span>`;}
 function stZone(z){const s=ST;if(!s||s.kind!=='tq'||(s.phase!=='place'&&s.phase!=='place2'))return;const J=s.limb==='leg'?'knee':'elbow';
@@ -290,8 +292,8 @@ const SCN={
   victims:()=>[mkV({id:'rob',name:'Rob',desc:'deep cut, forearm',type:'arm',base:5.5,life:true,near:V.near})],
   steps:()=>[{t:'Make sure the scene is safe',f:()=>S.safe},{t:'Alert: get 911 called',f:()=>S.alerted},{t:'Bleeding: expose the wound',f:()=>vv().exposed},
    {t:'Decision: is it life-threatening?',dec:'lifeThreat',f:()=>vv().exposed},{t:'Compress: direct pressure now',f:()=>vv().firstCompT!==null},
-   ...(V.kit?[{t:'Tourniquet — above the wound, not on a joint',f:()=>vv().tq>=1},{t:'Tourniquet time marked',f:()=>vv().tqMarked}]:[{t:'Decision: no tourniquet',dec:'noKit',any:true,f:()=>vv().firstCompT!==null},{t:'Hold pressure until EMS takes over',wait:true,f:()=>S.emsArr&&vv().pressure}]),
-   {t:'Keep him warm',f:()=>vv().warm},{t:'EMS arrives',wait:true,f:()=>S.emsArr},{t:'Decision: handoff',dec:'handoff',f:()=>S.emsArr}]},
+   ...(V.kit?[{t:'Tourniquet — above the wound, not on a joint',f:()=>vv().tq>=1},{t:'Tourniquet time marked',f:()=>vv().tqMarked}]:[{t:'Decision: no tourniquet',dec:'noKit',any:true,f:()=>vv().firstCompT!==null},{t:'Keep him warm',f:()=>vv().warm},{t:'Hold pressure until EMS takes over',wait:true,f:()=>S.emsArr&&vv().pressure}]),
+   {t:'EMS arrives',wait:true,f:()=>S.emsArr},{t:'Decision: handoff',dec:'handoff',f:()=>S.emsArr}]},
  garage:{title:'Table saw in the garage',t0:10*3600+15*60,eta:480,helper:'Marcus',
   brief:()=>'Your friend Tom, 38, was ripping a board on a table saw when it kicked back. The blade cut deep into his right thigh. He\'s sitting on the garage floor, and blood is pooling around him. His son Marcus, 16, is standing in the doorway. There\'s a bleeding control kit on the workbench.',
   victims:()=>[mkV({id:'tom',name:'Tom',desc:'deep cut, middle of the thigh',type:'leg',base:9,life:true,need2:V.need2,tqNeeded:V.need2?2:1})],
@@ -304,7 +306,7 @@ const SCN={
   victims:()=>[mkV({id:'drv',name:'Driver',desc:`deep wound, ${V.site}`,type:'groin',base:8,life:true,site:V.site})],
   steps:()=>[{t:'Make sure the scene is safe',f:()=>S.safe},{t:'Alert: get 911 called',f:()=>S.alerted},{t:'Bleeding: expose the wound',f:()=>vv().exposed},
    {t:'Compress: direct pressure now',f:()=>vv().firstCompT!==null},{t:'Decision: tourniquet or packing?',dec:'junction',f:()=>vv().firstCompT!==null},
-   {t:'Pack the wound',f:()=>vv().packed},{t:'Hold pressure until EMS takes over',wait:true,f:()=>S.emsArr&&vv().pressure},{t:'Keep him warm',f:()=>vv().warm},
+   {t:'Pack the wound',f:()=>vv().packed},{t:'Keep him warm',f:()=>vv().warm},{t:'Hold pressure until EMS takes over',wait:true,f:()=>S.emsArr&&vv().pressure},
    {t:'EMS arrives',wait:true,f:()=>S.emsArr},{t:'Decision: handoff',dec:'handoff',f:()=>S.emsArr}]},
  crash:{title:'Two-car crash',t0:21*3600+20*60,eta:540,helper:'a bystander',
   brief:()=>'You come up on a two-car crash on a county road at night. One car is sideways across the lane. A driver is slumped against his door, and a woman is sitting on the shoulder holding her head, blood running down her face. Traffic is still squeezing past. You have a bleeding control kit in your trunk.',
@@ -319,7 +321,7 @@ const VARIANTS={kitchen:()=>({kit:Math.random()<.65,near:Math.random()<.4}),gara
 function vlabel(id){return {kitchen:`${V.kit?'Tourniquet available':'No tourniquet — pressure only'}${V.kit?(V.near?' · wound just below the elbow':' · wound mid-forearm'):''}`,garage:V.need2?'Needed a second tourniquet':'One tourniquet was enough',glass:`Wound in the ${V.site}`,crash:'Two patients, one of you'}[id];}
 function vv(){return S.vs[S.sel||0];}
 function scStart(id){SC=SCN[id];V=Object.assign(VARIANTS[id](),FORCE&&FORCE[id]||{});
-  S={active:true,running:false,id,t:0,rt:0,t0:SC.t0,score:100,incidents:[],log:[],safe:false,alerted:false,alertT:null,emsArr:false,eta:SC.eta+(TIER===2?120:0),sel:0,helperFree:true,briefing:true,chaos:{}};
+  S={active:true,running:false,doneAt:{},talks:0,now:null,id,t:0,rt:0,t0:SC.t0,score:100,incidents:[],log:[],safe:false,alerted:false,alertT:null,emsArr:false,eta:SC.eta+(TIER===2?120:0),sel:0,helperFree:true,briefing:true,chaos:{}};
   S.vs=SC.victims();S.steps=SC.steps();stepsDone=S.steps.map(()=>false);DEC_OPEN=null;
   $('home').classList.add('hidden');$('game').classList.remove('hidden');$('radio').innerHTML='';$('g-title').textContent=SC.title;
   $('steps').innerHTML=TIER===0?S.steps.map((s,j)=>`<li id="st-${j}"><span class="box"></span><span>${esc(s.t)}</span></li>`).join(''):`<li><span class="box"></span><span>Checklist hidden — ${S.steps.length} steps. <span id="rcn"></span></span></li>`;
@@ -345,9 +347,13 @@ function act(a){if(!S.active||!S.running)return;const v=vv();const H=SC.helper;
   else if(a==='pack'){if(!v.exposed){radio('You','Expose the wound first.','bad');return;}if(v.type==='scalp'){radio('You','A scalp cut just needs firm pressure.');return;}if(v.packed)return;
     S.inStation=true;stationOpen('pack',{site:V.site||'wound',scenario:true},r=>{S.inStation=false;v.packed=true;v.pressure='you';if(v.firstCompT===null)v.firstCompT=S.t;radio('You','Packed tight, both hands on top. Not letting go.','good');scRender();});}
   else if(a==='warm'){if(v.warm)return;v.warm=true;radio('You',`Blanket over ${v.id==='d2'?'her':'him'} — keep the heat in.`);}
-  else if(a==='talk'){radio('You',pick(['Stay with me. Help is almost here.','You\'re doing great. Keep breathing.','Look at me — I\'ve got you.']));}
+  else if(a==='talk'){S.talks++;const lines=['Stay with me. Help is almost here.','You\'re doing great. Keep breathing.','Look at me — I\'ve got you.','The ambulance is on its way. I\'m not going anywhere.'];radio('You',lines[(S.talks-1)%lines.length]);if(S.talks===1)radio(v.dead?'—':v.name,v.lost/v.vol>.3?'…okay… so cold…':'Okay… okay. Thank you.','good');}
+  else if(a==='skip'){skipToEMS();return;}
   else if(a.startsWith('sel')){const i=+a.slice(3);if(Number.isInteger(i)&&i>=0&&i<S.vs.length)S.sel=i;}
   scRender();}
+function skipToEMS(){if(S.emsArr||!S.running)return;const t0=S.t;S.fast=true;let g=0;
+  while(S.active&&S.running&&!S.emsArr&&g++<4000){scTick(.5);if(S.vs.some(x=>x.life&&!x.dead&&rateOf(x)>x.base*.35))break;}
+  S.fast=false;const mins=Math.max(1,Math.round((S.t-t0)/60));if(S.active)radio('You',`Kept pressure on for ${mins} more minute${mins>1?'s':''} until the ambulance arrived.`,'good');scRender();}
 function scTick(dtReal){if(!S.active)return;S.rt+=dtReal;if(ST&&S.inStation)stTick(dtReal);if(!S.running)return;const dt=dtReal*2;S.t+=dt;
   for(const v of S.vs){if(v.dead)continue;v.lost+=rateOf(v)*dt;if(v.lost>=v.vol*.55){v.dead=true;radio('You',`${v.name} has stopped breathing.`,'bad');}}
   if(!S.emsArr){S.eta-=dt;if(S.eta<=0){S.emsArr=true;radio('EMS','Paramedics are here — we\'ve got him. What happened?','good');}}
@@ -359,22 +365,27 @@ function scTick(dtReal){if(!S.active)return;S.rt+=dtReal;if(ST&&S.inStation)stTi
   scCheck();scRender();}
 function scCheck(){let all=true,done=0;S.steps.forEach((s,j)=>{if(stepsDone[j]){done++;return;}const prev=j===0||stepsDone[j-1];
   if(s.dec){if(!DEC_OPEN&&!S.inStation&&(prev||s.any)&&s.f())openDec(s.dec,j);all=false;return;}
-  if(prev&&s.f()){stepsDone[j]=true;done++;const el=$('st-'+j);if(el)el.classList.add('done');}else all=false;});
+  if(prev&&s.f()){stepsDone[j]=true;S.doneAt[j]=S.t;done++;const el=$('st-'+j);if(el)el.classList.add('done');}else all=false;});
   if($('rcn'))$('rcn').textContent=`${done} of ${S.steps.length} done`;if(all&&S.running){S.running=false;scFinish(false);}}
-function scRender(){if(!S.active)return;const H=SC.helper;$('g-score').textContent=S.score;$('g-clock').textContent=clock();
+function scRender(){if(!S.active||S.fast)return;const H=SC.helper;$('g-score').textContent=S.score;$('g-clock').textContent=clock();
   $('g-eta-l').textContent='Ambulance';$('g-eta').textContent=S.emsArr?'On scene':mmss(S.eta)+' out';
-  $('victims').innerHTML=S.vs.map((v,i)=>{const p=Math.min(1,v.lost/(v.vol*.55));const r=rateOf(v);return `<div class="vic" style="${S.vs.length>1&&i===S.sel?'border-color:#ff5a5d':''}"><div class="hdr"><span>${esc(v.name)} · ${esc(v.exposed?v.desc:'wound not found yet')}</span><span style="color:${r<.05?'#7fe3a4':r<=v.base*.5?'#ffc23d':'#ff9a96'}">${v.dead?'—':r<.05?'bleeding stopped':r<=v.base*.5?'bleeding slowed':'BLEEDING'}</span></div>
+  setHTML($('victims'),S.vs.map((v,i)=>{const p=Math.min(1,v.lost/(v.vol*.55));const r=rateOf(v);return `<div class="vic" style="${S.vs.length>1&&i===S.sel?'border-color:#ff5a5d':''}"><div class="hdr"><span>${esc(v.name)} · ${esc(v.exposed?v.desc:'wound not found yet')}</span><span style="color:${r<.05?'#7fe3a4':r<=v.base*.5?'#ffc23d':'#ff9a96'}">${v.dead?'—':r<.05?'bleeding stopped':r<=v.base*.5?'bleeding slowed':'BLEEDING'}</span></div>
     <div class="bar"><div style="width:${p*100}%;background:${p<.4?'#ffc23d':'#e5383b'}"></div><span>blood lost ≈ ${Math.round(v.lost/50)*50} mL</span></div>
     <div class="vrow"><div class="v"><div class="l">Condition</div><div class="n" style="font-size:16px">${esc(cond(v))}</div></div><div class="v"><div class="l">Pressure</div><div class="n" style="font-size:16px">${v.pressure==='you'?'your hands':v.pressure==='helper'?esc(S.id==='crash'?'bystander':H):'none'}</div></div><div class="v"><div class="l">Tourniquet</div><div class="n" style="font-size:16px">${v.tq?(v.tq>1?'2 on':'on')+(v.tqMarked?' · '+clock(v.tqT):''):v.packed?'packed':'—'}</div></div></div>
-    ${S.vs.length>1?`<button data-a="sel${i}" style="width:100%;margin-top:8px" class="${i===S.sel?'on':''}">${i===S.sel?'Working on '+esc(v.name):'Go to '+esc(v.name)}</button>`:''}</div>`;}).join('');
+    </div>`;}).join(''));
   const v=vv();const kit=S.id!=='kitchen'||V.kit;
-  $('deck').innerHTML=`<div class="grp"><h3><b>Safety</b></h3><div class="row"><button data-a="safe" class="${S.safe?'on':''}">Check the scene</button><span></span></div></div>
+  const pend=S.steps.filter((st,j)=>!stepsDone[j]),onlyWait=!S.emsArr&&pend.length>0&&pend.every(st=>st.wait||st.dec==='handoff'||(!st.dec&&st.f())),controlled=S.vs.every(x=>!x.life||x.dead||rateOf(x)<=x.base*.35);
+  const line=m=>`<div><b style="color:${m.cls==='bad'?'#ff9a96':m.cls==='good'?'#7fe3a4':'#ff5a5d'}">${esc(m.who)}:</b> ${esc(m.msg)}</div>`;
+  const now=S.now?(S.prev&&S.prev.who!=='Feedback'?`<div style="opacity:.65">${line(S.prev).slice(5,-6)}</div>`:'')+line(S.now):'<span style="color:var(--soft)">Safety first — then A, B, C.</span>';
+  const next=pend.length?(TIER===0?`<div style="color:var(--soft);font-size:14px;margin-top:4px">Next: ${esc(pend[0].t)}</div>`:`<div style="color:var(--soft);font-size:14px;margin-top:4px">${S.steps.length-pend.length} of ${S.steps.length} steps done</div>`):'';
+  setHTML($('g-now'),now+next);
+  setHTML($('deck'),`${S.vs.length>1?`<div class="grp"><h3>Patients</h3><div class="row">${S.vs.map((x,i)=>`<button data-a="sel${i}" class="${i===S.sel?'on':''}">${i===S.sel?'Working on ':'Go to '}${esc(x.name)}</button>`).join('')}</div></div>`:''}${onlyWait&&controlled?`<button data-a="skip" class="go" style="width:100%;margin-bottom:10px">Everything's done — skip ahead to the ambulance (you keep holding)</button>`:''}<div class="grp"><h3><b>Safety</b></h3><div class="row"><button data-a="safe" class="${S.safe?'on':''}">Check the scene</button><span></span></div></div>
    <div class="grp"><h3><b>A</b> · Alert</h3><div class="row"><button data-a="call" class="${S.alerted?'on':''}">${S.id==='crash'?'Call 911 on speaker':'Have '+esc(H)+' call 911'}</button><span></span></div></div>
    <div class="grp"><h3><b>B</b> · Bleeding</h3><div class="row"><button data-a="expose" class="${v.exposed?'on':''}">Expose the wound</button><span></span></div></div>
    <div class="grp"><h3><b>C</b> · Compress</h3><div class="row"><button data-a="press" class="${v.pressure==='you'?'hold':''}">${v.pressure==='you'?'Pressing — tap to let go':'Direct pressure — both hands'}</button>
      <button data-a="helper" class="${v.pressure==='helper'?'on':''}">${S.id==='crash'?'Have a bystander hold pressure':'Have '+esc(H)+' hold pressure'}</button>
      ${kit?`<button data-a="tq" class="${v.tq>=v.tqNeeded?'on':''}">Tourniquet</button>`:''}<button data-a="pack" class="${v.packed?'on':''}">Pack the wound</button></div></div>
-   <div class="grp"><h3>Care</h3><div class="row"><button data-a="warm" class="${v.warm?'on':''}">Blanket — keep warm</button><button data-a="talk">Talk to them</button></div></div>`;}
+   <div class="grp"><h3>Care</h3><div class="row"><button data-a="warm" class="${v.warm?'on':''}">Blanket — keep warm</button><button data-a="talk" class="${S.talks?'on':''}">Talk to them${S.talks?' ✓':''}</button></div></div>`);}
 $('deck').onclick=e=>{const b=e.target.closest&&e.target.closest('[data-a]');if(b)act(b.dataset.a);};
 $('victims').onclick=e=>{const b=e.target.closest&&e.target.closest('[data-a]');if(b)act(b.dataset.a);};
 $('g-menu').onclick=()=>showHome();$('g-restart').onclick=()=>scStart(S.id);
@@ -399,7 +410,7 @@ $('dec-opts').onclick=e=>{const b=e.target.closest&&e.target.closest('[data-i]')
   $('dec-res').innerHTML=`<b style="color:${r==='good'?'#7fe3a4':r==='partial'?'#ffc23d':'#ff9a96'}">${r==='good'?'Right call.':r==='partial'?'Not the best call.':'That would cost a life.'}</b>`;$('dec-why').textContent=d.why;
   if(r==='bad')ding(10,'Decision: '+DEC_OPEN.key);else if(r==='partial')ding(5,'Decision: '+DEC_OPEN.key);S.decisions=(S.decisions||[]).concat([[DEC_OPEN.key,r]]);
   if(DEC_OPEN.key==='crashSafety')S.safe=true;$('dec-opts').classList.add('hidden');$('dec-fb').classList.remove('hidden');};
-$('dec-go').onclick=()=>{if(!DEC_OPEN)return;$('decov').classList.add('hidden');stepsDone[DEC_OPEN.j]=true;const el=$('st-'+DEC_OPEN.j);if(el)el.classList.add('done');DEC_OPEN=null;if(S.active&&!S.briefing)S.running=true;scRender();};
+$('dec-go').onclick=()=>{if(!DEC_OPEN)return;$('decov').classList.add('hidden');stepsDone[DEC_OPEN.j]=true;S.doneAt[DEC_OPEN.j]=S.t;const el=$('st-'+DEC_OPEN.j);if(el)el.classList.add('done');DEC_OPEN=null;if(S.active&&!S.briefing)S.running=true;scRender();};
 /* =================== finish + debrief =================== */
 function scFinish(died){S.active=false;const v=S.vs[0];const lostP=Math.round(v.lost/v.vol*100);
   const score=died?Math.min(S.score,20):Math.max(0,S.score-Math.max(0,lostP-20));if(!died&&lostP>20)S.incidents.push(`Blood lost before control: ${lostP}% (every point over 20% costs a point)`);record('scenario',S.id,score,{variant:vlabel(S.id),died});
@@ -407,7 +418,8 @@ function scFinish(died){S.active=false;const v=S.vs[0];const lostP=Math.round(v.
    ...(v.tq?[['Tourniquet',`${v.tq>1?'two':'one'} · ${v.tqMarked?'time marked':'time NOT marked'}`]]:[]),...(v.packed?[['Wound','packed and held']]:[]),
    ['Blood lost',`≈ ${Math.round(v.lost/50)*50} mL (${lostP}% of his blood)`],['Outcome',died?'did not survive':lostP<30?'stable when EMS took over':'in shock, but alive when EMS took over']];
   const msg=died?'Without fast pressure, a life-threatening bleed can kill in minutes. Run it again: safety, call, find it, and get your hands on it immediately.':lostP<20?'Fast, clean bleeding control. This is what saves lives before the ambulance gets there.':'He made it — but every minute before pressure cost blood. Get your hands on the wound sooner.';
-  showDone(died?'He didn\'t make it':'Handed off to EMS',score,`<div style="margin-top:6px">${rows.map(([a,b])=>`<div class="mrow"><span>${a}</span><b style="text-align:right">${esc(b)}</b></div>`).join('')}</div><p style="font-size:14px;color:var(--soft);margin-top:10px">${msg}</p>${S.incidents.length?`<p style="font-size:14px"><b>Feedback:</b> ${S.incidents.map(esc).join(' · ')}</p>`:''}`,()=>scStart(S.id));}
+  const stepsHTML=`<div class="sec" style="margin-top:12px">YOUR STEPS</div>${S.steps.map((st,j)=>`<div class="mrow"><span>${stepsDone[j]?'<b style="color:#7fe3a4">✓</b>':'<b style="color:#ff9a96">✗</b>'} ${esc(st.t)}</span><b style="white-space:nowrap;${stepsDone[j]?'':'color:#ff9a96'}">${stepsDone[j]?mmss(S.doneAt[j]||0):'missed'}</b></div>`).join('')}`;
+  showDone(died?'He didn\'t make it':'Handed off to EMS',score,`<div style="margin-top:6px">${rows.map(([a,b])=>`<div class="mrow"><span>${a}</span><b style="text-align:right">${esc(b)}</b></div>`).join('')}</div><p style="font-size:14px;color:var(--soft);margin-top:10px">${msg}</p>${S.incidents.length?`<p style="font-size:14px"><b>Feedback:</b> ${S.incidents.map(esc).join(' · ')}</p>`:''}${stepsHTML}`,()=>scStart(S.id));}
 let AGAIN=null;
 function showDone(t,score,html,again){$('done-t').textContent=t;$('done-s').textContent=score;$('done-b').innerHTML=html;AGAIN=again;$('doneov').classList.remove('hidden');}
 $('done-again').onclick=()=>{$('doneov').classList.add('hidden');if(AGAIN)AGAIN();};$('done-menu').onclick=()=>{$('doneov').classList.add('hidden');showHome();};

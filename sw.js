@@ -1,5 +1,5 @@
 // Bump CACHE when you upload a new version so phones pick it up.
-const CACHE = 'bleed-control-v0.2.0';
+const CACHE = 'bleed-control-v0.3.0';
 const CORE = ['./', 'index.html', 'manifest.json', 'icon-192.png', 'icon-512.png'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(CORE)).then(() => self.skipWaiting()));

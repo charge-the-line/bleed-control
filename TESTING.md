@@ -33,6 +33,7 @@ python3 tests/browser_check.py
 | `slow` | Scores fall as response time grows, and **no bleeding control at all is fatal** |
 | `drills` | All drills score correctly; 300 generated sets are well-formed |
 | `record` | Results save, and the CSV export works |
+| `smooth` | Buttons and diagrams aren't rebuilt while you wait; answer choices keep their positions; "Talk to them" visibly responds; skip-ahead appears only when everything's done, and still charges the blood lost during the skipped time |
 | `fuzz` | Random actions in every scenario never crash or produce impossible blood-loss values |
 
 Verified to catch planted bugs: a station that accepts a tourniquet on the joint, direct pressure that does nothing, and a removed trademark notice all fail loudly.
@@ -44,7 +45,10 @@ Verified to catch planted bugs: a station that accepts a tourniquet on the joint
 3. **Practice, not certification.** Never imply this app certifies anyone. The certificate comes only from the official course.
 4. **Run any medical content change past a current instructor** before release.
 
-## Engineering rules (carried over from the other two apps)
+## Engineering rules
+
+0. **Never rebuild buttons on a timer.** Version 0.2 rebuilt every button four times a second to refresh the blood-loss numbers. A real finger tap takes about a quarter-second from touch to release, so taps that straddled a rebuild vanished: "Talk to them" registered 0 of 6 real taps, and the packing choices reshuffled while you read them. Automated clicks are instant, so every test passed. The fix: `setHTML()` only touches the page when the content actually changes, answer order is shuffled once per phase (`ST.ord`), and changing numbers live in text, not buttons. The `smooth` section and the slow-tap checks in `browser_check.py` (press, wait 0.26 s, release) guard this. In 3 idle seconds, version 0.2 destroyed 108 buttons; every app now destroys 0.
+
 
 1. **Test at human speed.** The human-pace bot found a real-world problem that the instant bot never could.
 2. **Bots use the same controls a person does.** Prefer the app's own handlers over editing state.

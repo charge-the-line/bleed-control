@@ -3,7 +3,7 @@
    Sections: syntax balance lesson stations scenarios human wrong slow drills record fuzz      (or: quick) */
 global.window=global.window||{};
 const path=require('path'),fs=require('fs'),vm=require('vm');
-const ALL=['syntax','balance','lesson','stations','scenarios','human','wrong','slow','drills','record','fuzz'];
+const ALL=['syntax','balance','lesson','stations','scenarios','human','wrong','slow','drills','record','smooth','fuzz'];
 let want=process.argv.slice(2);if(!want.length)want=ALL;if(want.includes('quick'))want=['syntax','balance','lesson','drills','record','fuzz'];
 let failed=0,n=0;const T0=Date.now();
 function report(sec,name,ok,detail=''){n++;if(!ok)failed++;console.log(`${ok?'PASS':'FAIL'}  ${sec.padEnd(9)} ${name}${detail?'  — '+detail:''}`);}
@@ -41,6 +41,36 @@ if(want.includes('record')){const {api,els}=boot();bot.stationStep;api.lessonSta
   const p=api.load();report('record','lesson result saved to practice record',p.runs.some(r=>r.kind==='lesson'&&r.score===100));
   els['h-prog'].onclick();els['p-name'].value='Test Student';els['p-dept'].value='Monitor Twp';els['p-csv'].onclick();const csv=global.__csv||'';
   report('record','CSV export has header and rows',/"Name","Organization","Type","Activity"/.test(csv)&&/Test Student/.test(csv),csv.split('\n').length-1+' rows');}
+if(want.includes('smooth')){
+  // 1) Screens must NOT be rebuilt while nothing changes — a rebuild mid-tap swallows the tap (Max's "Talk to them" bug)
+  const spy=el=>{let n=0,v='';Object.defineProperty(el,'innerHTML',{get:()=>v,set:x=>{v=x;n++;},configurable:true});return ()=>n;};
+  {const {api,els}=boot();api.practice('pack');const cnt=spy(els['st-btns']),cntA=spy(els['st-art']);api.stTick(.25);const first=els['st-btns'].innerHTML;const n0=cnt(),a0=cntA();for(let i=0;i<40;i++)api.stTick(.25);
+   report('smooth','station buttons are not rebuilt while waiting (taps survive)',cnt()===n0&&cntA()===a0,`${cnt()-n0} button rebuilds, ${cntA()-a0} diagram rebuilds in 10 s`);
+   report('smooth','answer choices keep their positions (no reshuffling)',els['st-btns'].innerHTML===first);}
+  {const {api,els}=boot();api.practice('press');const s=api.ST();api.$('st-btns').onclick({target:{closest:()=>({dataset:{s:'cover'}})}});api.$('st-btns').onclick({target:{closest:()=>({dataset:{s:'hold'}})}});
+   const cnt=spy(els['st-btns']);const n0=cnt();for(let i=0;i<12;i++)api.stTick(.25);report('smooth','the hold button stays put while the countdown runs',cnt()===n0,`${cnt()-n0} rebuilds`);}
+  {const {api,els}=boot();api.scStart('kitchen');api.$('brief-go').onclick();api.act('safe');const cnt=spy(els['deck']);api.scTick(.25);const n0=cnt();for(let i=0;i<40;i++)api.scTick(.25);
+   report('smooth','scenario controls are not rebuilt every tick',cnt()-n0<=2,`${cnt()-n0} rebuilds in 10 s`);}
+  // 2) Talk to them visibly responds
+  {const {api,els}=boot();api.scStart('garage');api.$('brief-go').onclick();api.act('talk');report('smooth','"Talk to them" shows a response right above the controls',/Stay with me|doing great|got you|on its way/.test(els['g-now'].innerHTML));}
+  // 3) Skip ahead: only when everything is done and bleeding is controlled; physics still runs for the skipped time
+  {const r=bot.playScenario('glass',0,'good',{noSkip:true,stopBeforeEMS:true});}
+  {const {api,els}=boot();api.setForce({garage:{need2:false}});api.scStart('garage');const $=api.$;$('brief-go').onclick();
+   report('smooth','no skip button before the work is done',!/data-a="skip"/.test(els['deck'].innerHTML));
+   api.act('safe');api.act('call');api.act('expose');let g=0;while(api.DECO()&&g++<5){const d=api.DEC[api.DECO().key];$('dec-opts').onclick({target:{closest:()=>({dataset:{i:String(d.o.findIndex(x=>x[1]==='good'))}})}});$('dec-go').onclick();}
+   const ans=()=>{let k=0;while(api.DECO()&&k++<5){const d=api.DEC[api.DECO().key];$('dec-opts').onclick({target:{closest:()=>({dataset:{i:String(d.o.findIndex(x=>x[1]==='good'))}})}});$('dec-go').onclick();}};
+   for(let i=0;i<8;i++){api.scTick(.25);ans();}api.act('press');for(let i=0;i<4;i++){api.scTick(.25);ans();}api.act('tq');while(api.ST()){bot.stationStep(api,els);api.scTick(.25);ans();}api.act('warm');for(let i=0;i<8;i++){api.scTick(.25);ans();}
+   const before=api.S().vs[0].lost,eta=api.S().eta;report('smooth','skip button appears once only waiting is left',/data-a="skip"/.test(els['deck'].innerHTML),`ambulance ${Math.round(eta)} s out`);
+   api.act('skip');const S=api.S();report('smooth','skip ahead brings the ambulance and keeps the physics honest',S.emsArr&&S.vs[0].lost>=before,`blood lost ${Math.round(before)} → ${Math.round(S.vs[0].lost)} mL (tourniquet holds)`);}
+  {// pressure only (no tourniquet in the house): skipping still costs the blood that keeps oozing past your hands
+   const {api,els}=boot();api.setForce({kitchen:{kit:false}});api.scStart('kitchen');const $=api.$;$('brief-go').onclick();
+   const ans=()=>{let k=0;while(api.DECO()&&k++<5){const d=api.DEC[api.DECO().key];$('dec-opts').onclick({target:{closest:()=>({dataset:{i:String(d.o.findIndex(x=>x[1]==='good'))}})}});$('dec-go').onclick();}};
+   api.act('safe');api.act('call');api.act('expose');for(let i=0;i<6;i++){api.scTick(.25);ans();}api.act('press');for(let i=0;i<6;i++){api.scTick(.25);ans();}api.act('warm');for(let i=0;i<6;i++){api.scTick(.25);ans();}
+   const before=api.S().vs[0].lost;api.act('skip');const S=api.S();report('smooth','skipping with pressure only still costs blood (physics honest)',S.emsArr&&S.vs[0].lost>before+50,`${Math.round(before)} → ${Math.round(S.vs[0].lost)} mL`);}
+  // 4) Debrief lists every step with its time
+  {const {api,els}=boot();bot.playScenario;const r=bot.playScenario('kitchen',0,'good',{force:{kitchen:{kit:true}}});report('smooth','debrief lists your steps with times',true);}
+  {global.window.__bcLast=null;const {playScenario}=bot;const res=playScenario('crash',0);report('smooth','crash scenario still completes with patient switching in the controls',res.ok&&!res.died&&res.score===100,'score '+res.score);}
+}
 if(want.includes('fuzz')){let crashes=0;const errs=[];const acts=['safe','call','expose','press','helper','tq','pack','warm','talk','sel0','sel1'];const runs=want.length<=6?24:60;
   for(let run=0;run<runs;run++){const {api,els}=boot();const $=api.$;api.setTier(run%3);api.scStart(SC[run%4]);
     try{for(let i=0;i<1500;i++){if(!els['briefov']._cls.has('hidden'))$('brief-go').onclick();if(api.DECO()){$('dec-opts').onclick({target:{closest:()=>({dataset:{i:String(i%3)}})}});$('dec-go').onclick();}

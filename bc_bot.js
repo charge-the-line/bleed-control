@@ -32,5 +32,5 @@ function playScenario(id,tier,choice='good',o={}){const {api,els}=boot();api.set
     else if(!v.warm)tap('warm');
     if(!kit&&v.firstCompT!==null&&v.pressure!=='you'&&v.pressure!=='helper')tap('press');
     api.scTick(.25);rt+=.25;}
-  const S=api.S();const done=els['done-t'].textContent;return {ok:!S.active&&done!=='',died:/didn't make it/.test(done),score:+els['done-s'].textContent,lost:Math.round(S.vs[0].lost),incidents:S.incidents,variant:api.V()};}
+  const S=api.S();const done=els['done-t'].textContent;const stepsShown=(els['done-b'].innerHTML.match(/✓/g)||[]).length;return {stepsShown,ok:!S.active&&done!=='',died:/didn't make it/.test(done),score:+els['done-s'].textContent,lost:Math.round(S.vs[0].lost),incidents:S.incidents,variant:api.V()};}
 module.exports={playStation,playScenario,stationStep};

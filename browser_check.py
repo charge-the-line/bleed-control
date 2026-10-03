@@ -37,8 +37,23 @@ with sync_playwright() as p:
             pg.goto(URL); pg.wait_for_timeout(200); pg.click(f'[data-sc="{sc}"]'); pg.wait_for_timeout(150); pg.click('#brief-go'); pg.wait_for_timeout(700)
             rows.append((w, sc, pg.evaluate(OVER), True))
         pg.close()
+        if w == 390:   # a REAL finger tap takes ~0.25 s between touch and release — the app must not swallow it
+            pg = b.new_page(viewport={'width': 390, 'height': 844}, device_scale_factor=2, is_mobile=True, has_touch=True); pg.on('pageerror', lambda e: errs.append(str(e)))
+            pg.goto(URL); pg.wait_for_timeout(200); pg.click('[data-sc="garage"]'); pg.wait_for_timeout(150); pg.click('#brief-go'); pg.wait_for_timeout(600)
+            def slow_tap(sel):
+                box = pg.locator(sel).first.bounding_box(); pg.mouse.move(box['x']+box['width']/2, box['y']+box['height']/2)
+                pg.mouse.down(); pg.wait_for_timeout(260); pg.mouse.up(); pg.wait_for_timeout(300)
+            hits = 0
+            for i in range(6):
+                before = pg.evaluate("S.talks"); slow_tap('[data-a="talk"]'); hits += pg.evaluate("S.talks") > before
+            rows.append((w, 'slow taps (Talk ×6)', 0 if hits == 6 else 99, hits == 6))
+            pg.goto(URL); pg.wait_for_timeout(200); pg.click('[data-st="pack"]'); pg.wait_for_timeout(1200)
+            order1 = pg.locator('#st-btns button').all_text_contents(); pg.wait_for_timeout(1500); order2 = pg.locator('#st-btns button').all_text_contents()
+            slow_tap('[data-s="pressfirst"]'); ok = pg.evaluate("ST&&ST.phase==='packing'")
+            rows.append((w, 'packing choices stay put + slow tap', 0 if (order1 == order2 and ok) else 99, order1 == order2 and ok))
     b.close()
 bad = [r for r in rows if r[2] > 1 or not r[3]]
+rows=[r if len(r)==4 else (r[0],r[1],r[2],True) for r in rows]
 for r in rows: print(f"{'PASS' if r[2] <= 1 and r[3] else 'FAIL'}  {r[0]}px  {r[1]:<8} overflow {r[2]}px{'' if r[3] else '  (station did not complete)'}")
 print('JavaScript errors:', errs or 'none')
 sys.exit(1 if bad or errs else 0)
