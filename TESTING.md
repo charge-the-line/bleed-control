@@ -69,3 +69,10 @@ Foundation fixes: fonts served from this site, screen wake lock, finger-sized bu
 - Fonts self-hosted in `fonts/`, no Google reference, every file in the cache list.
 - Screen wake lock: requested when a lesson, station, or scenario starts, released at home or on the result screen.
 - Browser check: any visible button under 44 px tall fails the screen; the slow-tap test scrolls to the button first, as a person would.
+
+## Milestone 3 checks (added October 2026)
+
+- Shared core: `preconnect-core.js` is loaded before the app script, listed in the service worker's cache, and its header hash matches its body (edit it, re-stamp with the hub's `node tests/core_hash.js`, copy to every repo).
+- Spacing: 1, 3, 7, 14, 30 days after each clear at 70+; a miss resets; overdue reads as due.
+- Debrief body: compare line (best, last time, new best), metrics table, what cost points, lesson chips, steps table.
+- Scenario, station and lesson results all build through `pcDebriefBody` (covered by the existing record and smooth tests).
