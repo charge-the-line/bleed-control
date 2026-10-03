@@ -7,7 +7,7 @@ for(const m of html.matchAll(/<[a-z0-9]+([^>]*?)id="([^"]+)"([^>]*)>/g)){const e
 const store=Object.assign({},storeInit||{});
 global.localStorage={getItem:k=>k in store?store[k]:null,setItem:(k,v)=>{store[k]=String(v);}};
 global.document={body:mk('body'),addEventListener(){},getElementById:i=>{if(!els[i])els[i]=mk(i);return els[i];},querySelectorAll:()=>[],createElement:()=>mk('x')};
-global.window=Object.assign(global.window||{},{addEventListener(){}});global.location={protocol:'file:'};
+global.window=Object.assign(global.window||{},{addEventListener(){}});global.location=Object.assign({protocol:'file:'},global.__loc||{});
 Object.defineProperty(globalThis,'navigator',{value:{userAgent:'qa'},configurable:true,writable:true});
 global.setInterval=()=>{};global.performance=global.performance||{now:()=>0};
 global.Blob=function(p){this.parts=p;};global.URL={createObjectURL:b=>{global.__csv=b.parts.join('');return 'x';}};

@@ -93,3 +93,7 @@ Foundation fixes: fonts served from this site, screen wake lock, finger-sized bu
 ## Milestone 6 checks (added October 2026)
 
 - `drill` section: a penalty plays the bad tone and buzzes, the result screen chimes.
+
+## Milestone 9 checks (added October 2026)
+
+- `?drill=threat` on load opens that drill; an unknown id is ignored. Browser check adds a daily-link row.

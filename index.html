@@ -167,7 +167,7 @@ body.tv{max-width:1100px}@media (min-width:1000px){body.tv{zoom:1.3}}
 
 <script>
 /* =================== core =================== */
-const APP_VERSION='0.10.0';
+const APP_VERSION='0.11.0';
 /* Screen wake lock (Milestone 1): keeps the phone from dimming or locking during a timed skill.
    On only while an activity runs: keepAwake(true) when it starts, keepAwake(false) back at the menu or on the result screen. */
 const WAKE={s:null,want:false};
@@ -502,6 +502,8 @@ $('h-learn').onclick=()=>lessonStart();$('h-drills').onclick=()=>drillMenu();
 /* =================== boot =================== */
 if('serviceWorker' in navigator&&location.protocol==='https:')window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 applySettings();settingsBind();pcDrillBind();showHome();
+/* the home page's daily drill deep-links here: bleed-control/?drill=threat */
+{const q=new URLSearchParams((typeof location!=='undefined'&&location.search)||'').get('drill');if(q&&DRILLS[q])drillStart(q);}
 let LAST=performance.now();setInterval(()=>{const now=performance.now();const dt=Math.min(.5,(now-LAST)/1000);LAST=now;if(S.active&&S.id)scTick(dt);else if(ST)stTick(dt);},250);
 </script>
 </body>

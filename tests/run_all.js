@@ -72,6 +72,9 @@ if(want.includes('drill')){const start=new Date().toISOString();const {api,els}=
 if(want.includes('drill')){const fakeAudio=()=>{const log=[];const AC=function(){this.currentTime=0;this.state='running';this.destination={};this.resume=()=>{};this.createOscillator=()=>({type:'sine',frequency:{value:0},connect(){},start(t){log.push({f:this.frequency.value,t});},stop(){}});this.createGain=()=>({gain:{setValueAtTime(){},exponentialRampToValueAtTime(){}},connect(){}});};const buzz=[];const F={log,buzz,fs:()=>log.map(x=>x.f),arm(){global.window=global.window||{};global.window.AudioContext=AC;navigator.vibrate=p=>{buzz.push(JSON.stringify(p));return true;};}};F.arm();return F;};const F=fakeAudio();const {api}=boot();F.arm();api.setSetting('sound','on');api.scStart('kitchen');F.log.length=0;F.buzz.length=0;api.ding(5,'test');const bad=F.fs().includes(220)&&F.buzz.includes('[30,40,30]');F.log.length=0;api.showDone('t',90,'',()=>{});const done=F.fs().join().includes('523,659,784')&&F.buzz.includes('[20,60,20,60,40]');delete global.window.AudioContext;delete navigator.vibrate;
   report('drill','sound and haptics: a penalty plays the bad tone and buzzes, the result screen chimes',bad&&done,`bad ${bad}, done ${done}`);}
 
+if(want.includes('drill')){global.__loc={search:'?drill=threat'};const {api,els}=boot();global.__loc={search:'?drill=nope'};const b=boot();global.__loc=undefined;
+  report('drill','daily-drill deep link: ?drill=threat opens that drill on load; an unknown id is ignored',!!api.DR()&&api.DR().cfg&&api.DR().cfg.id==='threat'&&!els.drillov.classList.contains('hidden')&&!b.api.DR(),`title ${els['dr-title'].textContent}`);}
+
 if(want.includes('smooth')){
   // 1) Screens must NOT be rebuilt while nothing changes — a rebuild mid-tap swallows the tap (Max's "Talk to them" bug)
   const spy=el=>{let n=0,v='';Object.defineProperty(el,'innerHTML',{get:()=>v,set:x=>{v=x;n++;},configurable:true});return ()=>n;};
