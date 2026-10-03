@@ -145,7 +145,7 @@ Max's likely picks after 1: 2, then 3, then either Charge the Line catch-up or D
 
 # This repo: Bleed Control (`bleed-control` → `/bleed-control/`)
 
-**Current version: 0.13.0.** Modeled as closely as possible on the **ACS Stop the Bleed® course**, which Max has taught for about two years: a lecture with slides, then hands-on tourniquet and wound-packing practice. All content is in our own words.
+**Current version: 0.13.1.** Modeled as closely as possible on the **ACS Stop the Bleed® course**, which Max has taught for about two years: a lecture with slides, then hands-on tourniquet and wound-packing practice. All content is in our own words. The intro line under the title became the "What this is" card (0.13.1), the same header every module carries.
 
 ## Look (Milestone 4)
 Station tokens (`--acc:#e5383b`, white accent ink), accent-bar activity cards, uppercase `.go` buttons, gear `#h-set` on the home header opening the shared settings sheet. Section labels come from the core's `.sec`.
