@@ -10,6 +10,26 @@
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="apple-mobile-web-app-title" content="Bleed Control">
+<script data-pca>window.PCA_MOD="bc";
+/* Preconnect anonymous statistics (GoatCounter). Sends only activity paths — never names, organizations, or typed text.
+   Turn off per device on the Privacy page (localStorage 'preconnect-stats' = 'off'). Not sent from file:// or localhost. */
+(function(){var off=false;try{off=localStorage.getItem('preconnect-stats')==='off';}catch(e){}
+ var P=window.PCA={mod:window.PCA_MOD||'app',off:off,q:[],seen:{},cur:null,
+  clean:function(p){return String(p).toLowerCase().replace(/[^a-z0-9\/\-]+/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'').slice(0,120);},
+  ev:function(path){if(this.off)return;var p=this.clean(path);if(this.q.length<60)this.q.push({path:p,title:p,event:true});this.flush();},
+  flush:function(){var g=window.goatcounter,s=this;if(!g||typeof g.count!=='function'){if(!s.t)s.t=setTimeout(function(){s.t=null;s.flush();},1500);return;}while(s.q.length){try{g.count(s.q.shift());}catch(e){}}},
+  bkt:function(n){n=+n;return n>=90?'score-90-100':n>=80?'score-80s':n>=70?'score-70s':n>=60?'score-60s':'score-under-60';},
+  att:function(n){return 'attempt-'+(n>=5?'5plus':n);},
+  begin:function(mod,act,where){this.abandon();this.cur={mod:mod,act:act,where:where};this.ev(mod+'/start/'+act);},
+  end:function(detail){var c=this.cur;if(!c)return;this.cur=null;this.ev(c.mod+'/finish/'+c.act+(detail?'/'+detail:''));},
+  abandon:function(){var c=this.cur;if(!c)return;this.cur=null;var w='';try{w=c.where?c.where():'';}catch(e){}this.ev(c.mod+'/quit/'+c.act+(w?'/'+w:''));},
+  err:function(mod,msg){var k=mod+'|'+msg;if(this.seen[k])return;this.seen[k]=1;this.ev('error/'+mod+'/'+String(msg).slice(0,60));}};
+ if(!off){var s=document.createElement('script');s.async=true;s.src='https://gc.zgo.at/count.js';s.setAttribute('data-goatcounter','https://preconnect.goatcounter.com/count');(document.head||document.documentElement).appendChild(s);}
+ window.addEventListener('error',function(e){P.err(P.mod||'app',e&&e.message||'error');});
+ window.addEventListener('pagehide',function(){P.abandon();});
+})();
+</script>
+
 <title>Bleed Control</title>
 <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Saira+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -72,7 +92,7 @@ body.tv{max-width:1100px}@media (min-width:1000px){body.tv{zoom:1.3}}
 <body>
 
 <div id="home">
-  <a href="../" style="display:inline-block;font-size:13px;font-weight:700;letter-spacing:.5px;color:#ff8a3d;text-decoration:none;margin:0 0 6px">◂ PRECONNECT</a>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin:0 0 6px"><a href="../" style="display:inline-block;font-size:13px;font-weight:700;letter-spacing:.5px;color:#ff8a3d;text-decoration:none;margin:0">◂ PRECONNECT</a><a href="../feedback.html?from=bc" style="font-size:13px;font-weight:700;color:#9aa3ad;text-decoration:none">Feedback</a></div>
   <div class="top"><div><div class="brand">BLEED CONTROL</div><h1>Stop a bleed. Save a life.</h1></div></div>
   <p class="sub" style="font-size:15px">Practice for bleeding emergencies: learn the ABCs, drill the hands-on skills, then put them together under pressure.</p>
   <div class="sec">1 · LEARN</div>
@@ -114,7 +134,7 @@ body.tv{max-width:1100px}@media (min-width:1000px){body.tv{zoom:1.3}}
   <p id="st-prompt" style="font-size:17px;margin-bottom:6px"></p><div id="st-art"></div>
   <div class="meter"><span id="st-bleed-l">Bleeding</span><div class="bar"><div id="st-bleed"></div></div></div>
   <div class="row" id="st-btns" style="margin-top:8px"></div>
-  <p id="st-fb" style="font-size:15px;min-height:40px;margin:8px 0 0"></p></div></div>
+  <p id="st-fb" style="font-size:15px;min-height:40px;margin:8px 0 0"></p><button id="st-quit" style="width:100%;margin-top:8px">Stop and go back</button></div></div>
 <div class="overlay hidden" id="lessonov" style="z-index:12"><div class="box slide" id="lesson-box"></div></div>
 <div class="overlay hidden" id="doneov" style="z-index:13"><div class="box"><h2 id="done-t"></h2><div class="big" id="done-s"></div><div id="done-b"></div>
   <div class="row" style="margin-top:10px"><button id="done-again">Again</button><button class="go" id="done-menu">Menu</button></div></div></div>
@@ -123,13 +143,14 @@ body.tv{max-width:1100px}@media (min-width:1000px){body.tv{zoom:1.3}}
 
 <script>
 /* =================== core =================== */
-const APP_VERSION='0.3.0';
+const APP_VERSION='0.4.0';
 const $=id=>document.getElementById(id);
 const esc=t=>String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;');
 const pick=a=>a[Math.floor(Math.random()*a.length)];
 const shuf=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
 const mmss=s=>{s=Math.max(0,Math.round(s));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');};
 let TIER=0,S={active:false},stepsDone=[],DEC_OPEN=null,SC=null,FORCE=null;
+const pca=(f,...a)=>{try{const P=typeof window!=='undefined'&&window.PCA;if(P&&P[f])return P[f](...a);}catch(e){}};
 const KEY='bleed-control';
 function load(){try{return JSON.parse(localStorage.getItem(KEY))||{runs:[]};}catch(e){return {runs:[]};}}
 function save(p){try{localStorage.setItem(KEY,JSON.stringify(p));}catch(e){}}
@@ -177,7 +198,7 @@ const LESSON=[
  {t:'Be ready',art:'kit',pts:['Bleeding control kits hold a tourniquet, gauze, gloves, and a marker.','Many schools, offices, and public buildings have them. Know where yours are.','Keep one in your car or bag.','Take an official hands-on course. This app is practice, not certification.'],
   q:'What\'s the best way to be ready?',o:[['Know where the kits are, and take a hands-on course','good'],['Watch a video once, and you\'re all set','bad'],['Carry a kit, even if you\'ve never practiced with it','partial']],why:'Equipment plus hands-on practice. Skills fade without practice — that\'s what this app is for.'}];
 let LS=null;
-function lessonStart(){LS={i:0,first:{},answered:false,t0:Date.now()};$('lessonov').classList.remove('hidden');lessonRender();}
+function lessonStart(){pca('begin','bc','lesson',()=>LS?`slide-${LS.i+1}`:'');LS={i:0,first:{},answered:false,t0:Date.now()};$('lessonov').classList.remove('hidden');lessonRender();}
 function lessonRender(){const s=LESSON[LS.i];LS.answered=false;LS.ord=shuf(s.o.map((o,k)=>k));
   $('lesson-box').innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center"><span class="tag">Lesson · ${LS.i+1} of ${LESSON.length}</span><button data-l="tv" style="padding:6px 10px;font-size:13px">${document.body.classList.contains('tv')?'Phone view':'Big-screen view'}</button></div>
    <h2>${esc(s.t)}</h2>${s.art?`<div class="art">${ART[s.art]}</div>`:''}<ul>${s.pts.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>
@@ -192,8 +213,8 @@ function lessonAct(ds){const a=ds.l;if(a==='ans'){if(LS.answered)return;const s=
   else if(a==='next'){if(!LS.answered)return;if(LS.i+1<LESSON.length){LS.i++;lessonRender();}else lessonDone();}
   else if(a==='prev'){if(LS.i){LS.i--;lessonRender();}}
   else if(a==='tv'){document.body.classList.toggle('tv');lessonRender();}
-  else if(a==='quit'){$('lessonov').classList.add('hidden');LS=null;}}
-function lessonDone(){const right=Object.values(LS.first).filter(Boolean).length,score=Math.round(right/LESSON.length*100);$('lessonov').classList.add('hidden');record('lesson','lesson',score);
+  else if(a==='quit'){pca('abandon');$('lessonov').classList.add('hidden');LS=null;}}
+function lessonDone(){const right=Object.values(LS.first).filter(Boolean).length,score=Math.round(right/LESSON.length*100);pca('end',pca('bkt',score));$('lessonov').classList.add('hidden');record('lesson','lesson',score);
   showDone('Lesson complete',score,`<p>${right} of ${LESSON.length} knowledge checks right on the first try.</p><p style="font-size:14px;color:var(--soft)">Next: practice the hands-on skills, then try a scenario.</p>`,()=>lessonStart());LS=null;}
 $('lesson-box').onclick=e=>{const b=e.target.closest&&e.target.closest('[data-l]');if(b)lessonAct(b.dataset);};
 /* =================== skill stations =================== */
@@ -219,6 +240,7 @@ function stBleed(){const s=ST;if(!s)return 1;if(s.kind==='tq')return s.occl>=100
 function stRender(){const s=ST;if(!s)return;const B=[];let prompt='',art='';const so=(k,arr)=>{if(!s.ord[k])s.ord[k]=shuf(arr.map((_,i)=>i));return s.ord[k].map(i=>arr[i]);};
   const limbName=s.limb==='leg'?'leg':'arm',J=s.limb==='leg'?'knee':'elbow';
   $('st-tag').textContent=s.scenario?'Your hands':'Skill station';
+  $('st-quit').classList.toggle('hidden',!!s.scenario);
   if(s.kind==='tq'){$('st-title').textContent=`Tourniquet — ${limbName}${s.count>1?' (second)':''}`;
     if(s.phase==='place'||s.phase==='place2'){s.zones=s.zones||tqZones();prompt=s.phase==='place2'?'Tap where the second tourniquet goes.':`Tap where the tourniquet goes. The wound is ${s.near?`just below the ${J}`:s.limb==='leg'?'in the middle of the thigh':'in the middle of the forearm'}.`;art=limbSVG(s.limb,s.near,s.zones,s.placed);}
     else art=limbSVG(s.limb,s.near,[],s.placed);
@@ -274,13 +296,15 @@ function stTick(dtReal){const s=ST;if(!s)return;s.rt+=dtReal;
   if((s.phase==='hold')&&s.holding){s.holdT+=dtReal;if(s.kind==='press'&&!s.soaked&&s.holdT>=s.holdN/2){s.phase='soak';s.holding=false;}
     if(s.holdT>=s.holdN){s.holding=false;stDone();return;}}
   stRender();}
+$('st-quit').onclick=()=>{if(!ST||ST.scenario)return;pca('abandon');$('stov').classList.add('hidden');ST=null;};
 function stDone(){const s=ST;s.phase='done';const secs=Math.round(Date.now()/1000-s.t0);const cb=s.onDone;$('stov').classList.add('hidden');ST=null;
   if(cb)cb({err:s.err,secs,timed:!!s.timed,count:s.count,kind:s.kind});}
 $('st-btns').onclick=e=>{const b=e.target.closest&&e.target.closest('[data-s]');if(b)stAct(b.dataset.s);};
 $('st-art').onclick=e=>{const b=e.target.closest&&e.target.closest('[data-z]');if(b)stZone(b.dataset.z);};
 function practice(id){const def={'tq-arm':['tq',{limb:'arm',near:Math.random()<.45}],'tq-leg':['tq',{limb:'leg',near:false,need2:Math.random()<.5}],'pack':['pack',{site:pick(['groin','armpit'])}],'press':['press',{}]}[id];
   const name={'tq-arm':'Tourniquet — arm','tq-leg':'Tourniquet — leg','pack':'Wound packing','press':'Direct pressure'}[id];
-  stationOpen(def[0],FORCE&&FORCE[id]?Object.assign(def[1],FORCE[id]):def[1],r=>{const score=Math.max(0,100-r.err*10-Math.max(0,r.secs-(def[0]==='tq'?(def[1].limb==='leg'?PAR.tqleg:PAR.tq):PAR[def[0]])));record('station',id,score);
+  pca('begin','bc','skill-'+id,()=>ST?`phase-${ST.phase}`:'');const att=(load().runs||[]).filter(x=>x.kind==='station'&&x.id===id).length+1;
+  stationOpen(def[0],FORCE&&FORCE[id]?Object.assign(def[1],FORCE[id]):def[1],r=>{const score=Math.max(0,100-r.err*10-Math.max(0,r.secs-(def[0]==='tq'?(def[1].limb==='leg'?PAR.tqleg:PAR.tq):PAR[def[0]])));pca('end',`${pca('att',att)}/${pca('bkt',score)}`);record('station',id,score);
     showDone(name,score,`<p>${r.secs} seconds · ${r.err} mistake${r.err===1?'':'s'}${r.count>1?' · second tourniquet applied':''}</p><p style="font-size:14px;color:var(--soft)">${r.err?'Run it again until it\'s clean — the goal is doing it right, fast, without thinking.':'Clean. Now do it faster — or try a scenario.'}</p>`,()=>practice(id));});}
 document.querySelectorAll('[data-st]').forEach(b=>b.onclick=()=>practice(b.dataset.st));
 /* =================== scenarios =================== */
@@ -320,7 +344,7 @@ let V={};
 const VARIANTS={kitchen:()=>({kit:Math.random()<.65,near:Math.random()<.4}),garage:()=>({need2:Math.random()<.4}),glass:()=>({site:Math.random()<.6?'groin':'armpit'}),crash:()=>({})};
 function vlabel(id){return {kitchen:`${V.kit?'Tourniquet available':'No tourniquet — pressure only'}${V.kit?(V.near?' · wound just below the elbow':' · wound mid-forearm'):''}`,garage:V.need2?'Needed a second tourniquet':'One tourniquet was enough',glass:`Wound in the ${V.site}`,crash:'Two patients, one of you'}[id];}
 function vv(){return S.vs[S.sel||0];}
-function scStart(id){SC=SCN[id];V=Object.assign(VARIANTS[id](),FORCE&&FORCE[id]||{});
+function scStart(id){SC=SCN[id];pca('begin','bc',id,()=>{const j=stepsDone.findIndex(x=>!x);return j<0?'':`step-${j+1}`;});V=Object.assign(VARIANTS[id](),FORCE&&FORCE[id]||{});
   S={active:true,running:false,doneAt:{},talks:0,now:null,id,t:0,rt:0,t0:SC.t0,score:100,incidents:[],log:[],safe:false,alerted:false,alertT:null,emsArr:false,eta:SC.eta+(TIER===2?120:0),sel:0,helperFree:true,briefing:true,chaos:{}};
   S.vs=SC.victims();S.steps=SC.steps();stepsDone=S.steps.map(()=>false);DEC_OPEN=null;
   $('home').classList.add('hidden');$('game').classList.remove('hidden');$('radio').innerHTML='';$('g-title').textContent=SC.title;
@@ -328,7 +352,7 @@ function scStart(id){SC=SCN[id];V=Object.assign(VARIANTS[id](),FORCE&&FORCE[id]|
   $('m-title').textContent='Checklist';$('m-sub').textContent='Safety, then A, B, C.';
   $('brief-t').textContent=SC.title;$('brief-x').textContent=SC.brief();$('briefov').classList.remove('hidden');scRender();}
 $('brief-go').onclick=()=>{$('briefov').classList.add('hidden');S.briefing=false;S.running=true;radio('You','Here we go. Safety, then A, B, C.');};
-$('brief-menu').onclick=()=>showHome();
+$('brief-menu').onclick=()=>{pca('abandon');showHome();};
 function rateOf(v){if(v.dead)return 0;if(v.tq>=v.tqNeeded)return 0;let f=1;
   if(v.tq>=1)f=.3;else if(v.packed&&v.pressure)f=.03;else if(v.packed)f=.3;else if(v.pressure)f=PRESF[v.type];else if(v.covered)f=.9;return v.base*f;}
 function cond(v){const p=v.lost/v.vol;return v.dead?'Not breathing':p<.15?'Alert, scared':p<.3?'Pale, anxious, breathing fast':p<.4?'Confused, cold and clammy':'Barely responsive';}
@@ -388,7 +412,7 @@ function scRender(){if(!S.active||S.fast)return;const H=SC.helper;$('g-score').t
    <div class="grp"><h3>Care</h3><div class="row"><button data-a="warm" class="${v.warm?'on':''}">Blanket — keep warm</button><button data-a="talk" class="${S.talks?'on':''}">Talk to them${S.talks?' ✓':''}</button></div></div>`);}
 $('deck').onclick=e=>{const b=e.target.closest&&e.target.closest('[data-a]');if(b)act(b.dataset.a);};
 $('victims').onclick=e=>{const b=e.target.closest&&e.target.closest('[data-a]');if(b)act(b.dataset.a);};
-$('g-menu').onclick=()=>showHome();$('g-restart').onclick=()=>scStart(S.id);
+$('g-menu').onclick=()=>{pca('abandon');showHome();};$('g-restart').onclick=()=>scStart(S.id);
 document.querySelectorAll('[data-sc]').forEach(b=>b.onclick=()=>scStart(b.dataset.sc));
 /* =================== decisions =================== */
 const DEC={
@@ -413,7 +437,8 @@ $('dec-opts').onclick=e=>{const b=e.target.closest&&e.target.closest('[data-i]')
 $('dec-go').onclick=()=>{if(!DEC_OPEN)return;$('decov').classList.add('hidden');stepsDone[DEC_OPEN.j]=true;S.doneAt[DEC_OPEN.j]=S.t;const el=$('st-'+DEC_OPEN.j);if(el)el.classList.add('done');DEC_OPEN=null;if(S.active&&!S.briefing)S.running=true;scRender();};
 /* =================== finish + debrief =================== */
 function scFinish(died){S.active=false;const v=S.vs[0];const lostP=Math.round(v.lost/v.vol*100);
-  const score=died?Math.min(S.score,20):Math.max(0,S.score-Math.max(0,lostP-20));if(!died&&lostP>20)S.incidents.push(`Blood lost before control: ${lostP}% (every point over 20% costs a point)`);record('scenario',S.id,score,{variant:vlabel(S.id),died});
+  const att=(load().runs||[]).filter(r=>r.kind==='scenario'&&r.id===S.id).length+1;
+  const score=died?Math.min(S.score,20):Math.max(0,S.score-Math.max(0,lostP-20));if(!died&&lostP>20)S.incidents.push(`Blood lost before control: ${lostP}% (every point over 20% costs a point)`);pca('end',`${['guided','recall','chaos'][TIER]}/${pca('att',att)}/${died?'patient-died':pca('bkt',score)}`);record('scenario',S.id,score,{variant:vlabel(S.id),died});
   const rows=[['This patient',vlabel(S.id)],['Time to first pressure',v.firstCompT!==null?mmss(v.firstCompT):'never'],['911 called',S.alertT!==null?mmss(S.alertT)+' in':'no'],
    ...(v.tq?[['Tourniquet',`${v.tq>1?'two':'one'} · ${v.tqMarked?'time marked':'time NOT marked'}`]]:[]),...(v.packed?[['Wound','packed and held']]:[]),
    ['Blood lost',`≈ ${Math.round(v.lost/50)*50} mL (${lostP}% of his blood)`],['Outcome',died?'did not survive':lostP<30?'stable when EMS took over':'in shock, but alive when EMS took over']];
@@ -432,12 +457,12 @@ let DR=null;
 function drillMenu(){DR=null;$('dr-title').textContent='Quick drills';$('dr-meta').textContent='';const p=load();const best=id=>{const r=(p.runs||[]).filter(x=>x.kind==='drill'&&x.id===id);return r.length?Math.max(...r.map(x=>x.score)):null;};
   $('dr-body').innerHTML=Object.keys(DRILLS).map(k=>{const b=best(k);return `<button class="scen" data-d="go" data-k="${k}"><b>${DRILLS[k].name}${b!==null?`<span style="float:right;font-size:16px;color:var(--red2)">best ${b}</span>`:''}</b></button>`;}).join('');
   $('dr-foot').innerHTML='<button data-d="close" class="go" style="width:100%">Back</button>';$('drillov').classList.remove('hidden');}
-function drillStart(k){DR={k,i:0,right:0,qs:DRILLS[k].items()};drillQ();}
+function drillStart(k){pca('begin','bc','drill-'+k,()=>DR?`question-${DR.i+1}`:'');DR={k,i:0,right:0,qs:DRILLS[k].items()};drillQ();}
 function drillQ(){const q=DR.qs[DR.i];q.ord=shuf(q.opts);$('dr-title').textContent=DRILLS[DR.k].name;$('dr-meta').textContent=`${DR.i+1} of ${DR.qs.length} · ${DR.right} right`;
   $('dr-body').innerHTML=`<p style="font-size:18px;margin:0 0 10px">${esc(q.q)}</p>${q.ord.map((o,i)=>`<button class="opt" data-d="ans" data-i="${i}">${esc(o)}</button>`).join('')}<p id="dr-fb" style="font-size:15px"></p>`;$('dr-foot').innerHTML='<button data-d="menu" style="width:100%">Quit</button>';}
-function drillAct(ds){const a=ds.d;if(a==='go')drillStart(ds.k);else if(a==='close'){$('drillov').classList.add('hidden');DR=null;}else if(a==='menu')drillMenu();
+function drillAct(ds){const a=ds.d;if(a==='go')drillStart(ds.k);else if(a==='close'){pca('abandon');$('drillov').classList.add('hidden');DR=null;}else if(a==='menu'){pca('abandon');drillMenu();}
   else if(a==='ans'){const q=DR.qs[DR.i];if(q.done)return;q.done=true;const ok=q.ord[+ds.i]===q.a;if(ok)DR.right++;$('dr-fb').innerHTML=`<b style="color:${ok?'#7fe3a4':'#ff9a96'}">${ok?'Right.':'Answer: '+esc(q.a)+'.'}</b> ${esc(DRILLS[DR.k].why)}`;$('dr-foot').innerHTML=`<button data-d="next" class="go" style="width:100%">${DR.i+1<DR.qs.length?'Next':'Results'}</button>`;}
-  else if(a==='next'){DR.i++;if(DR.i<DR.qs.length)drillQ();else{const sc=Math.round(DR.right/DR.qs.length*100);record('drill',DR.k,sc);$('dr-body').innerHTML=`<div class="big">${sc}</div><p>${DR.right} of ${DR.qs.length} right.</p>`;$('dr-foot').innerHTML=`<div class="row"><button data-d="menu">All drills</button><button data-d="go" data-k="${DR.k}" class="go">Again</button></div>`;}}}
+  else if(a==='next'){DR.i++;if(DR.i<DR.qs.length)drillQ();else{const sc=Math.round(DR.right/DR.qs.length*100);pca('end',pca('bkt',sc));record('drill',DR.k,sc);$('dr-body').innerHTML=`<div class="big">${sc}</div><p>${DR.right} of ${DR.qs.length} right.</p>`;$('dr-foot').innerHTML=`<div class="row"><button data-d="menu">All drills</button><button data-d="go" data-k="${DR.k}" class="go">Again</button></div>`;}}}
 $('dr-body').onclick=e=>{const b=e.target.closest&&e.target.closest('[data-d]');if(b)drillAct(b.dataset);};$('dr-foot').onclick=$('dr-body').onclick;
 /* =================== reference, about, progress =================== */
 function info(html){$('info-b').innerHTML=html;$('infoov').classList.remove('hidden');}

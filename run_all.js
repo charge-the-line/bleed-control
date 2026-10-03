@@ -13,6 +13,7 @@ if(want.includes('syntax')){try{new vm.Script(html.split('<script>')[1].split('<
   {const ver=(html.match(/APP_VERSION='([^']+)'/)||[])[1],sw=fs.readFileSync(path.join(__dirname,'..','sw.js'),'utf8'),cache=(sw.match(/CACHE = '([^']+)'/)||[])[1];
    report('syntax','service-worker cache matches app version',cache===`bleed-control-v${ver}`,`app ${ver}, cache ${cache}`);
   report('syntax','offline helper only clears its own old caches',/k\.startsWith\('bleed-control-v'\)/.test(fs.readFileSync(path.join(__dirname,'..','sw.js'),'utf8')));
+  {const sw2=fs.readFileSync(path.join(__dirname,'..','sw.js'),'utf8');report('syntax','offline helper never caches anonymous statistics',/goatcounter\\\.com\$\|\(\^\|\\\.\)zgo\\\.at/.test(sw2)||sw2.includes('goatcounter')&&sw2.includes('zgo'));}
    const man=JSON.parse(fs.readFileSync(path.join(__dirname,'..','manifest.json'),'utf8'));report('syntax','install manifest, icons, and offline helper wired up',/rel="manifest"/.test(html)&&/serviceWorker\.register\('sw\.js'\)/.test(html)&&man.icons.length>=2&&fs.existsSync(path.join(__dirname,'..','icon-512.png')));}
   report('syntax','trademark notice and "not affiliated" statement present',/registered trademark of the U\.S\. Department of Defense/.test(html)&&/not affiliated/.test(html));
   report('syntax','app name does not use the trademarked phrase',!/<title>[^<]*Stop the Bleed/i.test(html)&&!/class="brand">[^<]*STOP THE BLEED/i.test(html));}
