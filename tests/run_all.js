@@ -3,7 +3,7 @@
    Sections: syntax balance lesson stations scenarios human wrong slow drills record fuzz      (or: quick) */
 global.window=global.window||{};
 const path=require('path'),fs=require('fs'),vm=require('vm');
-const ALL=['syntax','balance','lesson','stations','scenarios','human','wrong','slow','drills','record','drill','smooth','fuzz'];
+const ALL=['syntax','balance','lesson','stations','scenarios','human','wrong','slow','drills','record','drill','teach','smooth','fuzz'];
 let want=process.argv.slice(2);if(!want.length)want=ALL;if(want.includes('quick'))want=['syntax','balance','lesson','drills','record','fuzz'];
 let failed=0,n=0;const T0=Date.now();
 function report(sec,name,ok,detail=''){n++;if(!ok)failed++;console.log(`${ok?'PASS':'FAIL'}  ${sec.padEnd(9)} ${name}${detail?'  — '+detail:''}`);}
@@ -80,6 +80,16 @@ if(want.includes('drill')){const {api,els}=boot();api.setTier(0);const hiddenOff
   api.instAct('ems');const etaUp=S.eta===eta0+120&&S.running===true;api.instOpen();api.instAct('loose');const bleeding=v.tq===v.tqNeeded-1&&api.rateOf(v)>0;api.instOpen();api.instAct('freeze');const frozen=!S.running&&api.INSTHOLD();api.instOpen();api.instAct('resume');const back=S.running&&!api.INSTHOLD();
   api.scFinish(false);const r=api.load().runs.slice(-1)[0];const marked=r.kind==='scenario'&&r.inst===1&&S.injects.length===2;
   report('drill','instructor mode: hidden until on and active, pauses while open, ambulance delay and a slipped tourniquet change the scene, unavailable injects disabled, freeze holds the clock, injected runs marked',hiddenOff&&shown&&stopped&&paused&&looseOn&&helperOff&&etaUp&&bleeding&&frozen&&back&&marked,`eta ${etaUp}, bleeding ${bleeding}, freeze ${frozen}/${back}, marked ${marked}`);}
+
+// Max, October 7, 2026: a button never refuses a wrong action — the player makes the mistake, loses points and reads why
+if(want.includes('teach')){const go=id=>{const {api}=boot();api.setTier(0);api.scStart(id);api.$('brief-go').onclick();const S=api.S();S.running=true;return {api,S};};
+  {const {api,S}=go('kitchen');api.act('safe');api.act('expose');api.act('press');const s0=S.score;api.act('helper');const v=S.vs[0];const once1=S.score===s0-5&&v.pressure==='helper'&&S.incidents.some(x=>/before 911/.test(x));
+   api.act('call');api.act('press');api.act('helper');report('teach','handing off pressure before 911 is allowed, costs 5 once and says why',once1&&S.score===s0-5&&v.pressure==='helper',`score ${s0}→${S.score}, pressure ${v.pressure}`);}
+  {const {api,S}=go('crash');api.act('safe');api.act('call');const i1=S.vs.findIndex(v=>v.id==='d1'),i2=S.vs.findIndex(v=>v.id==='d2');api.act('sel'+i1);api.act('expose');const s0=S.score;api.act('helper');const d1=S.vs[i1];
+   report('teach','crash: the bystander can be put on the life threat, it costs 10 and names the right split',S.score===s0-10&&d1.pressure==='helper'&&S.incidents.some(x=>/untrained bystander/.test(x)),`score ${s0}→${S.score}, pressure ${d1.pressure}`);
+   api.act('sel'+i2);api.act('expose');const s1=S.score;api.act('pack');api.act('pack');const pk=S.score===s1-3&&!S.vs[i2].packed&&S.incidents.some(x=>/Packing a scalp/.test(x));
+   api.act('tq');api.act('tq');report('teach','crash: packing or a tourniquet on the scalp cut is tried, costs 3 each once, and teaches pressure',pk&&S.score===s1-6&&S.incidents.some(x=>/head wound/.test(x))&&!S.inStation,`score ${s1}→${S.score}`);}
+}
 
 if(want.includes('smooth')){
   // 1) Screens must NOT be rebuilt while nothing changes — a rebuild mid-tap swallows the tap (Max's "Talk to them" bug)

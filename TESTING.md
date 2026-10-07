@@ -33,6 +33,7 @@ python3 tests/browser_check.py
 | `slow` | Scores fall as response time grows, and **no bleeding control at all is fatal** |
 | `drills` | All drills score correctly; 300 generated sets are well-formed |
 | `record` | Results save, and the CSV export works |
+| `teach` | A wrong action is never refused (Max, October 7, 2026): handing off pressure before 911 (−5 once), the bystander on the crash's life threat (−10), packing or a tourniquet on the scalp cut (−3 each, once), each with a feedback line that says what is right |
 | `smooth` | Buttons and diagrams aren't rebuilt while you wait; answer choices keep their positions; "Talk to them" visibly responds; skip-ahead appears only when everything's done, and still charges the blood lost during the skipped time |
 | `fuzz` | Random actions in every scenario never crash or produce impossible blood-loss values |
 

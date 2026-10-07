@@ -81,6 +81,7 @@ Each of these cost a real bug. Don't relearn them.
 11. **Randomness makes bugs intermittent.** Run each suite several times before release (`for i in 1 2 3 4 5; do node tests/run_all.js | tail -1; done`). An intermittent failure is usually a real bug in one random variant; it found one.
 12. **Prove a test can fail.** For important checks, plant the bug in a scratch copy and confirm the suite catches it.
 13. **Every overlay has a way back.** A briefing, card, sheet, drill, or station always offers Back, Close, Quit, or Stop and go back, so nobody is trapped into starting something. Max found Charge the Line's briefing with only "Start mission" (fixed in 2.5.1). The one deliberate exception: a decision point, which must be answered.
+14. **Let them make the mistake, then teach it** (Max, October 7, 2026). A button never refuses a wrong action a person could really take (oxygen with a normal SpO₂, the sibling's inhaler, the bystander on the life threat): the action happens, costs points, and the feedback says why and what is right. A refusal stays only where the action can't physically happen (nothing in the kit, a step not reached yet, a device that belongs to the medic, a decision point that must be answered). Patient Contact's `teach` test fails on any new refusal not on its allowed list.
 
 ## Content and legal rules
 
@@ -146,7 +147,7 @@ Max's likely picks after 1: 2, then 3, then either Charge the Line catch-up or D
 
 # This repo: Bleed Control (`bleed-control` → `/bleed-control/`)
 
-**Current version: 0.13.1.** Modeled as closely as possible on the **ACS Stop the Bleed® course**, which Max has taught for about two years: a lecture with slides, then hands-on tourniquet and wound-packing practice. All content is in our own words. The intro line under the title became the "What this is" card (0.13.1), the same header every module carries.
+**Current version: 0.13.2** (0.13.2: no button refuses a wrong action any more: putting the bystander on the crash's life threat costs 10, handing off pressure before 911 costs 5, packing or a tourniquet on the scalp cut costs 3 each, every one with a line that says what is right; rule 14). Modeled as closely as possible on the **ACS Stop the Bleed® course**, which Max has taught for about two years: a lecture with slides, then hands-on tourniquet and wound-packing practice. All content is in our own words. The intro line under the title became the "What this is" card (0.13.1), the same header every module carries.
 
 ## Look (Milestone 4)
 Station tokens (`--acc:#e5383b`, white accent ink), accent-bar activity cards, uppercase `.go` buttons, gear `#h-set` on the home header opening the shared settings sheet. Section labels come from the core's `.sec`.
@@ -171,7 +172,7 @@ With a session on, `scStart` merges `STD_V[id]` over the random variant (tourniq
 v0.2 rebuilt every button four times a second, so real taps vanished. `setHTML()` updates only on change; answer order is shuffled once per phase (`ST.ord`). The `smooth` tests and the browser slow-tap checks guard this.
 
 ## Tests
-`node tests/run_all.js` (73 checks): includes trademark and name checks, instructor mode (hidden until on and active, pauses while open, injects change the scene, freeze holds the clock, injected runs marked), balance, lesson, every station and variant, human pace, wrong answers, slow response and a fatal no-control run, drills, records, smoothness, fuzz. `python3 tests/browser_check.py` adds real-tap station runs and slow-tap tests.
+`node tests/run_all.js` (76 checks): includes the `teach` section (each former refusal is now allowed, costs points once and says why), trademark and name checks, instructor mode (hidden until on and active, pauses while open, injects change the scene, freeze holds the clock, injected runs marked), balance, lesson, every station and variant, human pace, wrong answers, slow response and a fatal no-control run, drills, records, smoothness, fuzz. `python3 tests/browser_check.py` adds real-tap station runs and slow-tap tests.
 
 ## Repo housekeeping (done October 3, 2026)
 When this repo was created, the test files were uploaded flat at the root. On October 3, 2026 (approved by Max) they were moved into `tests/` with `git mv`, so `node tests/run_all.js` works in place as TESTING.md describes. Nothing left to clean up here.
