@@ -113,6 +113,7 @@ body.tv{max-width:1100px}@media (min-width:1000px){body.tv{zoom:1.3}}
   <button class="scen" data-st="tq-leg"><b>Tourniquet — leg</b><span>Thigh wounds take more force — and sometimes a second tourniquet</span></button>
   <button class="scen" data-st="pack"><b>Wound packing</b><span>Where a tourniquet can't go: pack it tight, then hold pressure</span></button>
   <button class="scen" data-st="press"><b>Direct pressure</b><span>Both hands, push hard, don't lift to check</span></button>
+  <button class="scen" data-st="coach"><b>Talk a bystander through it</b><span>Your hands are busy: coach a stranger through a tourniquet, words only</span></button>
   <button class="scen" data-st="self"><b>Tourniquet on yourself, one-handed</b><span>Alone with a spurting forearm: sit down, one hand only, lock it, then call</span></button>
   <div class="sec">3 · PUT IT TOGETHER</div>
   <button class="scen" data-sc="kitchen"><b>"He cut his arm on the glass"</b><span>Kitchen accident · one patient · the bleeding is spurting</span></button>
@@ -177,7 +178,7 @@ body.tv{max-width:1100px}@media (min-width:1000px){body.tv{zoom:1.3}}
 
 <script>
 /* =================== core =================== */
-const APP_VERSION='0.15.0';
+const APP_VERSION='0.16.0';
 /* Screen wake lock (Milestone 1): keeps the phone from dimming or locking during a timed skill.
    On only while an activity runs: keepAwake(true) when it starts, keepAwake(false) back at the menu or on the result screen. */
 const WAKE={s:null,want:false};
@@ -248,9 +249,9 @@ function lessonDone(score,right,n){pca('end',pca('bkt',score));record('lesson','
 $('lesson-box').onclick=e=>{const b=e.target.closest&&e.target.closest('[data-l]');if(b)lessonAct(b.dataset);};
 /* =================== skill stations =================== */
 let ST=null;
-const PAR={tq:30,tqleg:45,pack:45,press:30,self:40};
+const PAR={tq:30,tqleg:45,pack:45,press:30,self:40,coach:60};
 /* station names, one table for the home list, the progress screen and the CSV */
-const STN={'tq-arm':'Tourniquet — arm','tq-leg':'Tourniquet — leg',pack:'Wound packing',press:'Direct pressure',self:'Tourniquet on yourself, one-handed'};
+const STN={'tq-arm':'Tourniquet — arm','tq-leg':'Tourniquet — leg',pack:'Wound packing',press:'Direct pressure',self:'Tourniquet on yourself, one-handed',coach:'Talk a bystander through it'};
 function limbSVG(limb,nearJoint,zones,placed){const arm=limb==='arm';const J=arm?170:150;const W=arm?(nearJoint?145:90):(nearJoint?125:225);
   const shape=arm?'M14 50 Q20 34 40 36 L160 32 Q172 30 182 32 L300 26 L300 82 L182 76 Q172 78 160 76 L40 72 Q20 74 14 58 Z':'M14 52 Q18 30 46 34 L140 30 Q152 28 162 30 L300 18 L300 92 L162 80 Q152 82 140 80 L46 76 Q18 78 14 60 Z';
   const lbl=arm?['hand','elbow','shoulder · heart →']:['foot','knee','hip · heart →'];
@@ -263,10 +264,22 @@ function limbSVG(limb,nearJoint,zones,placed){const arm=limb==='arm';const J=arm
 function tqZones(){const s=ST;const arm=s.limb==='arm';const J=arm?170:150;const W=arm?(s.near?145:90):(s.near?125:225);
   if(s.phase==='place2'){const T=s.placed[0];return [['onfirst',T],['abovefirst',Math.min(296,T+34)],['belowfirst',T-26]];}
   return s.near?shuf([['on',W],['joint',J],['abovejoint',J+(arm?46:44)],['below',W-40]]):shuf([['on',W],['above',W+45>J-14&&W+45<J+14?W+38:W+45],['joint',J],['below',Math.max(30,W-42)]]);}
+/* Talk a bystander through it (0.16.0, Max, October 8, 2026): your hands are on one patient; a stranger puts a tourniquet on another with your words only.
+   Each turn offers the right next instruction said clearly, the same instruction said vaguely, and a step out of order. The bystander does exactly what you say. */
+const COACH=[
+ {k:'expose',good:'Push his sleeve up so you can see where it\'s coming from',vague:'Go ahead and try to find wherever it is he\'s bleeding from',vr:'He pats at the soaked sleeve and can\'t find the cut. Tell him exactly what to do.'},
+ {k:'place',good:'Slide the loop up his arm, a hand\'s width above the cut',vague:'Put the tourniquet thing on his arm, wherever it fits',vr:'He puts it right over the cut. It goes a hand\'s width above the cut, and never on the elbow.'},
+ {k:'pull',good:'Pull the strap as tight as it goes, then stick it down',vague:'Make the strap a little bit snug, not too tight on him',vr:'He leaves slack in the strap. The rod will run out of turns before the bleeding stops.'},
+ {k:'twist',good:'Twist the rod until the bleeding stops, even if he yells',vague:'Give that little stick a turn or so to make it tighter',vr:'He gives it a half turn and stops. It\'s still bleeding. Twist until the bleeding stops.'},
+ {k:'lock',good:'Hook the rod into the clip so it can\'t spin back',vague:'All right, that looks good now, you can let go of it',vr:'He lets go and the rod unwinds. The bleeding starts again — back to twisting.',back:true},
+ {k:'time',good:'Write the time on the strap with the marker in the kit',vague:'Try to remember around what time you put that on him',vr:'He nods, but nothing is written down. The hospital needs the time on the tourniquet.'},
+ {k:'stay',good:'Stay with him, keep him warm, and watch for more bleeding',vague:'Great job, thanks a lot, you can head back to your friends',vr:'He walks off into the crowd. Someone has to stay with the patient.'}];
+const COACH_OUT=['Loosen it a little now so his hand gets some blood back','Take it off now that it has finally stopped bleeding'];
+function coachOpts(i){const out=i+2<COACH.length?COACH[i+2].good:COACH_OUT[i+2-COACH.length];return [['good',COACH[i].good],['vague',COACH[i].vague],['out',out]];}
 function stationOpen(kind,opts,onDone){keepAwake(true);ST=Object.assign({ord:{},kind,phase:'',err:0,t0:Date.now()/1000,rt:0,tension:0,occl:0,fill:0,holdT:0,holding:false,lastPack:null,soaked:false,placed:[],need2:false,count:1,onDone,fb:''},opts||{});
   ST.par=kind==='tq'?(ST.limb==='leg'?PAR.tqleg:PAR.tq):PAR[kind];if(kind==='self'){ST.limb='arm';ST.near=false;}ST.holdN=ST.scenario?8:(kind==='pack'?20:16);
-  ST.phase=kind==='tq'?'place':kind==='pack'?'start':kind==='self'?'first':'cover';$('stov').classList.remove('hidden');stRender();}
-function stBleed(){const s=ST;if(!s)return 1;if(s.kind==='tq'||s.kind==='self')return s.occl>=100?0:Math.max(.05,1-s.occl/100);if(s.kind==='pack')return s.phase==='hold'?(s.holding?.05:.5):s.phase==='packing'?(s.lapse?.8:.35):s.phase==='done'?.03:1;
+  ST.phase=kind==='tq'?'place':kind==='pack'?'start':kind==='self'?'first':kind==='coach'?'talk':'cover';if(kind==='coach'){ST.ci=0;ST.clear=0;ST.vague=0;ST.order=0;}$('stov').classList.remove('hidden');stRender();}
+function stBleed(){const s=ST;if(!s)return 1;if(s.kind==='coach')return s.ci>3?.03:s.ci>=2?.8:1;if(s.kind==='tq'||s.kind==='self')return s.occl>=100?0:Math.max(.05,1-s.occl/100);if(s.kind==='pack')return s.phase==='hold'?(s.holding?.05:.5):s.phase==='packing'?(s.lapse?.8:.35):s.phase==='done'?.03:1;
   return s.phase==='hold'||s.phase==='soak'?(s.holding?.12:.9):s.phase==='done'?.1:1;}
 function stRender(){const s=ST;if(!s)return;const B=[];let prompt='',art='';const so=(k,arr)=>{if(!s.ord[k])s.ord[k]=shuf(arr.map((_,i)=>i));return s.ord[k].map(i=>arr[i]);};
   const limbName=s.limb==='leg'?'leg':'arm',J=s.limb==='leg'?'knee':'elbow';
@@ -280,6 +293,8 @@ function stRender(){const s=ST;if(!s)return;const B=[];let prompt='',art='';cons
     if(s.phase==='lock'){prompt=s.need2&&s.count===1?'The rod won\'t turn any further — lock it where it is.':'Bleeding stopped. Secure the rod so it can\'t unwind.';B.push(['lock','Lock the rod in the clip'],['letgo','Let go — it\'ll hold']);}
     if(s.phase==='decide2'){prompt='The first tourniquet is as tight as it goes, and it\'s still bleeding. What now?';B.push(['second','Put a second tourniquet above the first'],['loosen','Loosen it and start over'],['harder','Force the rod another turn']);}
     if(s.phase==='time'){prompt='Last step.';B.push(['time','Write the time on the tourniquet'],['notime','Skip it — the hospital will know']);}}
+  if(s.kind==='coach'){$('st-title').textContent='Talk a bystander through it';art=limbSVG('arm',false,[],s.ci>1?[135]:[]);
+    if(s.phase==='talk'){prompt=`Your hands are on a deep groin wound and can't let go. Ten feet away, a second man's forearm is spurting. A bystander holds the tourniquet from your kit: "Tell me what to do." Step ${s.ci+1} of ${COACH.length}: what do you tell him?`;B.push(...so('c'+s.ci,coachOpts(s.ci)).map(([k,t])=>['say-'+k,t]));}}
   if(s.kind==='self'){$('st-title').textContent='Tourniquet on yourself — one hand';art=limbSVG('arm',false,s.phase==='place'?(s.zones=s.zones||tqZones()):[],s.placed);
     if(s.phase==='first'){prompt='You\'re alone in your shop. A deep cut on your left forearm is spurting, and your kit is on the bench. What first? (One-handed method: general technique, to confirm with your instructor.)';B.push(...so('first',[['sit','Sit down against the bench, tourniquet out'],['call1','Call 911 before you do anything else'],['walk','Walk out to the road to find someone']]));}
     if(s.phase==='place')prompt='With your good hand, slide the loop over your hand and up your arm. Tap where it goes. The wound is in the middle of the forearm.';
@@ -320,6 +335,10 @@ function stAct(a){const s=ST;if(!s)return;
     if(a==='time'&&s.phase==='time'){s.timed=true;stDone();return;}
     if(a==='notime'&&s.phase==='time'){stErr('Write the time. The hospital needs to know how long the limb has been without blood flow.');}
     if(s.phase==='pull'&&s.count===2&&a==='totwist'&&s.tension>=100){s.occl=78;}}
+  if(s.kind==='coach'&&s.phase==='talk'&&/^say-/.test(a)){const k=a.slice(4),c=COACH[s.ci];
+    if(k==='good'){s.clear++;s.ci++;stOk(`"${c.good}." He does it.`);if(s.ci>=COACH.length){s.timed=true;stDone();return;}}
+    else if(k==='vague'){s.vague++;stErr(`"${c.vague}." ${c.vr}`);if(c.back)s.ci--;}
+    else if(k==='out'){s.order++;const o=coachOpts(s.ci)[2][1];stErr(s.ci+2<COACH.length?`"${o}." He tries, but that comes later. Not yet: first, ${c.good.charAt(0).toLowerCase()+c.good.slice(1)}.`:`"${o}." Never loosen or remove a tourniquet. That is for the hospital.`);}}
   if(s.kind==='self'){
     if(s.phase==='first'){if(a==='sit')stOk('Right — sitting down means you won\'t fall if you get dizzy. Now the tourniquet.');else if(a==='call1'){s.called=true;stErr('Bleeding this fast, the tourniquet comes first: you can pass out before the call ends. Tourniquet, then call.');}else if(a==='walk')stErr('Walking pumps blood out faster and you can faint on the way. Sit down and put the tourniquet on.');if(['sit','call1','walk'].includes(a)){s.phase='place';s.zones=null;}}
     else if(s.phase==='pull'){if(a==='brace'){s.tension=Math.min(100,s.tension+34);s.fb=`Strap: ${s.tension>=100?'<b style="color:#7fe3a4">tight — no slack</b>':s.tension>=66?'snug — a little slack left':'loose'}`;}
@@ -344,14 +363,14 @@ function stTick(dtReal){const s=ST;if(!s)return;s.rt+=dtReal;
   stRender();}
 $('st-quit').onclick=()=>{if(!ST||ST.scenario)return;pca('abandon');$('stov').classList.add('hidden');ST=null;};
 function stDone(){const s=ST;s.phase='done';const secs=Math.round(Date.now()/1000-s.t0);const cb=s.onDone;$('stov').classList.add('hidden');ST=null;
-  if(cb)cb({err:s.err,secs,timed:!!s.timed,count:s.count,kind:s.kind});}
+  if(cb)cb({err:s.err,secs,timed:!!s.timed,count:s.count,kind:s.kind,clear:s.clear,vague:s.vague,order:s.order});}
 $('st-btns').onclick=e=>{const b=e.target.closest&&e.target.closest('[data-s]');if(b)stAct(b.dataset.s);};
 $('st-art').onclick=e=>{const b=e.target.closest&&e.target.closest('[data-z]');if(b)stZone(b.dataset.z);};
-function practice(id){const def={self:['self',{}],'tq-arm':['tq',{limb:'arm',near:Math.random()<.45}],'tq-leg':['tq',{limb:'leg',near:false,need2:Math.random()<.5}],'pack':['pack',{site:pick(['groin','armpit'])}],'press':['press',{}]}[id];
+function practice(id){const def={coach:['coach',{}],self:['self',{}],'tq-arm':['tq',{limb:'arm',near:Math.random()<.45}],'tq-leg':['tq',{limb:'leg',near:false,need2:Math.random()<.5}],'pack':['pack',{site:pick(['groin','armpit'])}],'press':['press',{}]}[id];
   const name=STN[id];
   pca('begin','bc','skill-'+id,()=>ST?`phase-${ST.phase}`:'');const att=(load().runs||[]).filter(x=>x.kind==='station'&&x.id===id).length+1;
   stationOpen(def[0],FORCE&&FORCE[id]?Object.assign(def[1],FORCE[id]):def[1],r=>{const score=Math.max(0,100-r.err*10-Math.max(0,r.secs-(def[0]==='tq'?(def[1].limb==='leg'?PAR.tqleg:PAR.tq):PAR[def[0]])));const selfNote=def[0]==='self'?' One-handed method: general technique, to confirm with your instructor.':'';pca('end',`${pca('att',att)}/${pca('bkt',score)}`);record('station',id,score);
-    showDone(name,score,pcDebriefBody({score,compare:pcBestPrev((load().runs||[]).filter(x=>x.kind==='station'&&x.id===id).slice(0,-1)),kicker:(r.err?'Run it again until it\'s clean — the goal is doing it right, fast, without thinking.':'Clean. Now do it faster — or try a scenario.')+selfNote,metrics:[['Time',r.secs+' s'],['Mistakes',String(r.err)],...(r.count>1?[['Tourniquets','two']]:[])],clean:!r.err,feedback:r.err?[`${r.err} mistake${r.err===1?'':'s'} on the way`]:[]}),()=>practice(id));});}
+    showDone(name,score,pcDebriefBody({score,compare:pcBestPrev((load().runs||[]).filter(x=>x.kind==='station'&&x.id===id).slice(0,-1)),kicker:(r.err?'Run it again until it\'s clean — the goal is doing it right, fast, without thinking.':'Clean. Now do it faster — or try a scenario.')+selfNote,metrics:[['Time',r.secs+' s'],['Mistakes',String(r.err)],...(r.kind==='coach'?[['Clear instructions',`${r.clear} of ${COACH.length}`],['Said vaguely',String(r.vague)],['Out of order',String(r.order)]]:[]),...(r.count>1?[['Tourniquets','two']]:[])],clean:!r.err,feedback:r.err?[`${r.err} mistake${r.err===1?'':'s'} on the way`]:[]}),()=>practice(id));});}
 document.querySelectorAll('[data-st]').forEach(b=>b.onclick=()=>practice(b.dataset.st));
 /* =================== scenarios =================== */
 const PRESF={arm:.15,leg:.32,groin:.45,scalp:.12};

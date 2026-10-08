@@ -116,3 +116,8 @@ Foundation fixes: fonts served from this site, screen wake lock, finger-sized bu
 - `stations`: a clean run scores 100 instantly and at human pace; calling 911 first, walking for help, gripping with the hurt hand, letting go of the rod and waiting instead of calling are each allowed, cost points and still finish; the "to confirm" note shows, calling first really happens (the last step becomes "tell the dispatcher the time"), and the station is on the home list and in `STN`.
 - `smooth`: the station's choices are not rebuilt or reshuffled while waiting.
 - Browser check: the station played to the end at 320 and 390 px with real taps on the arm diagram and the buttons.
+
+## 0.16.0 checks (October 8, 2026, talk a bystander through it)
+- `stations`: seven clear instructions in order score 100 instantly and at human pace; a vague line, an out-of-order line, "let go" before the lock and "loosen it" each cost a mistake and the run still finishes; the bystander does exactly what you say (can't find the cut, puts it over the cut, lets go and it unwinds a step); the clear instruction is not usually the longest or the shortest.
+- `smooth`: the coach choices are not rebuilt or reshuffled while waiting.
+- Browser check: the station played to the end at 320 and 390 px with real taps.

@@ -15,7 +15,7 @@ def station(pg):
         if ph in ('place', 'place2'):
             good = pg.evaluate("ST.phase==='place2'?'abovefirst':ST.near?'abovejoint':'above'")
             pg.click(f'#st-art [data-z="{good}"] rect'); continue
-        for a in ('sit','brace','pull','totwist','twist','lock','second','time','call2','pressfirst','pack','cover','addon'):
+        for a in ('say-good','sit','brace','pull','totwist','twist','lock','second','time','call2','pressfirst','pack','cover','addon'):
             if pg.is_visible(f'[data-s="{a}"]'):
                 if a in ('pull','brace') and pg.evaluate("ST.tension")>=100: continue
                 pg.click(f'[data-s="{a}"]'); break
@@ -39,7 +39,7 @@ with sync_playwright() as p:
         for _ in range(8):
             ans = pg.evaluate("DR.qs[DR.i].a"); pg.locator('[data-q="ans"]', has_text=re.compile('^' + re.escape(ans) + '$')).first.click(); pg.wait_for_timeout(150); pg.locator('[data-q="next"]').first.click(); pg.wait_for_timeout(150)
         rows.append((w, 'kit check (full)', (pg.evaluate(OVER)+1000*pg.evaluate(SMALL)), pg.evaluate("(JSON.parse(localStorage.getItem('bleed-control')||'{}').runs||[]).some(r=>r.id==='kit'&&r.score===100)")))
-        for st in ('tq-arm','tq-leg','pack','press','self'):
+        for st in ('tq-arm','tq-leg','pack','press','self','coach'):
             pg.goto(URL); pg.wait_for_timeout(200); pg.click(f'[data-st="{st}"]'); pg.wait_for_timeout(200)
             rows.append((w, st, (pg.evaluate(OVER)+1000*pg.evaluate(SMALL)), station(pg)))
         for sc in ('kitchen','garage','glass','crash'):
