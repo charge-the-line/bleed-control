@@ -5,6 +5,9 @@ function stationStep(api,els,o={}){const s=api.ST();if(!s)return false;const $=a
   if(s.kind==='tq'){if(s.phase==='place'||s.phase==='place2'){if(!s.zones)api.stTick(0);const good=s.phase==='place2'?'abovefirst':s.near?'abovejoint':'above';if(o.wrongZone&&!o._wz){o._wz=1;$('st-art').onclick({target:{closest:()=>({dataset:{z:'joint'}})}});return true;}$('st-art').onclick({target:{closest:()=>({dataset:{z:good}})}});return true;}
     if(s.phase==='pull'){if(s.tension<100)click('pull');else click('totwist');return true;}if(s.phase==='twist'){click('twist');return true;}
     if(s.phase==='lock'){click('lock');return true;}if(s.phase==='decide2'){click('second');return true;}if(s.phase==='time'){click(o.noTime?'notime':'time');if(o.noTime&&api.ST()&&api.ST().phase==='time')click('time');return true;}}
+  if(s.kind==='self'){if(s.phase==='first'){click(o.selfFirst||'sit');return true;}if(s.phase==='place'){if(!s.zones)api.stTick(0);$('st-art').onclick({target:{closest:()=>({dataset:{z:'above'}})}});return true;}
+    if(s.phase==='pull'){if(o.grip&&!o._g){o._g=1;click('grip');return true;}if(s.tension<100)click('brace');else click('totwist');return true;}if(s.phase==='twist'){click('twist');return true;}
+    if(s.phase==='lock'){if(o.letgo&&!o._l){o._l=1;click('letgo');return true;}click('lock');return true;}if(s.phase==='call'){if(o.wait&&!o._w){o._w=1;click('wait');return true;}click('call2');return true;}}
   if(s.kind==='pack'){if(s.phase==='start'){click('pressfirst');return true;}if(s.phase==='packing'){click('pack');return true;}if(s.phase==='hold'&&!s.holding){click('hold');return true;}}
   if(s.kind==='press'){if(s.phase==='cover'){click('cover');return true;}if(s.phase==='soak'){click('addon');return true;}if(s.phase==='hold'&&!s.holding){click('hold');return true;}}
   return false;}

@@ -113,6 +113,7 @@ body.tv{max-width:1100px}@media (min-width:1000px){body.tv{zoom:1.3}}
   <button class="scen" data-st="tq-leg"><b>Tourniquet — leg</b><span>Thigh wounds take more force — and sometimes a second tourniquet</span></button>
   <button class="scen" data-st="pack"><b>Wound packing</b><span>Where a tourniquet can't go: pack it tight, then hold pressure</span></button>
   <button class="scen" data-st="press"><b>Direct pressure</b><span>Both hands, push hard, don't lift to check</span></button>
+  <button class="scen" data-st="self"><b>Tourniquet on yourself, one-handed</b><span>Alone with a spurting forearm: sit down, one hand only, lock it, then call</span></button>
   <div class="sec">3 · PUT IT TOGETHER</div>
   <button class="scen" data-sc="kitchen"><b>"He cut his arm on the glass"</b><span>Kitchen accident · one patient · the bleeding is spurting</span></button>
   <button class="scen" data-sc="garage"><b>Table saw in the garage</b><span>Deep thigh wound · blood pooling on the floor</span></button>
@@ -176,7 +177,7 @@ body.tv{max-width:1100px}@media (min-width:1000px){body.tv{zoom:1.3}}
 
 <script>
 /* =================== core =================== */
-const APP_VERSION='0.14.0';
+const APP_VERSION='0.15.0';
 /* Screen wake lock (Milestone 1): keeps the phone from dimming or locking during a timed skill.
    On only while an activity runs: keepAwake(true) when it starts, keepAwake(false) back at the menu or on the result screen. */
 const WAKE={s:null,want:false};
@@ -247,7 +248,9 @@ function lessonDone(score,right,n){pca('end',pca('bkt',score));record('lesson','
 $('lesson-box').onclick=e=>{const b=e.target.closest&&e.target.closest('[data-l]');if(b)lessonAct(b.dataset);};
 /* =================== skill stations =================== */
 let ST=null;
-const PAR={tq:30,tqleg:45,pack:45,press:30};
+const PAR={tq:30,tqleg:45,pack:45,press:30,self:40};
+/* station names, one table for the home list, the progress screen and the CSV */
+const STN={'tq-arm':'Tourniquet — arm','tq-leg':'Tourniquet — leg',pack:'Wound packing',press:'Direct pressure',self:'Tourniquet on yourself, one-handed'};
 function limbSVG(limb,nearJoint,zones,placed){const arm=limb==='arm';const J=arm?170:150;const W=arm?(nearJoint?145:90):(nearJoint?125:225);
   const shape=arm?'M14 50 Q20 34 40 36 L160 32 Q172 30 182 32 L300 26 L300 82 L182 76 Q172 78 160 76 L40 72 Q20 74 14 58 Z':'M14 52 Q18 30 46 34 L140 30 Q152 28 162 30 L300 18 L300 92 L162 80 Q152 82 140 80 L46 76 Q18 78 14 60 Z';
   const lbl=arm?['hand','elbow','shoulder · heart →']:['foot','knee','hip · heart →'];
@@ -261,9 +264,9 @@ function tqZones(){const s=ST;const arm=s.limb==='arm';const J=arm?170:150;const
   if(s.phase==='place2'){const T=s.placed[0];return [['onfirst',T],['abovefirst',Math.min(296,T+34)],['belowfirst',T-26]];}
   return s.near?shuf([['on',W],['joint',J],['abovejoint',J+(arm?46:44)],['below',W-40]]):shuf([['on',W],['above',W+45>J-14&&W+45<J+14?W+38:W+45],['joint',J],['below',Math.max(30,W-42)]]);}
 function stationOpen(kind,opts,onDone){keepAwake(true);ST=Object.assign({ord:{},kind,phase:'',err:0,t0:Date.now()/1000,rt:0,tension:0,occl:0,fill:0,holdT:0,holding:false,lastPack:null,soaked:false,placed:[],need2:false,count:1,onDone,fb:''},opts||{});
-  ST.par=kind==='tq'?(ST.limb==='leg'?PAR.tqleg:PAR.tq):PAR[kind];ST.holdN=ST.scenario?8:(kind==='pack'?20:16);
-  ST.phase=kind==='tq'?'place':kind==='pack'?'start':'cover';$('stov').classList.remove('hidden');stRender();}
-function stBleed(){const s=ST;if(!s)return 1;if(s.kind==='tq')return s.occl>=100?0:Math.max(.05,1-s.occl/100);if(s.kind==='pack')return s.phase==='hold'?(s.holding?.05:.5):s.phase==='packing'?(s.lapse?.8:.35):s.phase==='done'?.03:1;
+  ST.par=kind==='tq'?(ST.limb==='leg'?PAR.tqleg:PAR.tq):PAR[kind];if(kind==='self'){ST.limb='arm';ST.near=false;}ST.holdN=ST.scenario?8:(kind==='pack'?20:16);
+  ST.phase=kind==='tq'?'place':kind==='pack'?'start':kind==='self'?'first':'cover';$('stov').classList.remove('hidden');stRender();}
+function stBleed(){const s=ST;if(!s)return 1;if(s.kind==='tq'||s.kind==='self')return s.occl>=100?0:Math.max(.05,1-s.occl/100);if(s.kind==='pack')return s.phase==='hold'?(s.holding?.05:.5):s.phase==='packing'?(s.lapse?.8:.35):s.phase==='done'?.03:1;
   return s.phase==='hold'||s.phase==='soak'?(s.holding?.12:.9):s.phase==='done'?.1:1;}
 function stRender(){const s=ST;if(!s)return;const B=[];let prompt='',art='';const so=(k,arr)=>{if(!s.ord[k])s.ord[k]=shuf(arr.map((_,i)=>i));return s.ord[k].map(i=>arr[i]);};
   const limbName=s.limb==='leg'?'leg':'arm',J=s.limb==='leg'?'knee':'elbow';
@@ -277,6 +280,13 @@ function stRender(){const s=ST;if(!s)return;const B=[];let prompt='',art='';cons
     if(s.phase==='lock'){prompt=s.need2&&s.count===1?'The rod won\'t turn any further — lock it where it is.':'Bleeding stopped. Secure the rod so it can\'t unwind.';B.push(['lock','Lock the rod in the clip'],['letgo','Let go — it\'ll hold']);}
     if(s.phase==='decide2'){prompt='The first tourniquet is as tight as it goes, and it\'s still bleeding. What now?';B.push(['second','Put a second tourniquet above the first'],['loosen','Loosen it and start over'],['harder','Force the rod another turn']);}
     if(s.phase==='time'){prompt='Last step.';B.push(['time','Write the time on the tourniquet'],['notime','Skip it — the hospital will know']);}}
+  if(s.kind==='self'){$('st-title').textContent='Tourniquet on yourself — one hand';art=limbSVG('arm',false,s.phase==='place'?(s.zones=s.zones||tqZones()):[],s.placed);
+    if(s.phase==='first'){prompt='You\'re alone in your shop. A deep cut on your left forearm is spurting, and your kit is on the bench. What first? (One-handed method: general technique, to confirm with your instructor.)';B.push(...so('first',[['sit','Sit down against the bench, tourniquet out'],['call1','Call 911 before you do anything else'],['walk','Walk out to the road to find someone']]));}
+    if(s.phase==='place')prompt='With your good hand, slide the loop over your hand and up your arm. Tap where it goes. The wound is in the middle of the forearm.';
+    if(s.phase==='pull'){prompt='One hand only. Brace the hurt arm against your body or thigh, and pull the strap tight with your good hand.';B.push(...so('pull',[['brace','Brace the arm against your body, pull the strap'],['grip','Pinch the strap with the hurt hand and pull']]),['totwist','Start twisting the rod']);}
+    if(s.phase==='twist'){prompt='Twist the rod with your good hand until the bleeding stops.';B.push(['twist','Twist the rod']);}
+    if(s.phase==='lock'){prompt='Bleeding stopped. Secure the rod so it can\'t unwind.';B.push(...so('lock',[['lock','Lock the rod in the clip'],['letgo','Let go — it\'ll hold']]));}
+    if(s.phase==='call'){prompt='Now get help coming.';B.push(...so('call',[['call2',s.called?'Tell the dispatcher the time it went on':'Call 911 on speaker, say the time it went on'],['wait','Sit tight; someone will come by soon']]));}}
   if(s.kind==='pack'){$('st-title').textContent=`Wound packing — ${s.site||'groin'}`;art=ART.pack;
     if(s.phase==='start'){prompt=`A deep wound high in the ${s.site||'groin'}, pouring blood. What first?`;B.push(...so('start',[['pressfirst','Press on it now, then start packing'],['tqhere','Put a tourniquet above it'],['cloth','Find a cleaner cloth first']]));}
     if(s.phase==='packing'){prompt='Push gauze into the wound, right onto the bleeding. Keep a finger pressing as you feed in more. Pack it until it\'s full.';B.push(['pack','Pack more gauze in']);}
@@ -291,7 +301,7 @@ function stRender(){const s=ST;if(!s)return;const B=[];let prompt='',art='';cons
   setHTML($('st-fb'),s.fb);}
 function stErr(msg){ST.err++;ST.fb=`<span style="color:#ff9a96">${esc(msg)}</span>`;if(ST.scenario&&typeof ding==='function'&&S.active)ding(3,msg);}
 function stOk(msg){ST.fb=`<span style="color:#7fe3a4">${esc(msg)}</span>`;}
-function stZone(z){const s=ST;if(!s||s.kind!=='tq'||(s.phase!=='place'&&s.phase!=='place2'))return;const J=s.limb==='leg'?'knee':'elbow';
+function stZone(z){const s=ST;if(!s||(s.kind!=='tq'&&s.kind!=='self')||(s.phase!=='place'&&s.phase!=='place2'))return;const J=s.limb==='leg'?'knee':'elbow';
   const good=s.phase==='place2'?'abovefirst':s.near?'abovejoint':'above';
   if(z===good){const x=s.zones.find(q=>q[0]===z)[1];s.placed.push(x);s.zones=null;s.phase=s.phase==='place2'?'pull':'pull';s.tension=0;stOk(s.count>1?'Right — just above the first one.':'Right — 2 to 3 inches above the wound, toward the heart'+(s.near?`, and above the ${J}.`:'.'));}
   else stErr({on:'Not on the wound itself — go 2 to 3 inches above it, toward the heart.',joint:`Not on the ${J} — a tourniquet can't squeeze the artery against a joint.${s.near?` When 2–3 inches above lands on the ${J}, go above the ${J}.`:''}`,below:'That\'s below the wound — the tourniquet has to be between the wound and the heart.',above:`2–3 inches above lands right on the ${J} here. Go above the ${J}.`,onfirst:'Not on top of the first one — just above it.',belowfirst:'Between the wound and the first tourniquet won\'t help — go above the first one.'}[z]||'Not there.');
@@ -310,6 +320,14 @@ function stAct(a){const s=ST;if(!s)return;
     if(a==='time'&&s.phase==='time'){s.timed=true;stDone();return;}
     if(a==='notime'&&s.phase==='time'){stErr('Write the time. The hospital needs to know how long the limb has been without blood flow.');}
     if(s.phase==='pull'&&s.count===2&&a==='totwist'&&s.tension>=100){s.occl=78;}}
+  if(s.kind==='self'){
+    if(s.phase==='first'){if(a==='sit')stOk('Right — sitting down means you won\'t fall if you get dizzy. Now the tourniquet.');else if(a==='call1'){s.called=true;stErr('Bleeding this fast, the tourniquet comes first: you can pass out before the call ends. Tourniquet, then call.');}else if(a==='walk')stErr('Walking pumps blood out faster and you can faint on the way. Sit down and put the tourniquet on.');if(['sit','call1','walk'].includes(a)){s.phase='place';s.zones=null;}}
+    else if(s.phase==='pull'){if(a==='brace'){s.tension=Math.min(100,s.tension+34);s.fb=`Strap: ${s.tension>=100?'<b style="color:#7fe3a4">tight — no slack</b>':s.tension>=66?'snug — a little slack left':'loose'}`;}
+      else if(a==='grip')stErr('That hand can\'t grip; the cut took its strength. Use only your good hand, and brace the hurt arm against your body.');
+      else if(a==='totwist'){if(s.tension<100)stErr('There\'s still slack in the strap. Pull it tight first, or you\'ll run out of turns.');else{s.phase='twist';s.fb='';}}}
+    else if(a==='twist'&&s.phase==='twist'){s.occl=Math.min(100,s.occl+26*(s.tension/100));if(s.occl>=100){s.phase='lock';stOk('The bleeding has stopped. It hurts — that\'s expected.');}else s.fb='<span style="color:#ffc23d">Still bleeding — keep twisting.</span>';}
+    else if(s.phase==='lock'){if(a==='lock'){s.phase='call';stOk('Locked.');}else if(a==='letgo'){s.occl=Math.max(0,s.occl-55);s.phase='twist';stErr('The rod unwound and the bleeding started again. Always lock the rod in its clip.');}}
+    else if(s.phase==='call'){if(a==='call2'){s.timed=true;stDone();return;}if(a==='wait')stErr('Nobody knows you\'re hurt. Call 911 now, and tell them the time the tourniquet went on.');}}
   if(s.kind==='pack'){
     if(s.phase==='start'){if(a==='pressfirst'){s.phase='packing';stOk('Good — pressure right away, then pack.');}else stErr(a==='tqhere'?'There\'s no room for a tourniquet above a wound this high. Press and pack.':'Don\'t delay. Press now with whatever you have.');}
     else if(a==='pack'&&s.phase==='packing'){if(s.lastPack!==null&&s.rt-s.lastPack>3.5){stErr('You took your fingers off and the bleeding picked up. Keep pressure as you pack.');}else s.fb='';s.lastPack=s.rt;s.lapse=false;s.fill=Math.min(8,s.fill+1);s.fb+=`<br>Packed: ${'■'.repeat(s.fill)}${'□'.repeat(8-s.fill)}`;if(s.fill>=8){s.phase='hold';s.fb='Wound is full. Now hold.';}}
@@ -329,11 +347,11 @@ function stDone(){const s=ST;s.phase='done';const secs=Math.round(Date.now()/100
   if(cb)cb({err:s.err,secs,timed:!!s.timed,count:s.count,kind:s.kind});}
 $('st-btns').onclick=e=>{const b=e.target.closest&&e.target.closest('[data-s]');if(b)stAct(b.dataset.s);};
 $('st-art').onclick=e=>{const b=e.target.closest&&e.target.closest('[data-z]');if(b)stZone(b.dataset.z);};
-function practice(id){const def={'tq-arm':['tq',{limb:'arm',near:Math.random()<.45}],'tq-leg':['tq',{limb:'leg',near:false,need2:Math.random()<.5}],'pack':['pack',{site:pick(['groin','armpit'])}],'press':['press',{}]}[id];
-  const name={'tq-arm':'Tourniquet — arm','tq-leg':'Tourniquet — leg','pack':'Wound packing','press':'Direct pressure'}[id];
+function practice(id){const def={self:['self',{}],'tq-arm':['tq',{limb:'arm',near:Math.random()<.45}],'tq-leg':['tq',{limb:'leg',near:false,need2:Math.random()<.5}],'pack':['pack',{site:pick(['groin','armpit'])}],'press':['press',{}]}[id];
+  const name=STN[id];
   pca('begin','bc','skill-'+id,()=>ST?`phase-${ST.phase}`:'');const att=(load().runs||[]).filter(x=>x.kind==='station'&&x.id===id).length+1;
-  stationOpen(def[0],FORCE&&FORCE[id]?Object.assign(def[1],FORCE[id]):def[1],r=>{const score=Math.max(0,100-r.err*10-Math.max(0,r.secs-(def[0]==='tq'?(def[1].limb==='leg'?PAR.tqleg:PAR.tq):PAR[def[0]])));pca('end',`${pca('att',att)}/${pca('bkt',score)}`);record('station',id,score);
-    showDone(name,score,pcDebriefBody({score,compare:pcBestPrev((load().runs||[]).filter(x=>x.kind==='station'&&x.id===id).slice(0,-1)),kicker:r.err?'Run it again until it\'s clean — the goal is doing it right, fast, without thinking.':'Clean. Now do it faster — or try a scenario.',metrics:[['Time',r.secs+' s'],['Mistakes',String(r.err)],...(r.count>1?[['Tourniquets','two']]:[])],clean:!r.err,feedback:r.err?[`${r.err} mistake${r.err===1?'':'s'} on the way`]:[]}),()=>practice(id));});}
+  stationOpen(def[0],FORCE&&FORCE[id]?Object.assign(def[1],FORCE[id]):def[1],r=>{const score=Math.max(0,100-r.err*10-Math.max(0,r.secs-(def[0]==='tq'?(def[1].limb==='leg'?PAR.tqleg:PAR.tq):PAR[def[0]])));const selfNote=def[0]==='self'?' One-handed method: general technique, to confirm with your instructor.':'';pca('end',`${pca('att',att)}/${pca('bkt',score)}`);record('station',id,score);
+    showDone(name,score,pcDebriefBody({score,compare:pcBestPrev((load().runs||[]).filter(x=>x.kind==='station'&&x.id===id).slice(0,-1)),kicker:(r.err?'Run it again until it\'s clean — the goal is doing it right, fast, without thinking.':'Clean. Now do it faster — or try a scenario.')+selfNote,metrics:[['Time',r.secs+' s'],['Mistakes',String(r.err)],...(r.count>1?[['Tourniquets','two']]:[])],clean:!r.err,feedback:r.err?[`${r.err} mistake${r.err===1?'':'s'} on the way`]:[]}),()=>practice(id));});}
 document.querySelectorAll('[data-st]').forEach(b=>b.onclick=()=>practice(b.dataset.st));
 /* =================== scenarios =================== */
 const PRESF={arm:.15,leg:.32,groin:.45,scalp:.12};
@@ -524,11 +542,11 @@ $('h-about').onclick=()=>info(`<h2>About Bleed Control</h2><p>Bleed Control is a
 $('h-prog').onclick=()=>{const p=load();const R=p.runs||[];const best=(k,id)=>{const r=R.filter(x=>x.kind===k&&x.id===id);return r.length?Math.max(...r.map(x=>x.score)):null;};
   const line=(n,b)=>`<div class="mrow"><span>${esc(n)}</span><b style="${b===null?'color:var(--soft)':''}">${b===null?'not yet':b}</b></div>`;
   info(`<h2>My progress</h2><input id="p-name" placeholder="Your name" value="${esc(p.name||'')}" style="margin-bottom:6px"><input id="p-dept" placeholder="Department, school, or organization" value="${esc(p.dept||'')}" style="margin-bottom:10px">
-   <div class="sec">LESSON</div>${line('The lesson',best('lesson','lesson'))}<div class="sec">SKILLS</div>${[['tq-arm','Tourniquet — arm'],['tq-leg','Tourniquet — leg'],['pack','Wound packing'],['press','Direct pressure']].map(([i,n])=>line(n,best('station',i))).join('')}
+   <div class="sec">LESSON</div>${line('The lesson',best('lesson','lesson'))}<div class="sec">SKILLS</div>${Object.entries(STN).map(([i,n])=>line(n,best('station',i))).join('')}
    <div class="sec">SCENARIOS</div>${Object.keys(SCN).map(k=>line(SCN[k].title,best('scenario',k))).join('')}<div class="sec">DRILLS</div>${Object.keys(DRILLS).map(k=>line(DRILLS[k].name,best('drill',k))).join('')}
    <button id="p-csv" style="width:100%;margin-top:10px">Download practice record (CSV)</button>`);
   $('p-csv').onclick=()=>{const q=load();q.name=$('p-name').value.trim();q.dept=$('p-dept').value.trim();save(q);const nm={lesson:'Lesson',station:'Skill',scenario:'Scenario',drill:'Drill'};
-    const label=r=>r.kind==='scenario'?SCN[r.id].title:r.kind==='drill'?DRILLS[r.id].name:r.kind==='station'?{'tq-arm':'Tourniquet — arm','tq-leg':'Tourniquet — leg',pack:'Wound packing',press:'Direct pressure'}[r.id]:'The lesson';
+    const label=r=>r.kind==='scenario'?SCN[r.id].title:r.kind==='drill'?DRILLS[r.id].name:r.kind==='station'?STN[r.id]:'The lesson';
     const rows=[['Name','Organization','Type','Activity','Patient','Date','Tier','Score']].concat((q.runs||[]).map(r=>[q.name||'',q.dept||'',nm[r.kind],label(r),r.variant||'',r.d.slice(0,16).replace('T',' '),r.kind==='scenario'?['Guided','Recall','Chaos'][r.tier]:'',r.score]));
     const csv=rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');try{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='bleed-control-practice-record.csv';a.click();}catch(e){}};};
 $('h-learn').onclick=()=>lessonStart();$('h-drills').onclick=()=>drillMenu();

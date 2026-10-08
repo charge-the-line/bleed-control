@@ -111,3 +111,8 @@ Foundation fixes: fonts served from this site, screen wake lock, finger-sized bu
 ## 0.14.0 checks (October 8, 2026, Kit check)
 - `drills`: the kit check scores 100 right and 0 wrong; 400 generated sets across the four drills are well-formed; every kit-check run has eight distinct questions, and its "belongs", "does not belong" and "what is missing" keys agree with the test's own reading of what a kit holds (not the app's tables); the right answer is neither the longest nor the shortest more than 45% of the time; the fixed questions cover the trainer tourniquet, dates, restocking and where kits are found, with no claim about a law; the lesson, the packing station, the reference and "Which technique?" agree on the neck (pack and press, never wrapped, never across the windpipe) and the 3-minute hemostatic hold.
 - Browser check: the kit check played to the end at 320 and 390 px with real taps on the answer text, recorded at 100.
+
+## 0.15.0 checks (October 8, 2026, one-handed self-tourniquet)
+- `stations`: a clean run scores 100 instantly and at human pace; calling 911 first, walking for help, gripping with the hurt hand, letting go of the rod and waiting instead of calling are each allowed, cost points and still finish; the "to confirm" note shows, calling first really happens (the last step becomes "tell the dispatcher the time"), and the station is on the home list and in `STN`.
+- `smooth`: the station's choices are not rebuilt or reshuffled while waiting.
+- Browser check: the station played to the end at 320 and 390 px with real taps on the arm diagram and the buttons.
