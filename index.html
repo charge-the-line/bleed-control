@@ -124,6 +124,7 @@ body.tv{max-width:1100px}@media (min-width:1000px){body.tv{zoom:1.3}}
   <button class="scen" data-sc="vein"><b>"It's just a little cut on her leg"</b><span>84, on a blood thinner · a small hole, a big puddle</span></button>
   <button class="scen" data-sc="bike"><b>Bike crash: a 9-year-old and his mom</b><span>A child's arm, a tourniquet that hurts, and a parent who needs a job</span></button>
   <button class="scen" data-sc="auger"><b>Farm auger: amputation</b><span>Shut the machine down first · a tourniquet · the part never delays care</span></button>
+  <button class="scen" data-sc="hunt"><b>Hunting season: 40 minutes from help</b><span>A broadhead in the woods · tell 911 where you are · a long, cold hold</span></button>
   <button class="scen" data-sc="crash"><b>Two-car crash</b><span>Two people bleeding, one of you, and traffic still moving</span></button>
   <div class="tiers"><button data-tier="0">Guided</button><button data-tier="1">Recall</button><button data-tier="2">Chaos</button></div>
   <p class="stat" id="tierhelp" style="margin:0 0 10px"></p>
@@ -183,7 +184,7 @@ body.tv{max-width:1100px}@media (min-width:1000px){body.tv{zoom:1.3}}
 
 <script>
 /* =================== core =================== */
-const APP_VERSION='0.19.0';
+const APP_VERSION='0.20.0';
 /* Screen wake lock (Milestone 1): keeps the phone from dimming or locking during a timed skill.
    On only while an activity runs: keepAwake(true) when it starts, keepAwake(false) back at the menu or on the result screen. */
 const WAKE={s:null,want:false};
@@ -283,7 +284,8 @@ const COACH_OUT=['Loosen it a little now so his hand gets some blood back','Take
 function coachOpts(i){const out=i+2<COACH.length?COACH[i+2].good:COACH_OUT[i+2-COACH.length];return [['good',COACH[i].good],['vague',COACH[i].vague],['out',out]];}
 function stationOpen(kind,opts,onDone){keepAwake(true);ST=Object.assign({ord:{},kind,phase:'',err:0,t0:Date.now()/1000,rt:0,tension:0,occl:0,fill:0,holdT:0,holding:false,lastPack:null,soaked:false,placed:[],need2:false,count:1,onDone,fb:''},opts||{});
   ST.par=kind==='tq'?(ST.limb==='leg'?PAR.tqleg:PAR.tq):PAR[kind];if(kind==='self'){ST.limb='arm';ST.near=false;}ST.holdN=ST.scenario?8:(kind==='pack'?20:16);
-  ST.phase=kind==='tq'?'place':kind==='pack'?'start':kind==='self'?'first':kind==='coach'?'talk':'cover';if(kind==='coach'){ST.ci=0;ST.clear=0;ST.vague=0;ST.order=0;}$('stov').classList.remove('hidden');stRender();}
+  ST.phase=kind==='tq'&&ST.second?'place2':kind==='tq'?'place':kind==='pack'?'start':kind==='self'?'first':kind==='coach'?'talk':'cover';if(kind==='coach'){ST.ci=0;ST.clear=0;ST.vague=0;ST.order=0;}
+  if(kind==='tq'&&ST.second){ST.count=2;ST.placed=[ST.limb==='leg'?(ST.near?194:270):(ST.near?216:135)];ST.occl=78;}$('stov').classList.remove('hidden');stRender();}
 function stBleed(){const s=ST;if(!s)return 1;if(s.kind==='coach')return s.ci>3?.03:s.ci>=2?.8:1;if(s.kind==='tq'||s.kind==='self')return s.occl>=100?0:Math.max(.05,1-s.occl/100);if(s.kind==='pack')return s.phase==='hold'?(s.holding?.05:.5):s.phase==='packing'?(s.lapse?.8:.35):s.phase==='done'?.03:1;
   return s.phase==='hold'||s.phase==='soak'?(s.holding?.12:.9):s.phase==='done'?.1:1;}
 function stRender(){const s=ST;if(!s)return;const B=[];let prompt='',art='';const so=(k,arr)=>{if(!s.ord[k])s.ord[k]=shuf(arr.map((_,i)=>i));return s.ord[k].map(i=>arr[i]);};
@@ -443,7 +445,7 @@ function act(a){if(!S.active||!S.running)return;const v=vv();const H=SC.helper;
     if(!S.alerted&&!S.handEarly){S.handEarly=true;ding(5,'Handed off pressure before 911 was called — get 911 coming first, then let a helper hold pressure');}if(v.firstCompT===null){radio('You','Start the pressure yourself first.','bad');return;}v.pressure='helper';radio('You',`${H}, put both hands here, right where mine are — push hard and don't let up.`);radio(H,'Okay — I\'ve got it.');}
   else if(a==='tq'){if(!hasKit()){radio('You','There\'s no tourniquet here.','bad');return;}if(!v.exposed){radio('You','Expose the wound first.','bad');return;}if(v.type==='groin'||v.type==='scalp'){radio('You',v.type==='scalp'?'Not for a head wound — pressure.':`There\'s no room for a tourniquet above a wound in the ${V.site}.`,'bad');if(v.type==='groin')ding(3,'Tourniquet attempted on a junctional wound — pack it instead');else if(!v.tqWrong){v.tqWrong=true;ding(3,'Tourniquet attempted on a head wound — firm pressure over gauze is the treatment');}return;}
     if(v.tq>=v.tqNeeded)return;const had=v.pressure;if(had==='you')v.pressure=null;
-    S.inStation=true;stationOpen('tq',{limb:v.type,near:!!v.near,need2:!!v.need2,thin:!!v.thin,woundTxt:v.woundTxt,scenario:true},r=>{S.inStation=false;v.tq=r.count>=v.tqNeeded?v.tqNeeded:r.count;v.tqT=S.t;v.tqMarked=r.timed;if(v.firstCompT===null)v.firstCompT=S.t;radio('You',`Tourniquet${r.count>1?'s':''} on — bleeding stopped. Time written: ${clock()}.`,'good');if(v.pressure==='helper')v.pressure=null;scRender();});}
+    S.inStation=true;stationOpen('tq',{limb:v.type,near:!!v.near,need2:!!v.need2,thin:!!v.thin,woundTxt:v.woundTxt,second:v.tq>=1,scenario:true},r=>{S.inStation=false;v.tq=r.count>=v.tqNeeded?v.tqNeeded:r.count;v.tqT=S.t;v.tqMarked=r.timed;if(v.firstCompT===null)v.firstCompT=S.t;radio('You',`Tourniquet${r.count>1?'s':''} on — bleeding stopped. Time written: ${clock()}.`,'good');if(v.pressure==='helper')v.pressure=null;scRender();});}
   else if(a==='pack'){if(!v.exposed){radio('You','Expose the wound first.','bad');return;}if(v.type==='scalp'){if(!v.packWrong){v.packWrong=true;ding(3,'Packing a scalp cut — there\'s no cavity to pack; firm pressure over gauze against the skull controls it');}return;}if(v.packed)return;
     S.inStation=true;stationOpen('pack',{site:V.site||'wound',scenario:true},r=>{S.inStation=false;v.packed=true;v.pressure='you';if(v.firstCompT===null)v.firstCompT=S.t;radio('You','Packed tight, both hands on top. Not letting go.','good');scRender();});}
   else if(a==='warm'){if(v.warm)return;v.warm=true;radio('You',`Blanket over ${v.she||v.id==='d2'?'her':'him'} — keep the heat in.`);}
@@ -621,6 +623,49 @@ Object.assign(DEC,{
  augerHand:{q:'The paramedics take over. What do you tell them?',
   o:[['How it happened, the tourniquet time, where the part is','good'],['Nothing much; they can see what the auger did to his arm','bad'],['That it was a terrible accident and they need to hurry','partial']],why:'How it happened, what you did and when, especially the tourniquet time, and where the amputated part is so it goes with him.'}});
 
+/* Hunting season: 40 minutes from help (0.20.0, Max, October 8, 2026). A broadhead wound in the woods: getting the location to 911
+   (the phone's coordinates, the road, the two-track, landmarks), a long hold, a second tourniquet when the first loosens, and keeping
+   him off the cold ground. Layouts: A a thigh wound; B the arrow still in (leave it, tourniquet above); C the first tourniquet loosens. */
+SCN.hunt={title:'Hunting season: 40 minutes from help',t0:17*3600+5*60,eta:2400,helper:'Tyler',kit:()=>true,
+  brief:()=>`Late October, bow season, cold and getting dark early. You're a mile into state land with your hunting partner Dale, 52, and his son Tyler, 17. Dale slipped coming down a bank with an arrow nocked, and the broadhead cut deep into his thigh.${V.arrow?' The arrow is still in his leg.':''} Blood is soaking his pants and pooling on the frozen leaves. The nearest ambulance is about 40 minutes away, longer if they can't find you. Your bleeding control kit is in your pack.`,
+  safeLine:'Arrows back in the quiver, broadheads off the ground, his bow out of the way. Gloves on.',
+  callLine:()=>S.locGood?'911 on speaker: "A hunter bleeding badly from a leg wound. Our coordinates from the phone are on the screen; I\'ll read them to you. We\'re off the two-track north of the Garfield Road gate, about a mile in, below the ridge with the big pines."':'911 on speaker: "We\'re in the woods off Garfield Road. A hunter is bleeding badly. Please hurry."',
+  victims:()=>[mkV({id:'dale',name:'Dale',desc:V.arrow?'arrow still in the thigh':'deep broadhead cut, middle of the thigh',type:'leg',base:8,life:true,lost:300,
+    exposeLine:V.arrow?'Cutting his pant leg open around the shaft. The arrow is buried in the middle of his thigh, and blood is pouring out around it.':'Cutting his pant leg open. A deep slice in the middle of the thigh, bright red, pulsing.'})],
+  steps:()=>[{t:'Make sure the scene is safe',f:()=>S.safe},{t:'Decision: telling 911 where you are',dec:'huntCall',f:()=>S.safe},{t:'Alert: get 911 called',f:()=>S.alerted},{t:'Bleeding: expose the wound',f:()=>vv().exposed},
+   {t:'Compress: direct pressure now',f:()=>vv().firstCompT!==null},...(V.arrow?[{t:'Decision: the arrow',dec:'huntArrow',f:()=>vv().firstCompT!==null}]:[]),
+   {t:V.arrow?'Tourniquet — above the arrow':'Tourniquet — above the wound',f:()=>vv().tq>=1},{t:'Tourniquet time marked',f:()=>vv().tqMarked},
+   {t:'Send Tyler to the road to guide them in',f:()=>S.guide},{t:'Off the cold ground: his pack and coat under him',f:()=>vv().insulated},{t:'Keep him warm',f:()=>vv().warm},
+   ...(V.loosen||TIER===2?[{t:'If it loosens: a second tourniquet above the first',wait:true,f:()=>vv().tq>=2}]:[]),
+   {t:'Hold until EMS takes over',wait:true,f:()=>S.emsArr},{t:'Decision: handoff',dec:'huntHand',ems:true,f:()=>S.emsArr}],
+  acts:[['guide',()=>'Send Tyler to the road to guide them in',()=>!!S.guide],['insulate',()=>'His pack and coat under him',()=>!!vv().insulated],['pull',()=>'Pull the arrow out',()=>!!S.pulled,()=>!!V.arrow],
+   ['text',()=>'Walk uphill and text 911 the coordinates',()=>false,()=>!!S.signalLost],['light',()=>'A light at the road: headlamp, truck hazards',()=>false,()=>!!S.darkPending]],
+  act:{guide:v=>{if(S.guide)return;S.guide=true;S.eta=Math.max(60,S.eta-300);radio('You','Tyler, take my headlamp and the truck keys. Go back to the Garfield Road gate and wait for the ambulance. Lead them in. Stay on the two-track.');radio('Tyler','Going. I\'ll bring them straight here.','good');},
+   insulate:v=>{if(v.insulated)return;v.insulated=true;radio('You','Rolling him onto his pack and my coat. The frozen ground pulls heat out of him faster than the air.');},
+   pull:v=>{if(S.pulled)return;S.pulled=true;v.flowK=1.6;radio('You','Pulling the arrow out.');radio('Dale','AHH!','bad');ding(10,'Pulling the arrow tore the wound open and the bleeding jumped. Leave it in, keep it still, and put the tourniquet above it');},
+   text:v=>{if(!S.signalLost)return;S.signalLost=false;radio('You','Walking up the bank to one bar. Texting 911 our coordinates and "hunter, bleeding, tourniquet on, son at the Garfield gate."');radio('Dispatcher (text)','Got your location. Ambulance still coming.','good');},
+   light:v=>{if(!S.darkPending)return;S.darkPending=false;radio('You',S.guide?'Tyler, headlamp on and stand where they can see it. Hazards on in the truck.':'Hazards on in the truck isn\'t possible from here; I\'m sending Tyler to the gate with the headlamp.');if(!S.guide){S.guide=true;}radio('Tyler','Headlamp on, hazards flashing at the gate.','good');}},
+  tick:dt=>{const v=vv();if((V.loosen||TIER===2)&&!S.loosened&&v.tq>=1&&S.t-(v.tqT||0)>600){S.loosened=true;S.looseT=S.t;v.tqNeeded=2;radio('You','Dale is shivering hard, and blood is seeping past the tourniquet again. The strap has slipped.','bad');}
+    if(S.loosened&&v.tq<2&&S.t-S.looseT>60&&!S.looseDing){S.looseDing=true;ding(5,'The tourniquet loosened and the bleeding came back for over a minute. Tighten it, and if it still bleeds, put a second one above the first');}
+    if(!v.insulated&&S.t>600&&!S.coldDing){S.coldDing=true;ding(3,'He lay on frozen ground for ten minutes. Cold ground pulls heat out fast, and a cold patient bleeds more. Get his pack and coat under him');}
+    if(S.signalLost&&S.t-S.signalT>40&&!S.signalDing){S.signalDing=true;S.eta+=300;ding(5,'The call dropped and nobody got the location to 911 another way. Walk uphill for signal and text the coordinates');}
+    if(S.darkPending&&S.t-S.darkT>40&&!S.darkDing){S.darkDing=true;S.eta+=300;ding(5,'Dark came on and nothing marked the way in. A headlamp at the road and flashing hazards bring the ambulance to you');}},
+  busy:()=>!!(S.signalLost||S.darkPending||(S.loosened&&vv().tq<2)),
+  extra:()=>`<p><b>Location is part of the treatment</b> when help is 40 minutes away. Read 911 your coordinates from the phone, then the road, the gate or two-track, and a landmark, and send someone to the road to lead them in.</p><p><b>A long hold:</b> check the tourniquet; if it loosens and the bleeding comes back, a second one goes above the first. <b>Get him off the cold ground</b> and cover him. An arrow that is still in stays in.</p>`};
+SCN.hunt.vlabel=()=>`${V.arrow?'Arrow still in':'Thigh wound'}${V.loosen||TIER===2?' · tourniquet loosens':''}`;
+function huntSignal(){S.signalLost=true;S.signalT=S.t;radio('You','The call just dropped. No bars down here in the creek bottom.','bad');}
+function huntDark(){S.darkPending=true;S.darkT=S.t;radio('You','It\'s getting dark fast. They\'ll never find the turn off the two-track without a light.','bad');}
+VARIANTS.hunt=()=>{const r=Math.random();return r<.4?{arrow:false,loosen:false}:r<.75?{arrow:true,loosen:false}:{arrow:false,loosen:true};};
+STD_V.hunt={arrow:false,loosen:false};
+Object.assign(DEC,{
+ huntCall:{q:'You have one bar of signal. When 911 answers, what do you tell them about where you are?',
+  o:[['Coordinates, the road, the two-track, and a landmark','good'],['"In the woods off Garfield Road. Please hurry."','bad'],['"Look for our truck at the gate; we\'re somewhere past it."','partial']],why:'In the woods, "off the road" can mean a square mile. Read the coordinates from your phone\'s map or compass app, then the road, the gate or two-track, and a landmark. Then send someone to the road to lead them in.',
+  on:r=>{if(r==='good')S.locGood=true;else{S.eta+=r==='bad'?600:300;radio('Dispatcher','Which way off the road? How far in? (They will take longer to find you.)','bad');}}},
+ huntArrow:{q:'The arrow is still buried in his thigh. "Get it out!" Dale yells.',
+  o:[['Leave it in; tourniquet above it, keep it still','good'],['Pull it out straight, so you can press on the wound','bad'],['Twist it a bit to see how deep it goes','partial']],why:'An arrow left in place can be holding pressure on what it cut. Pulling it out tears more tissue and the bleeding gets worse. Keep it still and put the tourniquet above it.'},
+ huntHand:{q:'The paramedics finally reach you. What do you tell them?',
+  o:[['What happened, the tourniquet times, how long he was cold','good'],['Nothing much; they can see the tourniquet and all the blood','bad'],['That it took forever and he\'s lost a lot of blood','partial']],why:'Both tourniquet times if there are two, how long he has been lying out in the cold, and what happened. The time on the tourniquet matters more on a long hold.'}});
+
 /*@@ADD@@*/
 function openDec(key,j){const d=DEC[key];DEC_OPEN={key,j};S.running=false;const q=typeof d.q==='function'?d.q():d.q;const ord=shuf(d.o.map((_,i)=>i));
   $('dec-q').textContent=q;$('dec-opts').innerHTML=ord.map(i=>`<button class="opt" data-i="${i}">${esc(d.o[i][0])}</button>`).join('');$('dec-opts').classList.remove('hidden');$('dec-fb').classList.add('hidden');$('decov').classList.remove('hidden');}
@@ -707,6 +752,8 @@ const INJECTS=[
  {id:'stand',label:'She gets up to go to the bathroom (blood thinner)',ok:()=>S.active&&S.id==='vein'&&!S.emsArr&&!S.vs[0].standing,run:()=>veinStand()},
  {id:'faint',label:'His mom faints (bike crash)',ok:()=>S.active&&S.id==='bike'&&!S.emsArr&&!S.momDowned,run:()=>kidFaint()},
  {id:'restart',label:'Someone climbs on the tractor (farm auger)',ok:()=>S.active&&S.id==='auger'&&!S.emsArr&&!S.restartPending,run:()=>augerRestart()},
+ {id:'signal',label:'The 911 call drops: no signal (hunting)',ok:()=>S.active&&S.id==='hunt'&&!S.emsArr&&!S.signalLost,run:()=>huntSignal()},
+ {id:'dark',label:'It gets dark before help arrives (hunting)',ok:()=>S.active&&S.id==='hunt'&&!S.emsArr&&!S.darkPending,run:()=>huntDark()},
  {id:'talk',label:'Patient panics and tries to sit up',ok:()=>S.active&&!S.emsArr&&S.vs.some(v=>!v.dead&&v.pressure==='you'),run:()=>{const v=S.vs.find(x=>!x.dead&&x.pressure==='you');v.pressure=null;radio(v.name||'Patient','Get off me, I need to see it!','bad');}}];
 function inject(id){const x=INJECTS.find(y=>y.id===id);if(!x||!x.ok())return false;x.run();S.injects=(S.injects||[]).concat(x.label);return true;}
 function instSync(){const b=$('b-inst');if(b){b.textContent='Instructor mode: '+(INST?'on':pcDrill()?'on (Drill Night)':'off');b.classList.toggle('on',instOn());}$('inst-fab').classList.toggle('hidden',!(instOn()&&S.active));$('inst-fab').textContent=INSTHOLD?'Frozen — tap to resume':'Instructor';}

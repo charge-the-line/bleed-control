@@ -3,12 +3,12 @@
    Sections: syntax balance lesson stations scenarios human wrong slow drills record fuzz      (or: quick) */
 global.window=global.window||{};
 const path=require('path'),fs=require('fs'),vm=require('vm');
-const ALL=['syntax','balance','lesson','stations','scenarios','human','wrong','slow','drills','record','drill','teach','vein','bike','auger','smooth','fuzz'];
+const ALL=['syntax','balance','lesson','stations','scenarios','human','wrong','slow','drills','record','drill','teach','vein','bike','auger','hunt','smooth','fuzz'];
 let want=process.argv.slice(2);if(!want.length)want=ALL;if(want.includes('quick'))want=['syntax','balance','lesson','drills','record','fuzz'];
 let failed=0,n=0;const T0=Date.now();
 function report(sec,name,ok,detail=''){n++;if(!ok)failed++;console.log(`${ok?'PASS':'FAIL'}  ${sec.padEnd(9)} ${name}${detail?'  — '+detail:''}`);}
 const html=fs.readFileSync(path.join(__dirname,'..','index.html'),'utf8');const {boot}=require('./bc_mock.js');const bot=require('./bc_bot.js');
-const SC=['kitchen','garage','glass','crash','vein','bike','auger'],TIERS=['Guided','Recall','Chaos'];
+const SC=['kitchen','garage','glass','crash','vein','bike','auger','hunt'],TIERS=['Guided','Recall','Chaos'];
 if(want.includes('syntax')){try{new vm.Script(html.split('<script>')[1].split('</script>')[0]);report('syntax','index.html script compiles',true);}catch(e){report('syntax','index.html script compiles',false,e.message);}
   {const ver=(html.match(/APP_VERSION='([^']+)'/)||[])[1],sw=fs.readFileSync(path.join(__dirname,'..','sw.js'),'utf8'),cache=(sw.match(/CACHE = '([^']+)'/)||[])[1];
    report('syntax','service-worker cache matches app version',cache===`bleed-control-v${ver}`,`app ${ver}, cache ${cache}`);
@@ -94,7 +94,7 @@ if(want.includes('record')){const {api,els}=boot();bot.stationStep;api.lessonSta
   els['h-prog'].onclick();els['p-name'].value='Test Student';els['p-dept'].value='Monitor Twp';els['p-csv'].onclick();const csv=global.__csv||'';
   report('record','CSV export has header and rows',/"Name","Organization","Type","Activity"/.test(csv)&&/Test Student/.test(csv),csv.split('\n').length-1+' rows');}
 if(want.includes('drill')){const start=new Date().toISOString();const {api,els}=boot({'preconnect-drill':JSON.stringify({on:true,inst:'Max',roster:['Jo'],who:'Jo',start})});let std=true;
-  for(let k=0;k<10;k++){api.scStart('kitchen');const v=api.V();if(!(v.kit===true&&v.near===false))std=false;api.scStart('glass');if(api.V().site!=='groin')std=false;api.scStart('garage');if(api.V().need2!==false)std=false;api.scStart('vein');if(JSON.stringify(api.V())!==JSON.stringify(api.STD_V.vein))std=false;api.scStart('bike');if(JSON.stringify(api.V())!==JSON.stringify(api.STD_V.bike))std=false;api.scStart('auger');if(JSON.stringify(api.V())!==JSON.stringify(api.STD_V.auger))std=false;}
+  for(let k=0;k<10;k++){api.scStart('kitchen');const v=api.V();if(!(v.kit===true&&v.near===false))std=false;api.scStart('glass');if(api.V().site!=='groin')std=false;api.scStart('garage');if(api.V().need2!==false)std=false;api.scStart('vein');if(JSON.stringify(api.V())!==JSON.stringify(api.STD_V.vein))std=false;api.scStart('bike');if(JSON.stringify(api.V())!==JSON.stringify(api.STD_V.bike))std=false;api.scStart('auger');if(JSON.stringify(api.V())!==JSON.stringify(api.STD_V.auger))std=false;api.scStart('hunt');if(JSON.stringify(api.V())!==JSON.stringify(api.STD_V.hunt))std=false;}
   api.showHome();api.lessonStart();while(api.LS()){const s=api.LESSON[api.LS().i];api.lessonAct({l:'ans',k:String(s.o.findIndex(x=>x[1]==='good'))});api.lessonAct({l:'next'});}const runs=api.load().runs;const r=runs[runs.length-1];
   report('drill','Drill Night: the same patient in every scenario, bar shows who is up, the saved lesson names them with the instructor and the night',std&&/Up: Jo/.test(els['pc-drill'].innerHTML)&&(r.who||[])[0]==='Jo'&&r.inst==='Max'&&r.night===start,`who ${r.who}, inst ${r.inst}`);}
 
@@ -183,6 +183,29 @@ if(want.includes('auger')){// 0.19.0 (Max, October 8, 2026): farm auger amputati
    report('auger','instructor inject: someone climbs on the tractor; "stop him" fixes it free, 30 s ignored costs 5',on&&shown&&fixed&&b.S.incidents.some(x=>/climbed on the tractor/.test(x)),`on ${on}, shown ${shown}, fixed ${fixed}`);}
   {const {api,els}=boot();api.setTier(0);api.setForce({auger:B});api.scStart('auger');api.scFinish(false);const h=els['done-b'].innerHTML;report('auger','the debrief teaches machine off first, never reverse, a tourniquet for any amputation, and the part never delays care',/Machine off first/.test(h)&&/never reverse it/.test(h)&&/complete or partial/.test(h)&&/never delays care/.test(h)&&/never in direct contact with ice/.test(h));}
   {const {api}=boot();report('auger','the "never" option is labeled and costs 30 in the decision engine; nothing graphic in the briefing',api.DEC.augerFirst.o.some(x=>x[1]==='never')&&/a never/.test(html)&&!/blood everywhere|gore|mangled|severed bone|bone sticking/i.test(html));}}
+if(want.includes('hunt')){// 0.20.0 (Max, October 8, 2026): hunting season, 40 minutes from help
+  const go=(f,ch,tier)=>{const {api,els}=boot();api.setTier(tier||0);api.setForce({hunt:f});api.scStart('hunt');api.$('brief-go').onclick();const S=api.S();S.running=true;
+    const T=api.scTick;api.scTick=dt=>{let k=0;while(api.DECO()&&k++<5){const d=api.DEC[api.DECO().key];const pick=(ch&&ch[api.DECO().key])||'good';api.$('dec-opts').onclick({target:{closest:()=>({dataset:{i:String(d.o.findIndex(x=>x[1]===pick))}})}});api.$('dec-go').onclick();}T(dt);};
+    const doAct=x=>{api.scTick(.25);api.act(x);api.scTick(.25);api.scTick(.25);};const tq=()=>{api.act('tq');let g=0;while(api.ST()&&g++<200){bot.stationStep(api,els);api.scTick(.25);}};return {api,els,S,v:S.vs[0],doAct,tq};};
+  const A={arrow:false,loosen:false},B={arrow:true,loosen:false},C={arrow:false,loosen:true};
+  {const r=[];for(const f of [A,B,C])for(const t of [0,1,2])r.push(bot.playScenario('hunt',t,'good',{human:true,force:{hunt:f}}));report('hunt','every layout on every tier scores 100 at human pace (B the arrow stays in, C and Chaos the tourniquet loosens and a second goes above it)',r.every(x=>x.ok&&!x.died&&x.score===100),r.map(x=>x.score).join('/'));}
+  {const g=go(A),b=go(A,{huntCall:'bad'});g.doAct('safe');b.doAct('safe');const e0=g.S.eta,e1=b.S.eta;
+   report('hunt','telling 911 only "in the woods off Garfield Road" really costs time: the ambulance takes ten minutes longer to find you (and 10 points)',e1-e0>=590&&b.S.score===90&&/Which way off the road/.test(b.api.$('g-now').innerHTML),`eta ${Math.round(e0)} vs ${Math.round(e1)} s`);}
+  {const {api,S,v,doAct}=go(B);['safe','call','expose','press'].forEach(doAct);const r0=api.rateOf(v);const s0=S.score;doAct('pull');
+   report('hunt','layout B: pulling the arrow is allowed, costs 10, and the bleeding gets worse; leave it in',S.score===s0-10&&api.rateOf(v)>r0&&S.incidents.some(x=>/Leave it in/.test(x)),`${r0.toFixed(1)} → ${api.rateOf(v).toFixed(1)} mL/s`);}
+  {const {api,S,v,doAct,tq,els}=go(C);['safe','call','expose','press'].forEach(doAct);tq();['guide','insulate','warm'].forEach(doAct);const t1=v.tqT;for(let g=0;!S.loosened&&g<4000;g++)api.scTick(.25);
+   const loose=S.loosened&&v.tqNeeded===2&&api.rateOf(v)>0;const offered=!/data-a="skip"/.test(els['deck'].innerHTML);api.act('tq');const st=api.ST();const second=!!st&&st.phase==='place2'&&st.count===2&&st.placed.length===1;
+   let g=0;while(api.ST()&&g++<200){bot.stationStep(api,els);api.scTick(.25);}const stopped=v.tq===2&&api.rateOf(v)===0&&S.score===100;
+   report('hunt','layout C: about ten minutes after it goes on, the tourniquet loosens and bleeds again; the skip button hides; the second tourniquet opens straight at "above the first" and stops it, free',loose&&offered&&second&&stopped,`loose ${loose} at ${Math.round(S.looseT-t1)} s, second ${second}, stopped ${stopped}`);}
+  {const {api,S,v,doAct,tq,els}=go(C);['safe','call','expose','press'].forEach(doAct);tq();['guide','insulate','warm'].forEach(doAct);api.act('skip');const t=S.t;
+   report('hunt','skip-ahead on the long hold stops the moment the tourniquet loosens',S.loosened&&!S.emsArr&&S.t-S.looseT<2,`stopped at ${Math.round(t)} s`);
+   for(let i=0;i<300;i++)api.scTick(.25);report('hunt','leaving the loosened tourniquet for a minute costs 5 and says to put a second one above',S.incidents.some(x=>/second one above the first/.test(x)));}
+  {const {api,S,doAct,tq}=go(A);['safe','call','expose','press'].forEach(doAct);tq();for(let i=0;i<1300;i++)api.scTick(.25);report('hunt','ten minutes on the frozen ground without his pack and coat under him costs 3',S.incidents.some(x=>/frozen ground/.test(x)));}
+  {const {api,els,S,doAct}=go(A);api.setInst(true);doAct('safe');doAct('call');api.instOpen();const on=/data-inj="signal">/.test(els['inst-body'].innerHTML)&&/data-inj="dark">/.test(els['inst-body'].innerHTML);api.instAct('signal');api.scTick(.25);const shown=/data-a="text"/.test(els['deck'].innerHTML);doAct('text');const fixed=!S.signalLost&&S.score===100;
+   api.instOpen();api.instAct('dark');const e0=S.eta;for(let i=0;i<120;i++)api.scTick(.25);
+   report('hunt','instructor injects: the call drops (walk uphill and text the coordinates fixes it free); dark comes on and ignoring it costs 5 and five more minutes',on&&shown&&fixed&&S.incidents.some(x=>/Dark came on/.test(x))&&S.eta>e0-60+250,`on ${on}, shown ${shown}, fixed ${fixed}`);}
+  {const g=go(A);g.doAct('safe');const e0=g.S.eta;g.doAct('guide');report('hunt','sending Tyler to the road brings the ambulance in five minutes sooner',e0-g.S.eta>=290);}
+  {const {api,els}=boot();api.setTier(0);api.setForce({hunt:C});api.scStart('hunt');api.scFinish(false);const h=els['done-b'].innerHTML;report('hunt','the debrief teaches location as treatment, the long hold and the second tourniquet, the cold ground, and leaving an arrow in',/Location is part of the treatment/.test(h)&&/second one goes above the first/.test(h)&&/off the cold ground/.test(h)&&/stays in/.test(h));}}
 if(want.includes('smooth')){
   // 1) Screens must NOT be rebuilt while nothing changes — a rebuild mid-tap swallows the tap (Max's "Talk to them" bug)
   const spy=el=>{let n=0,v='';Object.defineProperty(el,'innerHTML',{get:()=>v,set:x=>{v=x;n++;},configurable:true});return ()=>n;};

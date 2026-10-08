@@ -31,6 +31,8 @@ function playScenario(id,tier,choice='good',o={}){const {api,els}=boot();api.set
       else if(!d1.warm){if(S.sel!==0)tap('sel0');else tap('warm');}else if(!d2.warm){if(S.sel!==1)tap('sel1');else tap('warm');}}
     else if(S.id==='vein'&&v.standing&&v.exposed)tap('lie');
     else if(S.id==='auger'&&S.restartPending)tap('stopit');
+    else if(S.id==='hunt'&&S.signalLost)tap('text');
+    else if(S.id==='hunt'&&S.darkPending)tap('light');
     else if(!v.exposed)tap('expose');
     else if(S.id==='auger'&&api.V().caught&&v.tq<1)tap('tq');
     else if(v.firstCompT===null&&!o.noPress)tap('press');
@@ -43,7 +45,10 @@ function playScenario(id,tier,choice='good',o={}){const {api,els}=boot();api.set
     else if(S.id==='bike'&&v.tq>=v.tqNeeded&&(!S.held||S.momDown))tap('still');
     else if(v.type==='groin'&&!v.packed)tap('pack');
     else if(kit&&v.type!=='groin'&&v.tq<v.tqNeeded)tap('tq');
+    else if(S.id==='hunt'&&!S.guide)tap('guide');
+    else if(S.id==='hunt'&&!v.insulated)tap('insulate');
     else if(!v.warm)tap('warm');
+    else if(S.id==='hunt'&&!o.noSkip&&/data-a="skip"/.test(els['deck'].innerHTML))tap('skip');
     if(!kit&&v.firstCompT!==null&&v.pressure!=='you'&&v.pressure!=='helper')tap('press');
     api.scTick(.25);rt+=.25;}
   const S=api.S();const done=els['done-t'].textContent;const stepsShown=(els['done-b'].innerHTML.match(/✓/g)||[]).length;return {stepsShown,ok:!S.active&&done!=='',died:/didn't make it/.test(done),score:+els['done-s'].textContent,lost:Math.round(S.vs[0].lost),incidents:S.incidents,variant:api.V()};}

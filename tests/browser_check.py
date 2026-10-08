@@ -24,7 +24,7 @@ def station(pg):
             pg.wait_for_timeout(1000)
         pg.wait_for_timeout(60)
     return not pg.is_visible('#stov')
-STEPMAP = [('Machine off','safe'),('Rescue: tell 911','rescue'),('the hand wrapped','part'),('scene is safe','safe'),('Alert','call'),('911','call'),('expose','expose'),('direct pressure','press'),('raise the leg','lie'),('blood thinners','ask'),('the truth','prep'),('holds him','still'),('ourniquet','tq'),('warm','warm')]
+STEPMAP = [('Send Tyler','guide'),('cold ground','insulate'),('Machine off','safe'),('Rescue: tell 911','rescue'),('the hand wrapped','part'),('scene is safe','safe'),('Alert','call'),('911','call'),('expose','expose'),('direct pressure','press'),('raise the leg','lie'),('blood thinners','ask'),('the truth','prep'),('holds him','still'),('ourniquet','tq'),('warm','warm')]
 def scen_real(pg, sc, force, need):   # a scenario played to the end with real taps: decisions by their visible text, the station on the diagram, the skip button when only waiting is left
     pg.goto(URL); pg.wait_for_timeout(200); pg.evaluate("window.__F=%s" % force); pg.evaluate("FORCE={'%s':window.__F}" % sc); pg.click(f'[data-sc="{sc}"]'); pg.wait_for_timeout(200); pg.click('#brief-go'); pg.wait_for_timeout(300)
     for _ in range(400):
@@ -40,7 +40,8 @@ def scen_real(pg, sc, force, need):   # a scenario played to the end with real t
         if pg.evaluate("S.id==='bike'&&S.momDown"): pg.click('[data-a="still"]'); pg.wait_for_timeout(300); continue
         if pres is None and pg.evaluate("S.vs[0].firstCompT!==null&&!(S.vs[0].tq>=S.vs[0].tqNeeded)"): pg.click('[data-a="press"]'); pg.wait_for_timeout(300); continue
         a = next((x for k, x in STEPMAP if k in st), None)
-        if a and not st.startswith('Hold'): pg.locator(f'[data-a="{a}"]').first.click(); pg.wait_for_timeout(300); continue
+        if pg.evaluate("S.vs[0].tq>=1&&S.vs[0].tq<S.vs[0].tqNeeded"): pg.click('[data-a="tq"]'); pg.wait_for_timeout(300); continue
+        if a and not st.startswith('Hold') and not st.startswith('If it loosens'): pg.locator(f'[data-a="{a}"]').first.click(); pg.wait_for_timeout(300); continue
         if pg.is_visible('[data-a="skip"]'): pg.click('[data-a="skip"]'); pg.wait_for_timeout(300); continue
         pg.wait_for_timeout(500)
     ok = pg.is_visible('#doneov') and pg.evaluate("+document.getElementById('done-s').dataset.final||+document.getElementById('done-s').textContent") == 100 and need(pg)
@@ -63,7 +64,7 @@ with sync_playwright() as p:
         for st in ('tq-arm','tq-leg','pack','press','self','coach'):
             pg.goto(URL); pg.wait_for_timeout(200); pg.click(f'[data-st="{st}"]'); pg.wait_for_timeout(200)
             rows.append((w, st, (pg.evaluate(OVER)+1000*pg.evaluate(SMALL)), station(pg)))
-        for sc in ('kitchen','garage','glass','crash','vein','bike','auger'):
+        for sc in ('kitchen','garage','glass','crash','vein','bike','auger','hunt'):
             pg.goto(URL); pg.wait_for_timeout(200); pg.click(f'[data-sc="{sc}"]'); pg.wait_for_timeout(150); pg.click('#brief-go'); pg.wait_for_timeout(700)
             rows.append((w, sc, (pg.evaluate(OVER)+1000*pg.evaluate(SMALL)), True))
         if w == 390:
@@ -72,11 +73,14 @@ with sync_playwright() as p:
             ok = scen_real(pg, 'bike', "{site:'forearm',faint:true}", lambda pg: True); rows.append((w, 'bike C (full)', (pg.evaluate(OVER)+1000*pg.evaluate(SMALL)), ok))
             ok = scen_real(pg, 'auger', "{amp:false,caught:false}", lambda pg: 'Machine off first' in pg.inner_html('#done-b')); rows.append((w, 'auger A (full)', (pg.evaluate(OVER)+1000*pg.evaluate(SMALL)), ok))
             ok = scen_real(pg, 'auger', "{amp:false,caught:true}", lambda pg: True); rows.append((w, 'auger C (full)', (pg.evaluate(OVER)+1000*pg.evaluate(SMALL)), ok))
+            ok = scen_real(pg, 'hunt', "{arrow:false,loosen:false}", lambda pg: 'Location is part of the treatment' in pg.inner_html('#done-b')); rows.append((w, 'hunt A (full)', (pg.evaluate(OVER)+1000*pg.evaluate(SMALL)), ok))
+            ok = scen_real(pg, 'hunt', "{arrow:false,loosen:true}", lambda pg: pg.evaluate('S.vs[0].tq')==2); rows.append((w, 'hunt C (full)', (pg.evaluate(OVER)+1000*pg.evaluate(SMALL)), ok))
             ok = scen_real(pg, 'vein', "{site:'ankle',holds:true,kit:false,stand:true}", lambda pg: True); rows.append((w, 'vein C (full)', (pg.evaluate(OVER)+1000*pg.evaluate(SMALL)), ok))
         if w == 320:
             ok = scen_real(pg, 'kitchen', "{kit:true,near:true}", lambda pg: True); rows.append((w, 'kitchen result (full)', (pg.evaluate(OVER)+1000*pg.evaluate(SMALL)), ok))
             ok = scen_real(pg, 'bike', "{site:'elbow',faint:false}", lambda pg: True); rows.append((w, 'bike B (full)', (pg.evaluate(OVER)+1000*pg.evaluate(SMALL)), ok))
             ok = scen_real(pg, 'auger', "{amp:true,caught:false}", lambda pg: True); rows.append((w, 'auger B (full)', (pg.evaluate(OVER)+1000*pg.evaluate(SMALL)), ok))
+            ok = scen_real(pg, 'hunt', "{arrow:true,loosen:false}", lambda pg: True); rows.append((w, 'hunt B (full)', (pg.evaluate(OVER)+1000*pg.evaluate(SMALL)), ok))
             ok = scen_real(pg, 'vein', "{site:'knee',holds:false,kit:true,stand:false}", lambda pg: True); rows.append((w, 'vein B (full)', (pg.evaluate(OVER)+1000*pg.evaluate(SMALL)), ok))
         pg.close()
         if w == 390:   # a REAL finger tap takes ~0.25 s between touch and release — the app must not swallow it
