@@ -2,7 +2,7 @@
 """Real-browser check (optional). Needs:  pip install playwright && playwright install chromium
 Plays the lesson's first slide, every skill station (with real taps on the diagram), and opens every scenario
 at phone sizes. Fails on any JavaScript error or anything off-screen.   Usage: python3 tests/browser_check.py"""
-import pathlib, sys
+import pathlib, sys, re
 from playwright.sync_api import sync_playwright
 URL = (pathlib.Path(__file__).resolve().parent.parent / 'index.html').as_uri()
 OVER = "(()=>{let m=0;document.querySelectorAll('body *').forEach(e=>{if(e.offsetParent===null)return;const r=e.getBoundingClientRect();m=Math.max(m,r.right-window.innerWidth);});return Math.round(m);})()"
@@ -35,6 +35,10 @@ with sync_playwright() as p:
         pg.evaluate("localStorage.setItem('bleed-control',JSON.stringify({inst:true,runs:[]}))"); pg.goto(URL); pg.wait_for_timeout(200); pg.click('[data-sc="garage"]'); pg.wait_for_timeout(150); pg.click('#brief-go'); pg.wait_for_timeout(400); pg.click('#inst-fab'); pg.wait_for_timeout(200); rows.append((w, 'instructor', (pg.evaluate(OVER)+1000*pg.evaluate(SMALL)), True)); pg.click('#inst-close'); pg.evaluate("localStorage.removeItem('bleed-control')")
         pg.goto(URL+'?drill=threat'); pg.wait_for_timeout(300); rows.append((w, 'daily link', (pg.evaluate(OVER)+1000*pg.evaluate(SMALL)) + (0 if pg.is_visible('#drillov') else 99), True))
         pg.evaluate("localStorage.setItem('preconnect-drill',JSON.stringify({on:true,inst:'Max',roster:['Jo','Sam'],who:'',start:new Date().toISOString()}))"); pg.goto(URL); pg.wait_for_timeout(300); rows.append((w, 'drill picker', (pg.evaluate(OVER)+1000*pg.evaluate(SMALL)), True)); pg.click('.pc-drill-name'); pg.wait_for_timeout(200); rows.append((w, 'drill bar', (pg.evaluate(OVER)+1000*pg.evaluate(SMALL)), True)); pg.evaluate("localStorage.removeItem('preconnect-drill')")
+        pg.goto(URL); pg.wait_for_timeout(200); pg.click('#h-drills'); pg.wait_for_timeout(200); pg.locator('[data-d="go"]', has_text='Kit check').first.click(); pg.wait_for_timeout(250)   # the kit check played to the end, answers tapped by their visible text
+        for _ in range(8):
+            ans = pg.evaluate("DR.qs[DR.i].a"); pg.locator('[data-q="ans"]', has_text=re.compile('^' + re.escape(ans) + '$')).first.click(); pg.wait_for_timeout(150); pg.locator('[data-q="next"]').first.click(); pg.wait_for_timeout(150)
+        rows.append((w, 'kit check (full)', (pg.evaluate(OVER)+1000*pg.evaluate(SMALL)), pg.evaluate("(JSON.parse(localStorage.getItem('bleed-control')||'{}').runs||[]).some(r=>r.id==='kit'&&r.score===100)")))
         for st in ('tq-arm','tq-leg','pack','press'):
             pg.goto(URL); pg.wait_for_timeout(200); pg.click(f'[data-st="{st}"]'); pg.wait_for_timeout(200)
             rows.append((w, st, (pg.evaluate(OVER)+1000*pg.evaluate(SMALL)), station(pg)))

@@ -107,3 +107,7 @@ Foundation fixes: fonts served from this site, screen wake lock, finger-sized bu
 
 - `drill`: with instructor mode on and the garage scenario active, the Instructor button shows; opening the sheet pauses the clock; the ambulance inject pushes `S.eta` by 120 s; the slipped-tourniquet inject makes a controlled victim bleed again (`rateOf` > 0); injects whose guard fails are rendered disabled; Freeze holds the clock after the sheet closes and Resume releases it; the finished run carries `inst:1`.
 - Browser check: an `instructor` row at 320 and 390 px (store `{inst:true}`, start the garage scenario, tap the Instructor button, check overflow and button sizes).
+
+## 0.14.0 checks (October 8, 2026, Kit check)
+- `drills`: the kit check scores 100 right and 0 wrong; 400 generated sets across the four drills are well-formed; every kit-check run has eight distinct questions, and its "belongs", "does not belong" and "what is missing" keys agree with the test's own reading of what a kit holds (not the app's tables); the right answer is neither the longest nor the shortest more than 45% of the time; the fixed questions cover the trainer tourniquet, dates, restocking and where kits are found, with no claim about a law; the lesson, the packing station, the reference and "Which technique?" agree on the neck (pack and press, never wrapped, never across the windpipe) and the 3-minute hemostatic hold.
+- Browser check: the kit check played to the end at 320 and 390 px with real taps on the answer text, recorded at 100.
