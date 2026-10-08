@@ -24,6 +24,25 @@ def station(pg):
             pg.wait_for_timeout(1000)
         pg.wait_for_timeout(60)
     return not pg.is_visible('#stov')
+STEPMAP = [('scene is safe','safe'),('Alert','call'),('911','call'),('expose','expose'),('direct pressure','press'),('raise the leg','lie'),('blood thinners','ask'),('ourniquet','tq'),('warm','warm')]
+def scen_real(pg, sc, force, need):   # a scenario played to the end with real taps: decisions by their visible text, the station on the diagram, the skip button when only waiting is left
+    pg.goto(URL); pg.wait_for_timeout(200); pg.evaluate("window.__F=%s" % force); pg.evaluate("FORCE={'%s':window.__F}" % sc); pg.click(f'[data-sc="{sc}"]'); pg.wait_for_timeout(200); pg.click('#brief-go'); pg.wait_for_timeout(300)
+    for _ in range(400):
+        if pg.is_visible('#doneov'): break
+        if pg.is_visible('#decov'):
+            if pg.is_visible('#dec-opts'):
+                t = pg.evaluate("DEC[DEC_OPEN.key].o.find(o=>o[1]==='good')[0]"); pg.locator('#dec-opts button', has_text=re.compile('^' + re.escape(t) + '$')).first.click(); pg.wait_for_timeout(150)
+            pg.click('#dec-go'); pg.wait_for_timeout(250); continue
+        if pg.is_visible('#stov'): station(pg); continue
+        st, standing, pres = pg.evaluate("(()=>{const j=stepsDone.findIndex(x=>!x);return [j<0?'':S.steps[j].t,!!S.vs[0].standing,S.vs[0].pressure];})()")
+        if standing: pg.click('[data-a="lie"]'); pg.wait_for_timeout(300); continue
+        if pres is None and pg.evaluate("S.vs[0].firstCompT!==null&&!(S.vs[0].tq>=S.vs[0].tqNeeded)"): pg.click('[data-a="press"]'); pg.wait_for_timeout(300); continue
+        a = next((x for k, x in STEPMAP if k in st), None)
+        if a and not st.startswith('Hold'): pg.locator(f'[data-a="{a}"]').first.click(); pg.wait_for_timeout(300); continue
+        if pg.is_visible('[data-a="skip"]'): pg.click('[data-a="skip"]'); pg.wait_for_timeout(300); continue
+        pg.wait_for_timeout(500)
+    ok = pg.is_visible('#doneov') and pg.evaluate("+document.getElementById('done-s').dataset.final||+document.getElementById('done-s').textContent") == 100 and need(pg)
+    return ok
 with sync_playwright() as p:
     b = p.chromium.launch()
     for w in (320, 390):
@@ -42,9 +61,14 @@ with sync_playwright() as p:
         for st in ('tq-arm','tq-leg','pack','press','self','coach'):
             pg.goto(URL); pg.wait_for_timeout(200); pg.click(f'[data-st="{st}"]'); pg.wait_for_timeout(200)
             rows.append((w, st, (pg.evaluate(OVER)+1000*pg.evaluate(SMALL)), station(pg)))
-        for sc in ('kitchen','garage','glass','crash'):
+        for sc in ('kitchen','garage','glass','crash','vein'):
             pg.goto(URL); pg.wait_for_timeout(200); pg.click(f'[data-sc="{sc}"]'); pg.wait_for_timeout(150); pg.click('#brief-go'); pg.wait_for_timeout(700)
             rows.append((w, sc, (pg.evaluate(OVER)+1000*pg.evaluate(SMALL)), True))
+        if w == 390:
+            rows.append((w, 'vein A (full)', 0, scen_real(pg, 'vein', "{site:'ankle',holds:true,kit:false,stand:false}", lambda pg: 'patient-contact/?call=fl' in pg.inner_html('#done-b'))))
+            rows.append((w, 'vein C (full)', (pg.evaluate(OVER)+1000*pg.evaluate(SMALL)), scen_real(pg, 'vein', "{site:'ankle',holds:true,kit:false,stand:true}", lambda pg: True)))
+        if w == 320:
+            rows.append((w, 'vein B (full)', (pg.evaluate(OVER)+1000*pg.evaluate(SMALL)), scen_real(pg, 'vein', "{site:'knee',holds:false,kit:true,stand:false}", lambda pg: True)))
         pg.close()
         if w == 390:   # a REAL finger tap takes ~0.25 s between touch and release — the app must not swallow it
             pg = b.new_page(viewport={'width': 390, 'height': 844}, device_scale_factor=2, is_mobile=True, has_touch=True); pg.on('pageerror', lambda e: errs.append(str(e)))

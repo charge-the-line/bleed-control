@@ -3,12 +3,12 @@
    Sections: syntax balance lesson stations scenarios human wrong slow drills record fuzz      (or: quick) */
 global.window=global.window||{};
 const path=require('path'),fs=require('fs'),vm=require('vm');
-const ALL=['syntax','balance','lesson','stations','scenarios','human','wrong','slow','drills','record','drill','teach','smooth','fuzz'];
+const ALL=['syntax','balance','lesson','stations','scenarios','human','wrong','slow','drills','record','drill','teach','vein','smooth','fuzz'];
 let want=process.argv.slice(2);if(!want.length)want=ALL;if(want.includes('quick'))want=['syntax','balance','lesson','drills','record','fuzz'];
 let failed=0,n=0;const T0=Date.now();
 function report(sec,name,ok,detail=''){n++;if(!ok)failed++;console.log(`${ok?'PASS':'FAIL'}  ${sec.padEnd(9)} ${name}${detail?'  — '+detail:''}`);}
 const html=fs.readFileSync(path.join(__dirname,'..','index.html'),'utf8');const {boot}=require('./bc_mock.js');const bot=require('./bc_bot.js');
-const SC=['kitchen','garage','glass','crash'],TIERS=['Guided','Recall','Chaos'];
+const SC=['kitchen','garage','glass','crash','vein'],TIERS=['Guided','Recall','Chaos'];
 if(want.includes('syntax')){try{new vm.Script(html.split('<script>')[1].split('</script>')[0]);report('syntax','index.html script compiles',true);}catch(e){report('syntax','index.html script compiles',false,e.message);}
   {const ver=(html.match(/APP_VERSION='([^']+)'/)||[])[1],sw=fs.readFileSync(path.join(__dirname,'..','sw.js'),'utf8'),cache=(sw.match(/CACHE = '([^']+)'/)||[])[1];
    report('syntax','service-worker cache matches app version',cache===`bleed-control-v${ver}`,`app ${ver}, cache ${cache}`);
@@ -94,7 +94,7 @@ if(want.includes('record')){const {api,els}=boot();bot.stationStep;api.lessonSta
   els['h-prog'].onclick();els['p-name'].value='Test Student';els['p-dept'].value='Monitor Twp';els['p-csv'].onclick();const csv=global.__csv||'';
   report('record','CSV export has header and rows',/"Name","Organization","Type","Activity"/.test(csv)&&/Test Student/.test(csv),csv.split('\n').length-1+' rows');}
 if(want.includes('drill')){const start=new Date().toISOString();const {api,els}=boot({'preconnect-drill':JSON.stringify({on:true,inst:'Max',roster:['Jo'],who:'Jo',start})});let std=true;
-  for(let k=0;k<10;k++){api.scStart('kitchen');const v=api.V();if(!(v.kit===true&&v.near===false))std=false;api.scStart('glass');if(api.V().site!=='groin')std=false;api.scStart('garage');if(api.V().need2!==false)std=false;}
+  for(let k=0;k<10;k++){api.scStart('kitchen');const v=api.V();if(!(v.kit===true&&v.near===false))std=false;api.scStart('glass');if(api.V().site!=='groin')std=false;api.scStart('garage');if(api.V().need2!==false)std=false;api.scStart('vein');if(JSON.stringify(api.V())!==JSON.stringify(api.STD_V.vein))std=false;}
   api.showHome();api.lessonStart();while(api.LS()){const s=api.LESSON[api.LS().i];api.lessonAct({l:'ans',k:String(s.o.findIndex(x=>x[1]==='good'))});api.lessonAct({l:'next'});}const runs=api.load().runs;const r=runs[runs.length-1];
   report('drill','Drill Night: the same patient in every scenario, bar shows who is up, the saved lesson names them with the instructor and the night',std&&/Up: Jo/.test(els['pc-drill'].innerHTML)&&(r.who||[])[0]==='Jo'&&r.inst==='Max'&&r.night===start,`who ${r.who}, inst ${r.inst}`);}
 
@@ -120,6 +120,30 @@ if(want.includes('teach')){const go=id=>{const {api}=boot();api.setTier(0);api.s
    api.act('tq');api.act('tq');report('teach','crash: packing or a tourniquet on the scalp cut is tried, costs 3 each once, and teaches pressure',pk&&S.score===s1-6&&S.incidents.some(x=>/head wound/.test(x))&&!S.inStation,`score ${s1}→${S.score}`);}
 }
 
+if(want.includes('vein')){// 0.17.0 (Max, October 8, 2026): "It's just a little cut on her leg" — judge bleeding by the amount, not the size of the wound
+  const go=(f,tier)=>{const {api,els}=boot();api.setTier(tier||0);api.setForce({vein:f});api.scStart('vein');api.$('brief-go').onclick();const S=api.S();S.running=true;
+    const T=api.scTick;api.scTick=dt=>{let k=0;while(api.DECO()&&k++<5){const d=api.DEC[api.DECO().key];api.$('dec-opts').onclick({target:{closest:()=>({dataset:{i:String(d.o.findIndex(x=>x[1]==='good'))}})}});api.$('dec-go').onclick();}T(dt);};return {api,els,S,v:S.vs[0]};};
+  const A={site:'ankle',holds:true,kit:false,stand:false},B={site:'knee',holds:false,kit:true,stand:false},C={site:'ankle',holds:true,kit:false,stand:true};
+  {const r=[A,B,C].map(f=>bot.playScenario('vein',0,'good',{human:true,force:{vein:f}}));report('vein','every layout scores 100 at human pace (A pressure and a raised leg, B a tourniquet above the knee, C she stands up and is sat back down)',r.every(x=>x.ok&&!x.died&&x.score===100),r.map(x=>x.score).join('/'));}
+  {const {api,S}=go(A);const d=api.DEC.veinThreat,g=d.o.find(x=>x[1]==='good')[0];report('vein','the first decision is about the amount of blood (a puddle the size of a dinner plate), not the size of the hole',/puddle/.test(d.q)&&/pencil eraser/.test(d.q)&&/blood, not the size/.test(g)&&/whatever the size/.test(d.why));}
+  {const {api,S,v}=go(A);api.act('safe');api.act('call');api.act('expose');api.act('press');const pOnly=api.rateOf(v);api.act('lie');const both=api.rateOf(v);
+   report('vein','layout A: pressure slows it and raising the leg brings it under control (bleeding rate in mL/s)',pOnly<v.base*.5&&both<=v.base*.35&&both<pOnly,`${v.base} → ${pOnly.toFixed(2)} → ${both.toFixed(2)}`);}
+  {const {api,S,v}=go(B);api.act('safe');api.act('call');api.act('expose');api.act('press');api.act('lie');for(let i=0;i<60;i++)api.scTick(.25);const seep=S.seepSaid&&api.rateOf(v)>v.base*.25;
+   report('vein','layout B: pressure and a raised leg don\'t hold a vein below the knee; the radio says so and the tourniquet goes above the knee',seep&&api.STD_V.vein.kit===false&&v.near===true&&/tourniquet above the knee/.test(JSON.stringify(S.steps.map(x=>x.t))),`rate ${api.rateOf(v).toFixed(2)}`);}
+  {const {api,S,v}=go(C);api.act('safe');api.act('call');api.act('expose');api.act('press');api.act('lie');for(let g=0;S.t<205&&g<2000;g++)api.scTick(.25);const stood=v.standing&&v.pressure===null&&api.rateOf(v)>v.base;
+   api.act('lie');api.act('press');const back=!v.standing&&v.raised&&v.pressure==='you';const s0=S.score;for(let i=0;i<120;i++)api.scTick(.25);
+   const {api:a2,S:S2,v:v2}=go(C);a2.act('safe');a2.act('call');a2.act('expose');a2.act('press');a2.act('lie');for(let g=0;S2.t<205&&g<2000;g++)a2.scTick(.25);for(let i=0;i<100;i++)a2.scTick(.25);
+   report('vein','layout C: she stands up (pressure off, bleeding faster than before); sitting her down and pressing again fixes it free; leaving her up 40 s costs 5',stood&&back&&S.score===s0&&S2.incidents.some(x=>/stayed on her feet/.test(x)),`stood ${stood}, back ${back}`);}
+  {const {api,S,v}=go(A);api.act('safe');api.act('call');api.act('expose');api.act('press');const s0=S.score;api.act('band');api.act('band');
+   report('vein','a bandage instead of pressure is allowed: it really goes on (your hands come off), costs 5 once, and says why',v.bandaged&&v.pressure===null&&S.score===s0-5&&S.incidents.some(x=>/only hides it/.test(x)));}
+  {const {api,els,S,v}=go(A);['safe','call','expose','press','lie','ask','warm'].forEach(x=>{api.act(x);for(let i=0;i<4;i++)api.scTick(.25);});
+   report('vein','the skip-ahead button appears once only waiting is left (the handoff card counts as waiting, as in every scenario)',/data-a="skip"/.test(els['deck'].innerHTML),`step ${S.steps[api.stepsDone().findIndex(x=>!x)]&&S.steps[api.stepsDone().findIndex(x=>!x)].t}`);}
+  {const {api,S,v}=go(A);api.act('safe');api.act('call');api.act('ask');report('vein','asking about blood thinners gets the answer from Linda',S.askedBT&&/heart rhythm/.test(api.$('g-now').innerHTML));}
+  {const {boot:bt}=require('./bc_mock.js');const r=(()=>{const {api,els}=bt();api.setTier(0);api.setForce({vein:A});api.scStart('vein');return {api,els};})();const S=r.api.S();r.api.scFinish(false);const h=r.els['done-b'].innerHTML;
+   report('vein','the debrief says "her blood", teaches the amount over the size, and links to Patient Contact\'s fall call',/of her blood/.test(h)&&/by the amount, not the size/.test(h)&&/\.\.\/patient-contact\/\?call=fl/.test(h));}
+  {const {api,els}=boot();api.setTier(0);api.setInst(true);api.setForce({vein:A});api.scStart('vein');els['brief-go'].onclick();const S=api.S();S.running=true;S.vs[0].exposed=true;api.instOpen();const on=/data-inj="stand">/.test(els['inst-body'].innerHTML);api.instAct('stand');
+   report('vein','instructor inject: she gets up to go to the bathroom; available only in this scenario',on&&S.vs[0].standing&&S.injects.length===1);}
+  {const {api}=boot();let lo=0,sh=0;for(const k of ['veinThreat','veinDaughter','veinHand']){const L=api.DEC[k].o.map(x=>x[0].length),g=api.DEC[k].o.findIndex(x=>x[1]==='good');if(L[g]===Math.max(...L))lo++;else if(L[g]===Math.min(...L))sh++;}report('vein','its three decisions: the right answer is longest in at most one and shortest in at most one',lo<=1&&sh<=1,`longest ${lo}, shortest ${sh}`);}}
 if(want.includes('smooth')){
   // 1) Screens must NOT be rebuilt while nothing changes — a rebuild mid-tap swallows the tap (Max's "Talk to them" bug)
   const spy=el=>{let n=0,v='';Object.defineProperty(el,'innerHTML',{get:()=>v,set:x=>{v=x;n++;},configurable:true});return ()=>n;};
@@ -153,7 +177,7 @@ if(want.includes('smooth')){
   {global.window.__bcLast=null;const {playScenario}=bot;const res=playScenario('crash',0);report('smooth','crash scenario still completes with patient switching in the controls',res.ok&&!res.died&&res.score===100,'score '+res.score);}
 }
 if(want.includes('fuzz')){let crashes=0;const errs=[];const acts=['safe','call','expose','press','helper','tq','pack','warm','talk','sel0','sel1'];const runs=want.length<=6?24:60;
-  for(let run=0;run<runs;run++){const {api,els}=boot();const $=api.$;api.setTier(run%3);api.scStart(SC[run%4]);
+  for(let run=0;run<runs;run++){const {api,els}=boot();const $=api.$;api.setTier(run%3);api.scStart(SC[run%SC.length]);
     try{for(let i=0;i<1500;i++){if(!els['briefov']._cls.has('hidden'))$('brief-go').onclick();if(api.DECO()){$('dec-opts').onclick({target:{closest:()=>({dataset:{i:String(i%3)}})}});$('dec-go').onclick();}
       const r=Math.random();if(r<.3)api.act(acts[Math.floor(Math.random()*acts.length)]);else if(r<.45&&api.ST()){const s=['pull','totwist','twist','lock','letgo','second','loosen','harder','time','notime','pressfirst','tqhere','cloth','pack','hold','cover','look','addon','lift','swap'];$('st-btns').onclick({target:{closest:()=>({dataset:{s:s[Math.floor(Math.random()*s.length)]}})}});}
       else if(r<.5&&api.ST()){$('st-art').onclick({target:{closest:()=>({dataset:{z:['on','above','joint','below','abovejoint','abovefirst','onfirst','belowfirst'][Math.floor(Math.random()*8)]}})}});}

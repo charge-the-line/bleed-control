@@ -24,13 +24,16 @@ function playScenario(id,tier,choice='good',o={}){const {api,els}=boot();api.set
     if(!S.active)break;
     if(api.ST()){if(rt>=nextTap&&stationStep(api,els,o))nextTap=rt+(o.human?1.1:0);api.scTick(.25);rt+=.25;continue;}
     if(o.slow&&rt<o.slow){api.scTick(.25);rt+=.25;continue;}
-    const v=S.vs[S.sel||0],kit=S.id!=='kitchen'||api.V().kit;
+    const v=S.vs[S.sel||0],kit=api.hasKit();
     if(!S.safe)tap('safe');else if(!S.alerted)tap('call');
     else if(S.id==='crash'){const[d1,d2]=S.vs;if(!d1.exposed){if(S.sel!==0)tap('sel0');else tap('expose');}else if(!d2.exposed){if(S.sel!==1)tap('sel1');else tap('expose');}
       else if(d1.tq<1){if(S.sel!==0)tap('sel0');else tap('tq');}else if(d2.pressure!=='helper'){if(S.sel!==1)tap('sel1');else tap('helper');}
       else if(!d1.warm){if(S.sel!==0)tap('sel0');else tap('warm');}else if(!d2.warm){if(S.sel!==1)tap('sel1');else tap('warm');}}
+    else if(S.id==='vein'&&v.standing&&v.exposed)tap('lie');
     else if(!v.exposed)tap('expose');
     else if(v.firstCompT===null&&!o.noPress)tap('press');
+    else if(S.id==='vein'&&(!v.raised||v.standing))tap('lie');
+    else if(S.id==='vein'&&!S.askedBT)tap('ask');
     else if(v.type==='groin'&&!v.packed)tap('pack');
     else if(kit&&v.type!=='groin'&&v.tq<v.tqNeeded)tap('tq');
     else if(!v.warm)tap('warm');
