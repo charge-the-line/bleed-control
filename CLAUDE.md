@@ -193,4 +193,4 @@ Build order: Kit check (8), the one-handed self-tourniquet station (6), the talk
 When this repo was created, the test files were uploaded flat at the root. On October 3, 2026 (approved by Max) they were moved into `tests/` with `git mv`, so `node tests/run_all.js` works in place as TESTING.md describes. Nothing left to clean up here.
 
 ## Open questions for Max (as the instructor)
-Does the lesson match the course as he teaches it? Packing hold time: answered October 8, 2026 (hemostatic gauze at least 3 minutes, then until help takes over). Improvised tourniquets: we teach "don't; use firm pressure." Does that match? Also worth asking ACS (stopthebleed@facs.org) about endorsement or use of the name.
+Does the lesson match the course as he teaches it? Packing hold time: answered October 8, 2026 (hemostatic gauze at least 3 minutes, then until help takes over). Improvised tourniquets: answered October 8, 2026: "don't improvise a tourniquet; use firm pressure (and pack it if it's deep)" matches how Max teaches it; leave it as is. Also worth asking ACS (stopthebleed@facs.org) about endorsement or use of the name.
