@@ -30,8 +30,12 @@ function playScenario(id,tier,choice='good',o={}){const {api,els}=boot();api.set
       else if(d1.tq<1){if(S.sel!==0)tap('sel0');else tap('tq');}else if(d2.pressure!=='helper'){if(S.sel!==1)tap('sel1');else tap('helper');}
       else if(!d1.warm){if(S.sel!==0)tap('sel0');else tap('warm');}else if(!d2.warm){if(S.sel!==1)tap('sel1');else tap('warm');}}
     else if(S.id==='vein'&&v.standing&&v.exposed)tap('lie');
+    else if(S.id==='auger'&&S.restartPending)tap('stopit');
     else if(!v.exposed)tap('expose');
+    else if(S.id==='auger'&&api.V().caught&&v.tq<1)tap('tq');
     else if(v.firstCompT===null&&!o.noPress)tap('press');
+    else if(S.id==='auger'&&api.V().amp&&v.tq>=v.tqNeeded&&!S.partDone)tap('part');
+    else if(S.id==='auger'&&api.V().caught&&!S.rescue)tap('rescue');
     else if(S.id==='vein'&&(!v.raised||v.standing))tap('lie');
     else if(S.id==='vein'&&!S.askedBT)tap('ask');
     else if(S.id==='bike'&&!S.prepped)tap('prep');
