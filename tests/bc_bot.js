@@ -26,6 +26,9 @@ function playScenario(id,tier,choice='good',o={}){const {api,els}=boot();api.set
     if(o.slow&&rt<o.slow){api.scTick(.25);rt+=.25;continue;}
     const v=S.vs[S.sel||0],kit=api.hasKit();
     if(!S.safe)tap('safe');else if(!S.alerted)tap('call');
+    else if(S.id==='fwk'){const[g,a2,r]=S.vs;const go=(i,x)=>{if(S.sel!==i)tap('sel'+i);else tap(x);};
+      if(S.tubePending)tap('moveback');else if(S.parentPending)tap('kid');
+      else{const ne=S.vs.findIndex(x=>!x.exposed);if(ne>=0)go(ne,'expose');else if(r.pressure!=='helper')go(2,'helper');else if(g.tq<1)go(0,'tq');else if(!a2.packed)go(1,'pack');else if(!S.walked)tap('walk');}}
     else if(S.id==='crash'){const[d1,d2]=S.vs;if(!d1.exposed){if(S.sel!==0)tap('sel0');else tap('expose');}else if(!d2.exposed){if(S.sel!==1)tap('sel1');else tap('expose');}
       else if(d1.tq<1){if(S.sel!==0)tap('sel0');else tap('tq');}else if(d2.pressure!=='helper'){if(S.sel!==1)tap('sel1');else tap('helper');}
       else if(!d1.warm){if(S.sel!==0)tap('sel0');else tap('warm');}else if(!d2.warm){if(S.sel!==1)tap('sel1');else tap('warm');}}
