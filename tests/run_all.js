@@ -3,12 +3,12 @@
    Sections: syntax balance lesson stations scenarios human wrong slow drills record fuzz      (or: quick) */
 global.window=global.window||{};
 const path=require('path'),fs=require('fs'),vm=require('vm');
-const ALL=['syntax','balance','lesson','stations','scenarios','human','wrong','slow','drills','record','drill','teach','vein','smooth','fuzz'];
+const ALL=['syntax','balance','lesson','stations','scenarios','human','wrong','slow','drills','record','drill','teach','vein','bike','smooth','fuzz'];
 let want=process.argv.slice(2);if(!want.length)want=ALL;if(want.includes('quick'))want=['syntax','balance','lesson','drills','record','fuzz'];
 let failed=0,n=0;const T0=Date.now();
 function report(sec,name,ok,detail=''){n++;if(!ok)failed++;console.log(`${ok?'PASS':'FAIL'}  ${sec.padEnd(9)} ${name}${detail?'  — '+detail:''}`);}
 const html=fs.readFileSync(path.join(__dirname,'..','index.html'),'utf8');const {boot}=require('./bc_mock.js');const bot=require('./bc_bot.js');
-const SC=['kitchen','garage','glass','crash','vein'],TIERS=['Guided','Recall','Chaos'];
+const SC=['kitchen','garage','glass','crash','vein','bike'],TIERS=['Guided','Recall','Chaos'];
 if(want.includes('syntax')){try{new vm.Script(html.split('<script>')[1].split('</script>')[0]);report('syntax','index.html script compiles',true);}catch(e){report('syntax','index.html script compiles',false,e.message);}
   {const ver=(html.match(/APP_VERSION='([^']+)'/)||[])[1],sw=fs.readFileSync(path.join(__dirname,'..','sw.js'),'utf8'),cache=(sw.match(/CACHE = '([^']+)'/)||[])[1];
    report('syntax','service-worker cache matches app version',cache===`bleed-control-v${ver}`,`app ${ver}, cache ${cache}`);
@@ -94,7 +94,7 @@ if(want.includes('record')){const {api,els}=boot();bot.stationStep;api.lessonSta
   els['h-prog'].onclick();els['p-name'].value='Test Student';els['p-dept'].value='Monitor Twp';els['p-csv'].onclick();const csv=global.__csv||'';
   report('record','CSV export has header and rows',/"Name","Organization","Type","Activity"/.test(csv)&&/Test Student/.test(csv),csv.split('\n').length-1+' rows');}
 if(want.includes('drill')){const start=new Date().toISOString();const {api,els}=boot({'preconnect-drill':JSON.stringify({on:true,inst:'Max',roster:['Jo'],who:'Jo',start})});let std=true;
-  for(let k=0;k<10;k++){api.scStart('kitchen');const v=api.V();if(!(v.kit===true&&v.near===false))std=false;api.scStart('glass');if(api.V().site!=='groin')std=false;api.scStart('garage');if(api.V().need2!==false)std=false;api.scStart('vein');if(JSON.stringify(api.V())!==JSON.stringify(api.STD_V.vein))std=false;}
+  for(let k=0;k<10;k++){api.scStart('kitchen');const v=api.V();if(!(v.kit===true&&v.near===false))std=false;api.scStart('glass');if(api.V().site!=='groin')std=false;api.scStart('garage');if(api.V().need2!==false)std=false;api.scStart('vein');if(JSON.stringify(api.V())!==JSON.stringify(api.STD_V.vein))std=false;api.scStart('bike');if(JSON.stringify(api.V())!==JSON.stringify(api.STD_V.bike))std=false;}
   api.showHome();api.lessonStart();while(api.LS()){const s=api.LESSON[api.LS().i];api.lessonAct({l:'ans',k:String(s.o.findIndex(x=>x[1]==='good'))});api.lessonAct({l:'next'});}const runs=api.load().runs;const r=runs[runs.length-1];
   report('drill','Drill Night: the same patient in every scenario, bar shows who is up, the saved lesson names them with the instructor and the night',std&&/Up: Jo/.test(els['pc-drill'].innerHTML)&&(r.who||[])[0]==='Jo'&&r.inst==='Max'&&r.night===start,`who ${r.who}, inst ${r.inst}`);}
 
@@ -144,6 +144,29 @@ if(want.includes('vein')){// 0.17.0 (Max, October 8, 2026): "It's just a little 
   {const {api,els}=boot();api.setTier(0);api.setInst(true);api.setForce({vein:A});api.scStart('vein');els['brief-go'].onclick();const S=api.S();S.running=true;S.vs[0].exposed=true;api.instOpen();const on=/data-inj="stand">/.test(els['inst-body'].innerHTML);api.instAct('stand');
    report('vein','instructor inject: she gets up to go to the bathroom; available only in this scenario',on&&S.vs[0].standing&&S.injects.length===1);}
   {const {api}=boot();let lo=0,sh=0;for(const k of ['veinThreat','veinDaughter','veinHand']){const L=api.DEC[k].o.map(x=>x[0].length),g=api.DEC[k].o.findIndex(x=>x[1]==='good');if(L[g]===Math.max(...L))lo++;else if(L[g]===Math.min(...L))sh++;}report('vein','its three decisions: the right answer is longest in at most one and shortest in at most one',lo<=1&&sh<=1,`longest ${lo}, shortest ${sh}`);}}
+if(want.includes('bike')){// 0.18.0 (Max, October 8, 2026): a 9-year-old's arm, a tourniquet that hurts, a parent who needs a job
+  const go=(f,tier)=>{const {api,els}=boot();api.setTier(tier||0);api.setForce({bike:f});api.scStart('bike');api.$('brief-go').onclick();const S=api.S();S.running=true;
+    const T=api.scTick;api.scTick=(dt,ch)=>{let k=0;while(api.DECO()&&k++<5){const d=api.DEC[api.DECO().key];api.$('dec-opts').onclick({target:{closest:()=>({dataset:{i:String(d.o.findIndex(x=>x[1]===(ch||'good')))}})}});api.$('dec-go').onclick();}T(dt);};return {api,els,S,v:S.vs[0]};};
+  const A={site:'forearm',faint:false},B={site:'elbow',faint:false},C={site:'forearm',faint:true};
+  {const r=[];for(const f of [A,B,C])for(const t of [0,1,2])r.push(bot.playScenario('bike',t,'good',{human:true,force:{bike:f}}));report('bike','every layout on every tier scores 100 at human pace (B goes above the elbow, C his mom faints, Chaos his thin arm)',r.every(x=>x.ok&&!x.died&&x.score===100),r.map(x=>x.score).join('/'));}
+  {const {api}=boot();const d=api.DEC.kidTq;report('bike','"Can you even use that on him?": yes, it works on a child his size and it will hurt; the why carries Max\'s small-child line, marked to confirm',/child his size/.test(d.o.find(x=>x[1]==='good')[0])&&/very small child, if it won\'t tighten enough, use firm pressure/.test(d.why)&&/to confirm with your instructor/.test(d.why));}
+  {const {api,S,v}=go(A);['safe','call','expose','press'].forEach(x=>{api.act(x);api.scTick(.25);});const s0=S.score;api.act('fib');api.act('fib');
+   report('bike','telling him it won\'t hurt is allowed: he pulls his arm away, it costs 3 once, and the step still asks for the truth',v.pressure===null&&S.score===s0-3&&!S.prepped&&S.incidents.some(x=>/Tell children the truth/.test(x)));}
+  {const {api}=boot();api.setForce({'tq-arm':{near:false}});const tw=thin=>{api.stationOpen('tq',{limb:'arm',near:false,thin});const s=api.ST();s.phase='twist';s.tension=100;let n=0;while(api.ST()&&api.ST().phase==='twist'&&n<20){api.$('st-btns').onclick({target:{closest:()=>({dataset:{s:'twist'}})}});n++;}return n;};const a=tw(false),b=tw(true);
+   report('bike','Chaos: his thin arm makes the rod take more turns',b>a,`${a} turns, thin ${b}`);}
+  {const {api,S,v}=go(C);['safe','call','expose','press','prep'].forEach(x=>{api.act(x);api.scTick(.25);});api.act('tq');while(api.ST()){bot.stationStep(api,api.$&&{});api.scTick(.25);}api.act('still');
+   for(let g=0;S.t<152&&g<3000;g++)api.scTick(.25);const fell=S.momDown&&!S.held;api.act('mom');api.act('still');const s0=S.score;for(let i=0;i<120;i++)api.scTick(.25);
+   const b=go(C);['safe','call','expose','press','prep'].forEach(x=>{b.api.act(x);b.api.scTick(.25);});b.api.act('still');for(let g=0;b.S.t<152&&g<3000;g++)b.api.scTick(.25);for(let i=0;i<120;i++)b.api.scTick(.25);
+   report('bike','layout C: his mom faints and Eli slides out of her lap; laying her down and getting the neighbor to hold him fixes it free; leaving it 40 s costs 5',fell&&S.held&&!S.momDown&&S.momLaid&&S.score===s0&&b.S.incidents.some(x=>/after his mom went down/.test(x)),`fell ${fell}`);}
+  {const {api,els,S,v}=go(C);['safe','call','expose','press','prep'].forEach(x=>{api.scTick(.25);api.act(x);api.scTick(.25);api.scTick(.25);});api.act('tq');while(api.ST()){bot.stationStep(api,{});api.scTick(.25);}['still','warm'].forEach(x=>{api.act(x);for(let i=0;i<4;i++)api.scTick(.25);});
+   const offered=/data-a="skip"/.test(els['deck'].innerHTML);api.act('skip');const stopped=!S.emsArr&&S.momDown&&S.t<160;api.scRender();const hidden=!/data-a="skip"/.test(els['deck'].innerHTML);
+   report('bike','skip-ahead stops the moment his mom faints, and stays hidden until someone has Eli again',offered&&stopped&&hidden,`offered ${offered}, stopped at ${Math.round(S.t)} s, hidden ${hidden}`);}
+  {const {api,S}=go(A);api.act('safe');api.scTick(.25,'bad');api.scTick(.25,'bad');const away=S.momAway;api.act('call');const self=/911 on speaker: "A 9-year-old/.test(api.$('g-now').innerHTML);api.act('still');
+   report('bike','sending his mom inside really happens: you call 911 yourself, and "hold him still" calls her back',away&&self&&S.held&&!S.momAway);}
+  {const {api,els}=boot();api.setTier(0);api.setInst(true);api.setForce({bike:A});api.scStart('bike');els['brief-go'].onclick();const S=api.S();S.running=true;api.instOpen();const on=/data-inj="faint">/.test(els['inst-body'].innerHTML);api.instAct('faint');api.scStart('vein');els['brief-go'].onclick();api.instOpen();const off=/data-inj="faint" disabled/.test(els['inst-body'].innerHTML);
+   report('bike','instructor inject: his mom faints; offered only in the bike crash',on&&off);}
+  {const {api,els}=boot();api.setTier(0);api.setForce({bike:A});api.scStart('bike');api.scFinish(false);const h=els['done-b'].innerHTML;report('bike','the debrief teaches tourniquets on children (to confirm) and how to keep a scared child still',/Tourniquets work on children/.test(h)&&/to confirm with your instructor/.test(h)&&/give the parent a job/.test(h));}
+  {const {api}=boot();let lo=0,sh=0;for(const k of ['kidParent','kidTq']){const L=api.DEC[k].o.map(x=>x[0].length),g=api.DEC[k].o.findIndex(x=>x[1]==='good');if(L[g]===Math.max(...L))lo++;else if(L[g]===Math.min(...L))sh++;}report('bike','its two decisions: the right answer is neither always longest nor always shortest',lo<2&&sh<2,`longest ${lo}, shortest ${sh}`);}}
 if(want.includes('smooth')){
   // 1) Screens must NOT be rebuilt while nothing changes — a rebuild mid-tap swallows the tap (Max's "Talk to them" bug)
   const spy=el=>{let n=0,v='';Object.defineProperty(el,'innerHTML',{get:()=>v,set:x=>{v=x;n++;},configurable:true});return ()=>n;};

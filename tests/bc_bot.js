@@ -34,6 +34,9 @@ function playScenario(id,tier,choice='good',o={}){const {api,els}=boot();api.set
     else if(v.firstCompT===null&&!o.noPress)tap('press');
     else if(S.id==='vein'&&(!v.raised||v.standing))tap('lie');
     else if(S.id==='vein'&&!S.askedBT)tap('ask');
+    else if(S.id==='bike'&&!S.prepped)tap('prep');
+    else if(S.id==='bike'&&S.momDowned&&!S.momLaid)tap('mom');
+    else if(S.id==='bike'&&v.tq>=v.tqNeeded&&(!S.held||S.momDown))tap('still');
     else if(v.type==='groin'&&!v.packed)tap('pack');
     else if(kit&&v.type!=='groin'&&v.tq<v.tqNeeded)tap('tq');
     else if(!v.warm)tap('warm');
