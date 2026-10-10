@@ -36,6 +36,7 @@ python3 tests/browser_check.py
 | `teach` | A wrong action is never refused (Max, October 7, 2026): handing off pressure before 911 (−5 once), the bystander on the crash's life threat (−10), packing or a tourniquet on the scalp cut (−3 each, once), each with a feedback line that says what is right |
 | `smooth` | Buttons and diagrams aren't rebuilt while you wait; answer choices keep their positions; "Talk to them" visibly responds; skip-ahead appears only when everything's done, and still charges the blood lost during the skipped time |
 | `fuzz` | Random actions in every scenario never crash or produce impossible blood-loss values |
+| `voice` | One voice (milestone 5): the button standard, Next walks the home list's order, the links under every result, Fast-forward ▸▸ with its reason, the to-confirm chip, tier help from the core, About's version line, the hub name store |
 
 Verified to catch planted bugs: a station that accepts a tourniquet on the joint, direct pressure that does nothing, and a removed trademark notice all fail loudly.
 

@@ -106,7 +106,7 @@ body.tv{max-width:1100px}@media (min-width:1000px){body.tv{zoom:1.3}}
 
 <div id="home">
   <div class="flex" style="margin:0 0 8px"><a href="../" style="display:inline-flex;align-items:center;min-height:44px;font-family:'Saira Condensed';font-size:15px;font-weight:600;letter-spacing:1px;color:#ff8a3d;text-decoration:none">◂ PRECONNECT</a><div class="sp"></div><a href="../feedback.html?from=bc" style="display:inline-flex;align-items:center;min-height:44px;font-size:14px;font-weight:700;color:var(--soft);text-decoration:none;margin-right:12px">Feedback</a><button class="gear" id="h-set">Settings</button></div>
-  <div class="top"><div><div class="brand" style="font-size:34px;letter-spacing:3px;color:var(--acc)">BLEED CONTROL</div><h1 style="font-size:19px;font-weight:400;font-family:'Atkinson Hyperlegible',system-ui,sans-serif;margin-top:2px">Stop a bleed. Save a life. <span class="ver" style="font-size:15px;color:var(--soft)">v0.22.0</span></h1></div></div>
+  <div class="top"><div><div class="brand" style="font-size:34px;letter-spacing:3px;color:var(--acc)">BLEED CONTROL</div><h1 style="font-size:19px;font-weight:400;font-family:'Atkinson Hyperlegible',system-ui,sans-serif;margin-top:2px">Stop a bleed. Save a life. <span class="ver" style="font-size:15px;color:var(--soft)">v0.23.0</span></h1></div></div>
   <div class="card rdy" id="rdy"><div class="flex"><div><div class="small">Your readiness</div><b id="rdy-t" style="display:block;font-family:'Saira Condensed';font-size:22px;line-height:1.05"></b><div class="stat" id="rdy-s" style="margin-top:2px"></div></div><div class="sp"></div><div class="num" id="rdy-n"></div></div><div style="height:8px;margin-top:10px;background:var(--line);border-radius:4px;overflow:hidden"><div id="rdy-bar" style="height:100%;width:0;background:var(--acc);transition:width .6s ease-out"></div></div></div>
   <div class="card"><div class="small">What this is</div><p style="margin:4px 0 0;font-size:15px;line-height:1.45">Bleeding control modeled on the ACS Stop the Bleed® course: learn the ABCs, drill tourniquets, packing and pressure hands-on, then put them together under pressure in scenarios. <b>Practice, not certification. Not affiliated with the American College of Surgeons.</b></p></div>
   <button class="scen" id="h-learn"><span class="chip dim" id="chip-lesson">—</span><b>The lesson</b><span>12 short slides in course order, each with a knowledge check · about 10 minutes</span></button>
@@ -144,13 +144,13 @@ body.tv{max-width:1100px}@media (min-width:1000px){body.tv{zoom:1.3}}
   <div class="card" id="g-now" style="padding:10px 12px;font-size:15px;line-height:1.4;min-height:44px"></div>
   <div class="card" id="deck"></div>
   <div class="card"><h2 id="m-title">Checklist</h2><p class="sub" id="m-sub"></p><ul class="steps" id="steps"></ul>
-    <div class="row" style="margin-top:10px"><button id="g-restart">Restart</button><button id="g-menu">Menu</button></div></div>
+    <div class="row" style="margin-top:10px"><button id="g-restart">Restart</button><button id="g-menu">Stop and go back</button></div></div>
   <div class="card"><h2>What's happening</h2><div class="radio" id="radio"></div></div>
 </div>
 
 <!-- overlays -->
 <div class="overlay hidden" id="briefov"><div class="box"><span class="tag">Briefing</span><h2 id="brief-t"></h2><p id="brief-x"></p>
-  <div class="row"><button id="brief-menu">Back to menu</button><button class="go" id="brief-go">Start</button></div></div></div>
+  <div class="row"><button id="brief-menu">Back</button><button class="go" id="brief-go">Start</button></div></div></div>
 <div class="overlay hidden" id="decov"><div class="box"><span class="tag">Decision</span><h2 id="dec-q" style="font-size:22px;line-height:1.25"></h2><div id="dec-opts"></div>
   <div id="dec-fb" class="hidden"><p id="dec-res"></p><p id="dec-why" style="font-size:15px;color:var(--soft)"></p><button class="go" id="dec-go" style="width:100%;font-size:18px">Continue</button></div></div></div>
 <div class="overlay hidden" id="stov" style="z-index:14"><div class="box station"><span class="tag" id="st-tag">Skill</span><h2 id="st-title"></h2>
@@ -160,7 +160,7 @@ body.tv{max-width:1100px}@media (min-width:1000px){body.tv{zoom:1.3}}
   <p id="st-fb" style="font-size:15px;min-height:40px;margin:8px 0 0"></p><button id="st-quit" style="width:100%;margin-top:8px">Stop and go back</button></div></div>
 <div class="overlay hidden" id="lessonov" style="z-index:12"><div class="box slide" id="lesson-box"></div></div>
 <div class="overlay hidden" id="doneov" style="z-index:13"><div class="box"><h2 id="done-t"></h2><div class="big" id="done-s"></div><div id="done-b"></div>
-  <div class="row" style="margin-top:10px"><button id="done-again">Again</button><button class="go" id="done-menu">Menu</button></div></div></div>
+  <div class="pc-row3" id="done-row"><button id="done-again">Again</button><button id="done-menu">Home</button><button class="go" id="done-next">Next</button></div><p class="pc-links"><a href="../">◂ Preconnect</a><a href="../feedback.html?from=bc">Feedback</a></p></div></div>
 <button id="inst-fab" class="fab hidden">Instructor</button>
 <div class="overlay hidden" id="instov" style="z-index:22"><div class="box">
   <div style="display:flex;justify-content:space-between;align-items:center"><span class="chip" style="background:#7a5cff;color:#fff">INSTRUCTOR</span><button id="inst-close" class="go">Close — resume</button></div>
@@ -175,7 +175,7 @@ body.tv{max-width:1100px}@media (min-width:1000px){body.tv{zoom:1.3}}
  <div class="set"><div class="k">Motion<small>Auto follows your phone's Reduce Motion setting.</small></div><div class="seg2" data-set="motion"><button data-val="auto">Auto</button><button data-val="off">Off</button></div></div>
  <div class="sec">Feedback</div>
  <div class="set"><div class="k">Sound<small>A metronome for compressions, a tone for right and wrong, a chime when you finish, and Patient Contact's monitor.</small></div><div class="seg2" data-set="sound"><button data-val="off">Off</button><button data-val="on">On</button></div></div>
- <div class="set"><div class="k">Haptics<small>A tap you can feel on compressions and mistakes.</small></div><div class="seg2" data-set="haptics"><button data-val="off">Off</button><button data-val="on">On</button></div></div>
+ <div class="set"><div class="k">Vibration<small>A tap you can feel on compressions and mistakes.</small></div><div class="seg2" data-set="haptics"><button data-val="off">Off</button><button data-val="on">On</button></div></div>
  <div class="sec">Privacy</div>
  <div class="set"><div class="k">Anonymous statistics<small>Counts like "someone finished the infant station." Never names. <a href="../privacy.html" style="color:var(--acc)">Details</a></small></div><div class="seg2" data-set="stats"><button data-val="off">Off</button><button data-val="on">On</button></div></div>
  <p class="stat" style="margin-top:10px">Settings apply to every Preconnect module on this phone.</p>
@@ -185,7 +185,7 @@ body.tv{max-width:1100px}@media (min-width:1000px){body.tv{zoom:1.3}}
 
 <script>
 /* =================== core =================== */
-const APP_VERSION='0.22.0';
+const APP_VERSION='0.23.0';
 /* Screen wake lock (Milestone 1): keeps the phone from dimming or locking during a timed skill.
    On only while an activity runs: keepAwake(true) when it starts, keepAwake(false) back at the menu or on the result screen. */
 const WAKE={s:null,want:false};
@@ -218,7 +218,7 @@ function homeRender(){const R=readiness();const runs=load().runs||[];let ndue=0;
   const sub=R.done?`${ndue?ndue+' due for review · ':''}${['Guided','Recall','Chaos'][TIER]} mode`:'Start with the lesson, then a station. Your best scores show up here.';if($('rdy-s').textContent!==sub)$('rdy-s').textContent=sub;
   const n=R.pct+'%';if($('rdy-n').textContent!==n)$('rdy-n').textContent=n;$('rdy-bar').style.width=R.pct+'%';}
 function showHome(){keepAwake(false);INSTHOLD=false;setTimeout(instSync,0);['game','briefov','decov','stov','lessonov','doneov','drillov'].forEach(i=>$(i).classList.add('hidden'));$('home').classList.remove('hidden');S.active=false;S.running=false;
-  document.querySelectorAll('[data-tier]').forEach(b=>b.classList.toggle('on',+b.dataset.tier===TIER));$('tierhelp').textContent=['Guided: every step listed, with coaching.','Recall: no checklist. Run it from memory.','Chaos: no checklist, and things go wrong.'][TIER];homeRender();}
+  document.querySelectorAll('[data-tier]').forEach(b=>b.classList.toggle('on',+b.dataset.tier===TIER));$('tierhelp').textContent=pcTierHelp(TIER,['','','A bystander lets go, a strap slips, the ambulance is late.'][TIER]);homeRender();}
 document.querySelectorAll('[data-tier]').forEach(b=>b.onclick=()=>{TIER=+b.dataset.tier;showHome();});
 /* =================== art =================== */
 const ART={
@@ -260,7 +260,7 @@ function lessonStart(){keepAwake(true);pca('begin','bc','lesson',()=>LS?`slide-$
 function lessonRender(){pcLessonRender(LS);}
 function lessonAct(ds){pcLessonAct(LS,ds);}
 function lessonDone(score,right,n){pca('end',pca('bkt',score));record('lesson','lesson',score);
-  showDone('Lesson complete',score,pcDebriefBody({score,compare:pcBestPrev((load().runs||[]).filter(x=>x.kind==='lesson').slice(0,-1)),kicker:'Next: practice the hands-on skills, then try a scenario.',metrics:[['Right on the first try',`${right} of ${n}`]],clean:false}),()=>lessonStart());LS=null;}
+  showDone('Lesson complete',score,pcDebriefBody({score,compare:pcBestPrev((load().runs||[]).filter(x=>x.kind==='lesson').slice(0,-1)),kicker:'Next: practice the hands-on skills, then try a scenario.',metrics:[['Slides',`${n} of ${n}`],['Right on the first try',`${right} of ${n}`]],clean:false}),()=>lessonStart(),nextOf('lesson','lesson'));LS=null;}
 $('lesson-box').onclick=e=>{const b=e.target.closest&&e.target.closest('[data-l]');if(b)lessonAct(b.dataset);};
 /* =================== skill stations =================== */
 let ST=null;
@@ -314,7 +314,7 @@ function stRender(){const s=ST;if(!s)return;const B=[];let prompt='',art='';cons
   if(s.kind==='coach'){$('st-title').textContent='Talk a bystander through it';art=limbSVG('arm',false,[],s.ci>1?[135]:[]);
     if(s.phase==='talk'){prompt=`Your hands are on a deep groin wound and can't let go. Ten feet away, a second man's forearm is spurting. A bystander holds the tourniquet from your kit: "Tell me what to do." Step ${s.ci+1} of ${COACH.length}: what do you tell him?`;B.push(...so('c'+s.ci,coachOpts(s.ci)).map(([k,t])=>['say-'+k,t]));}}
   if(s.kind==='self'){$('st-title').textContent='Tourniquet on yourself — one hand';art=limbSVG('arm',false,s.phase==='place'?(s.zones=s.zones||tqZones()):[],s.placed);
-    if(s.phase==='first'){prompt='You\'re alone in your shop. A deep cut on your left forearm is spurting, and your kit is on the bench. What first? (One-handed method: general technique, to confirm with your instructor.)';B.push(...so('first',[['sit','Sit down against the bench, tourniquet out'],['call1','Call 911 before you do anything else'],['walk','Walk out to the road to find someone']]));}
+    if(s.phase==='first'){prompt='You\'re alone in your shop. A deep cut on your left forearm is spurting, and your kit is on the bench. What first? One-handed method: general technique '+pcTag('confirm')+' with your instructor.';B.push(...so('first',[['sit','Sit down against the bench, tourniquet out'],['call1','Call 911 before you do anything else'],['walk','Walk out to the road to find someone']]));}
     if(s.phase==='place')prompt='With your good hand, slide the loop over your hand and up your arm. Tap where it goes. The wound is in the middle of the forearm.';
     if(s.phase==='pull'){prompt='One hand only. Brace the hurt arm against your body or thigh, and pull the strap tight with your good hand.';B.push(...so('pull',[['brace','Brace the arm against your body, pull the strap'],['grip','Pinch the strap with the hurt hand and pull']]),['totwist','Start twisting the rod']);}
     if(s.phase==='twist'){prompt='Twist the rod with your good hand until the bleeding stops.';B.push(['twist','Twist the rod']);}
@@ -388,8 +388,8 @@ $('st-art').onkeydown=e=>{if(e.key!=='Enter'&&e.key!==' ')return;const b=e.targe
 function practice(id){const def={coach:['coach',{}],self:['self',{}],'tq-arm':['tq',{limb:'arm',near:Math.random()<.45}],'tq-leg':['tq',{limb:'leg',near:false,need2:Math.random()<.5}],'pack':['pack',{site:pick(['groin','armpit'])}],'press':['press',{}]}[id];
   const name=STN[id];
   pca('begin','bc','skill-'+id,()=>ST?`phase-${ST.phase}`:'');const att=(load().runs||[]).filter(x=>x.kind==='station'&&x.id===id).length+1;
-  stationOpen(def[0],FORCE&&FORCE[id]?Object.assign(def[1],FORCE[id]):def[1],r=>{const score=Math.max(0,100-r.err*10-Math.max(0,r.secs-(def[0]==='tq'?(def[1].limb==='leg'?PAR.tqleg:PAR.tq):PAR[def[0]])));const selfNote=def[0]==='self'?' One-handed method: general technique, to confirm with your instructor.':'';pca('end',`${pca('att',att)}/${pca('bkt',score)}`);record('station',id,score);
-    showDone(name,score,pcDebriefBody({score,compare:pcBestPrev((load().runs||[]).filter(x=>x.kind==='station'&&x.id===id).slice(0,-1)),kicker:(r.err?'Run it again until it\'s clean — the goal is doing it right, fast, without thinking.':'Clean. Now do it faster — or try a scenario.')+selfNote,metrics:[['Time',r.secs+' s'],['Mistakes',String(r.err)],...(r.kind==='coach'?[['Clear instructions',`${r.clear} of ${COACH.length}`],['Said vaguely',String(r.vague)],['Out of order',String(r.order)]]:[]),...(r.count>1?[['Tourniquets','two']]:[])],clean:!r.err,feedback:r.err?[`${r.err} mistake${r.err===1?'':'s'} on the way`]:[]}),()=>practice(id));});}
+  stationOpen(def[0],FORCE&&FORCE[id]?Object.assign(def[1],FORCE[id]):def[1],r=>{const score=Math.max(0,100-r.err*10-Math.max(0,r.secs-(def[0]==='tq'?(def[1].limb==='leg'?PAR.tqleg:PAR.tq):PAR[def[0]])));const selfNote=def[0]==='self'?' One-handed method: general technique '+pcTag('confirm')+' with your instructor.':'';pca('end',`${pca('att',att)}/${pca('bkt',score)}`);record('station',id,score);
+    showDone(name,score,pcDebriefBody({score,compare:pcBestPrev((load().runs||[]).filter(x=>x.kind==='station'&&x.id===id).slice(0,-1)),kicker:(r.err?'Run it again until it\'s clean — the goal is doing it right, fast, without thinking.':'Clean. Now do it faster — or try a scenario.'),extra:selfNote?`<p>${selfNote.trim()}</p>`:undefined,metrics:[['Time',r.secs+' s'],['Mistakes',String(r.err)],...(r.kind==='coach'?[['Clear instructions',`${r.clear} of ${COACH.length}`],['Said vaguely',String(r.vague)],['Out of order',String(r.order)]]:[]),...(r.count>1?[['Tourniquets','two']]:[])],clean:!r.err,feedback:r.err?[`${r.err} mistake${r.err===1?'':'s'} on the way`]:[]}),()=>practice(id),nextOf('station',id));});}
 document.querySelectorAll('[data-st]').forEach(b=>b.onclick=()=>practice(b.dataset.st));
 /* =================== scenarios =================== */
 const PRESF={arm:.15,leg:.32,groin:.45,scalp:.12};
@@ -494,7 +494,7 @@ function scRender(){if(!S.active||S.fast)return;const H=SC.helper;$('g-score').t
   const now=S.now?(S.prev&&S.prev.who!=='Feedback'?`<div style="opacity:.65">${line(S.prev).slice(5,-6)}</div>`:'')+line(S.now):'<span style="color:var(--soft)">Safety first — then A, B, C.</span>';
   const next=pend.length?(TIER===0?`<div style="color:var(--soft);font-size:15px;margin-top:4px">Next: ${esc(pend[0].t)}</div>`:`<div style="color:var(--soft);font-size:15px;margin-top:4px">${S.steps.length-pend.length} of ${S.steps.length} steps done</div>`):'';
   setHTML($('g-now'),now+next);
-  setHTML($('deck'),`${S.vs.length>1?`<div class="grp"><h3>Patients</h3><div class="row">${S.vs.map((x,i)=>`<button data-a="sel${i}" class="${i===S.sel?'on':''}">${i===S.sel?'Working on ':'Go to '}${esc(x.name)}</button>`).join('')}</div></div>`:''}${onlyWait&&controlled?`<button data-a="skip" class="go" style="width:100%;margin-bottom:10px">Everything's done — skip ahead to the ambulance (you keep holding)</button>`:''}<div class="grp"><h3><b>Safety</b></h3><div class="row"><button data-a="safe" class="${S.safe?'on':''}">Check the scene</button><span></span></div></div>
+  setHTML($('deck'),`${S.vs.length>1?`<div class="grp"><h3>Patients</h3><div class="row">${S.vs.map((x,i)=>`<button data-a="sel${i}" class="${i===S.sel?'on':''}">${i===S.sel?'Working on ':'Go to '}${esc(x.name)}</button>`).join('')}</div></div>`:''}${onlyWait&&controlled?`<button data-a="skip" class="pc-ff">Fast-forward ▸▸</button><div class="pc-ffwhy">Everything's done. Skip ahead to the ambulance; you keep holding, and the blood lost on the way still counts.</div>`:''}<div class="grp"><h3><b>Safety</b></h3><div class="row"><button data-a="safe" class="${S.safe?'on':''}">Check the scene</button><span></span></div></div>
    <div class="grp"><h3><b>A</b> · Alert</h3><div class="row"><button data-a="call" class="${S.alerted?'on':''}">${S.id==='crash'?'Call 911 on speaker':'Have '+esc(H)+' call 911'}</button><span></span></div></div>
    <div class="grp"><h3><b>B</b> · Bleeding</h3><div class="row"><button data-a="expose" class="${v.exposed?'on':''}">Expose the wound</button><span></span></div></div>
    <div class="grp"><h3><b>C</b> · Compress</h3><div class="row"><button data-a="press" class="${v.pressure==='you'?'hold':''}">${v.pressure==='you'?'Pressing — tap to let go':'Direct pressure — both hands'}</button>
@@ -556,7 +556,7 @@ Object.assign(DEC,{
   o:[['Blood thinner, how much she bled, what you did, and when','good'],['Nothing much; they can see it\'s only a small cut on her leg','bad'],['That she has lost a lot of blood and they should hurry','partial']],why:'The blood thinner and how much she lost change their care. Tell them the injury, how long it bled, what you did and when, including any tourniquet time.'}});
 
 /* Bike crash: a 9-year-old and a frightened parent (0.18.0, Max, October 8, 2026). Tourniquets work on children (Max: a commercial tourniquet
-   works on a child this size; if it won't tighten on a very small child, firm pressure; marked to confirm). Keep a scared child still by
+   works on a child this size; if it won't tighten on a very small child, firm pressure; ${pcTag('confirm')}). Keep a scared child still by
    telling him the truth, and give the parent a job. Layouts: A mid-forearm; B just below the elbow (above the elbow); C mid-forearm and his
    mother faints. Chaos: his arm is thin, so the rod takes every turn. */
 SCN.bike={title:'Bike crash: a 9-year-old and his mom',t0:16*3600+40*60,eta:420,helper:'Jess',kit:()=>true,
@@ -577,7 +577,7 @@ SCN.bike={title:'Bike crash: a 9-year-old and his mom',t0:16*3600+40*60,eta:420,
      S.held=true;const back=S.momAway;S.momAway=false;radio('You',back?'Jess, I need you after all: sit down and hold him in your lap, and talk to him.':'Jess, hold him in your lap, arms around him. Talk to him, eye to eye. You\'re his job now.');radio('Jess','I\'ve got you, baby. Look at me. I\'m right here.','good');},
    mom:v=>{if(!S.momDowned||S.momLaid)return;S.momLaid=true;radio('You','Jess, lie down right here on the grass. Legs up on the cooler. Breathe.');radio('Jess','I\'m okay… I just got dizzy.');}},
   tick:dt=>{if(V.faint&&!S.momDowned&&!S.emsArr&&S.t>150)kidFaint();if(S.momDowned&&(S.momDown||!S.momLaid)&&S.t-S.momT>40&&!S.momDing){S.momDing=true;ding(5,'Nobody had Eli after his mom went down; he wiggled and cried. Lay her down and get the next adult to hold him');}},
-  extra:()=>`<p><b>Tourniquets work on children.</b> A commercial tourniquet works on a child this size; on a very small child, if it won't tighten, use firm pressure. (Children: general guidance, to confirm with your instructor.)</p><p><b>Keep a scared child still:</b> tell him the truth (it will hurt, and it's helping), and give the parent a job: hold him in her lap and talk to him eye to eye.</p>`};
+  extra:()=>`<p><b>Tourniquets work on children.</b> A commercial tourniquet works on a child this size; on a very small child, if it won't tighten, use firm pressure. (Children: general guidance ${pcTag('confirm')} with your instructor.)</p><p><b>Keep a scared child still:</b> tell him the truth (it will hurt, and it's helping), and give the parent a job: hold him in her lap and talk to him eye to eye.</p>`};
 SCN.bike.vlabel=()=>`${V.site==='elbow'?'Below the elbow':'Mid-forearm'}${V.faint?' · mom faints':''}${TIER===2?' · thin arm':''}`;
 SCN.bike.busy=()=>!!S.momDowned&&(S.momDown||!S.momLaid);
 function kidFaint(){S.momDowned=true;S.momDown=true;S.momT=S.t;S.held=false;S.momLaid=false;radio('Jess','I… I don\'t feel so good.','bad');radio('You','Jess is going down! She\'s sitting down hard on the grass, pale. Eli is sliding out of her lap.','bad');}
@@ -745,9 +745,12 @@ function scFinish(died){S.active=false;const v=S.vs[0];const lostP=Math.round(v.
    ...(v.tq?[['Tourniquet',`${v.tq>1?'two':'one'} · ${v.tqMarked?'time marked':'time NOT marked'}`]]:[]),...(v.packed?[['Wound','packed and held']]:[]),
    ['Blood lost',`≈ ${Math.round(v.lost/50)*50} mL (${lostP}% of ${v.she?'her':'his'} blood)`],['Outcome',died?'did not survive':lostP<30?'stable when EMS took over':'in shock, but alive when EMS took over']];
   const msg=died?'Without fast pressure, a life-threatening bleed can kill in minutes. Run it again: safety, call, find it, and get your hands on it immediately.':lostP<20?'Fast, clean bleeding control. This is what saves lives before the ambulance gets there.':`${v.she?'She':'He'} made it — but every minute before pressure cost blood. Get your hands on the wound sooner.`;
-  showDone(died?(!v.dead?'Not everyone made it':v.she?'She didn\'t make it':'He didn\'t make it'):'Handed off to EMS',score,pcDebriefBody({score,compare,kicker:msg,metrics:rows,feedback:S.incidents,clean:!died,extra:SC.extra?SC.extra():undefined,steps:S.steps.map((st,j)=>({name:st.t,ok:!!stepsDone[j],missed:!stepsDone[j],at:stepsDone[j]?mmss(S.doneAt[j]||0):'missed'}))}),()=>scStart(S.id));}
+  showDone(died?(!v.dead?'Not everyone made it':v.she?'She didn\'t make it':'He didn\'t make it'):'Handed off to EMS',score,pcDebriefBody({score,compare,kicker:msg,metrics:rows,feedback:S.incidents,clean:!died,extra:SC.extra?SC.extra():undefined,steps:S.steps.map((st,j)=>({name:st.t,ok:!!stepsDone[j],missed:!stepsDone[j],at:stepsDone[j]?mmss(S.doneAt[j]||0):'missed'}))}),()=>scStart(S.id),nextOf('scenario',S.id));}
 let AGAIN=null;
-function showDone(t,score,html,again){keepAwake(false);pcFx('done');$('done-t').textContent=t;countUp($('done-s'),score,600);$('done-b').innerHTML=html;AGAIN=again;$('doneov').classList.remove('hidden');}
+function showDone(t,score,html,again,next){keepAwake(false);pcFx('done');$('done-t').textContent=t;pcBand($('done-s'),score);countUp($('done-s'),score,600);$('done-b').innerHTML=html;AGAIN=again;NEXT=next||null;$('done-next').classList.toggle('hidden',!NEXT);$('done-row').classList.toggle('two',!NEXT);$('done-menu').classList.toggle('go',!NEXT);$('doneov').classList.remove('hidden');}
+/* One voice (milestone 5): Next on every result is the next activity in the home list's order (the lesson, the stations, the drills, the scenarios). */
+let NEXT=null;function nextOf(kind,id){const A=ACTS();const i=A.findIndex(([k,x])=>k===kind&&x===id);const n=A[i+1];if(!n)return null;const [k,x]=n;return k==='lesson'?()=>lessonStart():k==='station'?()=>practice(x):k==='drill'?()=>drillStart(x):()=>scStart(x);}
+$('done-next').onclick=()=>{$('doneov').classList.add('hidden');if(NEXT)NEXT();};
 $('done-again').onclick=()=>{$('doneov').classList.add('hidden');if(AGAIN)AGAIN();};$('done-menu').onclick=()=>{$('doneov').classList.add('hidden');showHome();};
 /* =================== quick drills =================== */
 const DRILLS={
@@ -782,23 +785,24 @@ function drillMenu(){DR=null;$('dr-title').textContent='Quick drills';$('dr-meta
   $('dr-body').innerHTML=Object.keys(DRILLS).map(k=>{const b=best(k);return `<button class="scen" data-d="go" data-k="${k}"><b>${DRILLS[k].name}${b!==null?`<span style="float:right;font-size:16px;color:var(--red2)">best ${b}</span>`:''}</b></button>`;}).join('');
   $('dr-foot').innerHTML='<button data-d="close" class="go" style="width:100%">Back</button>';$('drillov').classList.remove('hidden');}
 function drillStart(k){pca('begin','bc','drill-'+k,()=>DR?`question-${DR.i+1}`:'');const items=DRILLS[k].items().map(q=>Object.assign({},q,{d:(q.opts||[]).filter(o=>o!==q.a)}));
-  DR=pcQuizStart({name:DRILLS[k].name,qs:items,kind:'drill',id:k,why:DRILLS[k].why,ov:'drillov',titleEl:'dr-title',metaEl:'dr-meta',bodyEl:'dr-body',footEl:'dr-foot',menuAction:'menu',menuLabel:'All drills',
+  DR=pcQuizStart({name:DRILLS[k].name,qs:items,kind:'drill',id:k,why:DRILLS[k].why,ov:'drillov',titleEl:'dr-title',metaEl:'dr-meta',bodyEl:'dr-body',footEl:'dr-foot',menuAction:'home',from:'bc',next:(()=>{const ks=Object.keys(DRILLS),n=ks.indexOf(k)+1;return n<ks.length?()=>drillStart(ks[n]):nextOf('drill',k);})(),
     onDone:sc=>{pca('end',pca('bkt',sc));record('drill',k,sc);},onQuit:()=>{pca('abandon');drillMenu();}});DR.k=k;}
 function drillQ(){pcQuizQ(DR);}
-function drillAct(ds){const a=ds.d||ds.q;if(a==='go'){drillStart(ds.k);return;}if(a==='close'){pca('abandon');$('drillov').classList.add('hidden');DR=null;return;}if(a==='menu'){pca('abandon');drillMenu();return;}if(a==='again'){drillStart(DR.k);return;}pcQuizAct(DR,{q:a,i:ds.i});}
+function drillAct(ds){const a=ds.d||ds.q;if(a==='go'){drillStart(ds.k);return;}if(a==='close'){pca('abandon');$('drillov').classList.add('hidden');DR=null;return;}if(a==='menu'){pca('abandon');drillMenu();return;}if(a==='home'){$('drillov').classList.add('hidden');DR=null;showHome();return;}if(a==='again'){drillStart(DR.k);return;}pcQuizAct(DR,{q:a,i:ds.i});}
 $('dr-body').onclick=e=>{const b=e.target.closest&&e.target.closest('[data-d],[data-q]');if(b)drillAct(b.dataset);};$('dr-foot').onclick=$('dr-body').onclick;
 /* =================== reference, about, progress =================== */
 function info(html){$('info-b').innerHTML=html;$('infoov').classList.remove('hidden');}
 $('info-close').onclick=()=>$('infoov').classList.add('hidden');
 $('h-ref').onclick=()=>info(`<h2>Pocket reference</h2><p><b>Safety first.</b> Make sure it's safe for you. Gloves if you have them.</p><p><b style="color:#ff5a5d">A — Alert.</b> Call 911, or point at one person to call. Speakerphone.</p><p><b style="color:#ffc23d">B — Bleeding.</b> Expose the wound. Life-threatening: spurting, won't stop, pooling, soaked clothing or bandages, part of a limb missing, or the person is confused or unconscious.</p><p><b style="color:#39e36f">C — Compress.</b></p><p>• <b>Direct pressure:</b> clean cloth, both hands, push hard, don't lift, add on top.</p><p>• <b>Tourniquet (arm or leg):</b> 2–3 inches above the wound, never on a joint (go above it). Pull tight, twist until the bleeding stops, lock, write the time. Still bleeding: a second one above the first. Never remove it.</p><p>• <b>Pack (groin, armpit, neck, deep wounds):</b> stuff gauze into the wound onto the bleeding, pack it full, then press hard with both hands. Hemostatic gauze: hold at least 3 minutes, then until help takes over. Neck: press on the wound, never across the windpipe, never wrap anything around the neck.</p><p>• <b>Kit check:</b> a tourniquet (not a blue trainer), gauze in date, gloves, a marker, shears, a blanket. Restock after every use.</p><p><b>Keep pressure until help takes over.</b> Tell EMS what you did and when.</p>`);
-$('h-about').onclick=()=>info(`<h2>About Bleed Control</h2><p>Bleed Control is a free practice tool for bleeding emergencies, from the same family as Charge the Line, Patient Contact, BLS Ready and Upwind. It follows the principles taught in national bleeding control courses: safety first, then the ABCs (Alert, find the Bleeding, Compress), with direct pressure, tourniquets, and wound packing.</p><p><b>It is practice, not certification.</b> Nothing replaces hands-on training. Find an official in-person course through the American College of Surgeons Stop the Bleed® program at stopthebleed.org.</p><p class="legal">STOP THE BLEED® is a registered trademark of the U.S. Department of Defense, Defense Health Agency. The American College of Surgeons Stop the Bleed program operates under a license from the Department of Defense. This app is independent and is not affiliated with or endorsed by the Department of Defense or the American College of Surgeons. Version ${APP_VERSION}.</p>`);
+$('h-about').onclick=()=>info(`<h2>About Bleed Control</h2><p>Bleed Control is a free practice tool for bleeding emergencies, from the same family as Charge the Line, Patient Contact, BLS Ready and Upwind. It follows the principles taught in national bleeding control courses: safety first, then the ABCs (Alert, find the Bleeding, Compress), with direct pressure, tourniquets, and wound packing.</p><p><b>It is practice, not certification.</b> Nothing replaces hands-on training. Find an official in-person course through the American College of Surgeons Stop the Bleed® program at stopthebleed.org.</p><p class="legal">STOP THE BLEED® is a registered trademark of the U.S. Department of Defense, Defense Health Agency. The American College of Surgeons Stop the Bleed program operates under a license from the Department of Defense. This app is independent and is not affiliated with or endorsed by the Department of Defense or the American College of Surgeons.</p>`+pcAboutFoot('bc',APP_VERSION));
 $('h-prog').onclick=()=>{const p=load();const R=p.runs||[];const best=(k,id)=>{const r=R.filter(x=>x.kind===k&&x.id===id);return r.length?Math.max(...r.map(x=>x.score)):null;};
   const line=(n,b)=>`<div class="mrow"><span>${esc(n)}</span><b style="${b===null?'color:var(--soft)':''}">${b===null?'not yet':b}</b></div>`;
-  info(`<h2>My progress</h2><input id="p-name" placeholder="Your name" value="${esc(p.name||'')}" style="margin-bottom:6px"><input id="p-dept" placeholder="Department, school, or organization" value="${esc(p.dept||'')}" style="margin-bottom:10px">
+  const PR=pcProfile();info(`<h2>My progress</h2><input id="p-name" placeholder="Your name" value="${esc(PR.name||p.name||'')}" style="margin-bottom:6px"><input id="p-dept" placeholder="Department, school, or organization" value="${esc(PR.org||p.dept||'')}" style="margin-bottom:10px">
    <div class="sec">LESSON</div>${line('The lesson',best('lesson','lesson'))}<div class="sec">SKILLS</div>${Object.entries(STN).map(([i,n])=>line(n,best('station',i))).join('')}
    <div class="sec">SCENARIOS</div>${Object.keys(SCN).map(k=>line(SCN[k].title,best('scenario',k))).join('')}<div class="sec">DRILLS</div>${Object.keys(DRILLS).map(k=>line(DRILLS[k].name,best('drill',k))).join('')}
    <button id="p-csv" style="width:100%;margin-top:10px">Download practice record (CSV)</button>`);
-  $('p-csv').onclick=()=>{const q=load();q.name=$('p-name').value.trim();q.dept=$('p-dept').value.trim();save(q);const nm={lesson:'Lesson',station:'Skill',scenario:'Scenario',drill:'Drill'};
+  const keep=()=>{const q=load();q.name=$('p-name').value.trim();q.dept=$('p-dept').value.trim();save(q);pcProfileSet(q.name,q.dept);return q;};$('p-name').onchange=keep;$('p-dept').onchange=keep;
+  $('p-csv').onclick=()=>{const q=keep();const nm={lesson:'Lesson',station:'Skill',scenario:'Scenario',drill:'Drill'};
     const label=r=>r.kind==='scenario'?(SCN[r.id]||{}).title||r.id:r.kind==='drill'?(DRILLS[r.id]||{}).name||r.id:r.kind==='station'?STN[r.id]||r.id:'The lesson';   // an id this page doesn't know (a newer backup) still exports
     const rows=[['Name','Organization','Type','Activity','Patient','Date','Tier','Score']].concat((q.runs||[]).map(r=>[q.name||'',q.dept||'',nm[r.kind],label(r),r.variant||'',r.d.slice(0,16).replace('T',' '),r.kind==='scenario'?['Guided','Recall','Chaos'][r.tier]:'',r.score]));
     const csv=pcCsv(rows);/* the core quotes every cell and defuses =, +, -, @ formulas */try{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='bleed-control-practice-record.csv';a.click();}catch(e){}};};
