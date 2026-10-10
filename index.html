@@ -88,7 +88,7 @@ button:focus-visible{outline:2px solid var(--red2);outline-offset:2px}
 .big{font-family:"Saira Condensed";font-size:60px;font-weight:700;color:var(--red2);line-height:1}
 .mrow{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-top:1px solid #3a2a2d;font-size:15px}.mrow:first-child{border-top:0}.mrow span{color:var(--soft)}
 .tiers{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:6px 0 10px}
-.scen{display:block;width:100%;text-align:left;padding:12px 14px;margin-bottom:8px;background:var(--deck);border:0;border-left:4px solid var(--acc);border-radius:6px}.scen b{display:block;font-family:"Saira Condensed";font-size:21px;font-weight:600}.scen span{font-size:15px;color:var(--soft);line-height:1.35}
+.scen{display:block;width:100%;text-align:left;padding:12px 70px 12px 14px;margin-bottom:8px;position:relative;background:var(--deck);border:0;border-left:4px solid var(--acc);border-radius:6px}.scen .chip{position:absolute;right:12px;top:50%;transform:translateY(-50%)}.chip.due{background:var(--warn,#f0b323);color:#0a0c0f}.card.rdy{background:linear-gradient(135deg,rgba(229,56,59,.22),var(--deck) 70%)}.scen b{display:block;font-family:"Saira Condensed";font-size:21px;font-weight:600}.scen span{font-size:15px;color:var(--soft);line-height:1.35}
 .slide h2{font-size:30px}.slide .art{margin:6px 0 12px}.slide ul{margin:0 0 12px;padding-left:20px;font-size:16px;line-height:1.5}.slide li{margin-bottom:4px}
 .dots{display:flex;gap:4px;justify-content:center;margin:8px 0}.dots i{width:8px;height:8px;border-radius:50%;background:#4a3539}.dots i.on2{background:var(--red2)}
 textarea,input{font-family:inherit;font-size:16px;padding:10px;border-radius:8px;border:1px solid var(--line);background:#120d0e;color:var(--ink);width:100%}
@@ -106,34 +106,34 @@ body.tv{max-width:1100px}@media (min-width:1000px){body.tv{zoom:1.3}}
 
 <div id="home">
   <div class="flex" style="margin:0 0 8px"><a href="../" style="display:inline-flex;align-items:center;min-height:44px;font-family:'Saira Condensed';font-size:15px;font-weight:600;letter-spacing:1px;color:#ff8a3d;text-decoration:none">◂ PRECONNECT</a><div class="sp"></div><a href="../feedback.html?from=bc" style="display:inline-flex;align-items:center;min-height:44px;font-size:14px;font-weight:700;color:var(--soft);text-decoration:none;margin-right:12px">Feedback</a><button class="gear" id="h-set">Settings</button></div>
-  <div class="top"><div><div class="brand" style="font-size:34px;letter-spacing:3px;color:var(--acc)">BLEED CONTROL</div><h1 style="font-size:19px;font-weight:400;font-family:'Atkinson Hyperlegible',system-ui,sans-serif;margin-top:2px">Stop a bleed. Save a life.</h1></div></div>
+  <div class="top"><div><div class="brand" style="font-size:34px;letter-spacing:3px;color:var(--acc)">BLEED CONTROL</div><h1 style="font-size:19px;font-weight:400;font-family:'Atkinson Hyperlegible',system-ui,sans-serif;margin-top:2px">Stop a bleed. Save a life. <span class="ver" style="font-size:15px;color:var(--soft)">v0.22.0</span></h1></div></div>
+  <div class="card rdy" id="rdy"><div class="flex"><div><div class="small">Your readiness</div><b id="rdy-t" style="display:block;font-family:'Saira Condensed';font-size:22px;line-height:1.05"></b><div class="stat" id="rdy-s" style="margin-top:2px"></div></div><div class="sp"></div><div class="num" id="rdy-n"></div></div><div style="height:8px;margin-top:10px;background:var(--line);border-radius:4px;overflow:hidden"><div id="rdy-bar" style="height:100%;width:0;background:var(--acc);transition:width .6s ease-out"></div></div></div>
   <div class="card"><div class="small">What this is</div><p style="margin:4px 0 0;font-size:15px;line-height:1.45">Bleeding control modeled on the ACS Stop the Bleed® course: learn the ABCs, drill tourniquets, packing and pressure hands-on, then put them together under pressure in scenarios. <b>Practice, not certification. Not affiliated with the American College of Surgeons.</b></p></div>
-  <div class="sec">1 · LEARN</div>
-  <button class="scen" id="h-learn"><b>The lesson</b><span>12 short slides in course order, each with a knowledge check · about 10 minutes</span></button>
-  <div class="sec">2 · PRACTICE THE SKILLS</div>
-  <button class="scen" data-st="tq-arm"><b>Tourniquet — arm</b><span>Place it, pull it tight, twist until the bleeding stops, lock it, mark the time</span></button>
-  <button class="scen" data-st="tq-leg"><b>Tourniquet — leg</b><span>Thigh wounds take more force — and sometimes a second tourniquet</span></button>
-  <button class="scen" data-st="pack"><b>Wound packing</b><span>Where a tourniquet can't go: pack it tight, then hold pressure</span></button>
-  <button class="scen" data-st="press"><b>Direct pressure</b><span>Both hands, push hard, don't lift to check</span></button>
-  <button class="scen" data-st="coach"><b>Talk a bystander through it</b><span>Your hands are busy: coach a stranger through a tourniquet, words only</span></button>
-  <button class="scen" data-st="self"><b>Tourniquet on yourself, one-handed</b><span>Alone with a spurting forearm: sit down, one hand only, lock it, then call</span></button>
-  <div class="sec">3 · PUT IT TOGETHER</div>
-  <button class="scen" data-sc="kitchen"><b>"He cut his arm on the glass"</b><span>Kitchen accident · one patient · the bleeding is spurting</span></button>
-  <button class="scen" data-sc="garage"><b>Table saw in the garage</b><span>Deep thigh wound · blood pooling on the floor</span></button>
-  <button class="scen" data-sc="glass"><b>Through the glass door</b><span>A wound high in the groin — where a tourniquet can't go</span></button>
-  <button class="scen" data-sc="vein"><b>"It's just a little cut on her leg"</b><span>84, on a blood thinner · a small hole, a big puddle</span></button>
-  <button class="scen" data-sc="bike"><b>Bike crash: a 9-year-old and his mom</b><span>A child's arm, a tourniquet that hurts, and a parent who needs a job</span></button>
-  <button class="scen" data-sc="auger"><b>Farm auger: amputation</b><span>Shut the machine down first · a tourniquet · the part never delays care</span></button>
-  <button class="scen" data-sc="hunt"><b>Hunting season: 40 minutes from help</b><span>A broadhead in the woods · tell 911 where you are · a long, cold hold</span></button>
-  <button class="scen" data-sc="fwk"><b>Fireworks festival: many hurt, one kit</b><span>Several patients, one tourniquet, a crowd to put to work</span></button>
-  <button class="scen" data-sc="crash"><b>Two-car crash</b><span>Two people bleeding, one of you, and traffic still moving</span></button>
+  <button class="scen" id="h-learn"><span class="chip dim" id="chip-lesson">—</span><b>The lesson</b><span>12 short slides in course order, each with a knowledge check · about 10 minutes</span></button>
+  <div class="row" style="margin:10px 0 12px"><button id="h-drills">Quick drills</button><button id="h-prog">My progress</button><button id="h-ref">Pocket reference</button><button id="h-about">About this app</button></div>
+  <div class="sec">Difficulty</div>
   <div class="tiers"><button data-tier="0">Guided</button><button data-tier="1">Recall</button><button data-tier="2">Chaos</button></div>
   <p class="stat" id="tierhelp" style="margin:0 0 10px"></p>
-  <div class="sec">DRILL NIGHT</div>
+  <div class="sec">Drill night</div>
   <button id="b-inst" style="width:100%;margin-bottom:8px">Instructor mode: off</button>
   <p class="stat" style="margin:0 0 6px">Live injects and a freeze while a scenario runs. On by itself during a Drill Night.</p>
-  <div class="sec">MORE</div>
-  <div class="row"><button id="h-drills">Quick drills</button><button id="h-ref">Pocket reference</button><button id="h-prog">My progress</button><button id="h-about">About this app</button></div>
+  <div class="sec">Practice the skills</div>
+  <button class="scen" data-st="tq-arm"><span class="chip dim" id="chip-tq-arm">—</span><b>Tourniquet — arm</b><span>Place it, pull it tight, twist until the bleeding stops, lock it, mark the time</span></button>
+  <button class="scen" data-st="tq-leg"><span class="chip dim" id="chip-tq-leg">—</span><b>Tourniquet — leg</b><span>Thigh wounds take more force — and sometimes a second tourniquet</span></button>
+  <button class="scen" data-st="pack"><span class="chip dim" id="chip-pack">—</span><b>Wound packing</b><span>Where a tourniquet can't go: pack it tight, then hold pressure</span></button>
+  <button class="scen" data-st="press"><span class="chip dim" id="chip-press">—</span><b>Direct pressure</b><span>Both hands, push hard, don't lift to check</span></button>
+  <button class="scen" data-st="coach"><span class="chip dim" id="chip-coach">—</span><b>Talk a bystander through it</b><span>Your hands are busy: coach a stranger through a tourniquet, words only</span></button>
+  <button class="scen" data-st="self"><span class="chip dim" id="chip-self">—</span><b>Tourniquet on yourself, one-handed</b><span>Alone with a spurting forearm: sit down, one hand only, lock it, then call</span></button>
+  <div class="sec">Put it together</div>
+  <button class="scen" data-sc="kitchen"><span class="chip dim" id="chip-kitchen">—</span><b>"He cut his arm on the glass"</b><span>Kitchen accident · one patient · the bleeding is spurting</span></button>
+  <button class="scen" data-sc="garage"><span class="chip dim" id="chip-garage">—</span><b>Table saw in the garage</b><span>Deep thigh wound · blood pooling on the floor</span></button>
+  <button class="scen" data-sc="glass"><span class="chip dim" id="chip-glass">—</span><b>Through the glass door</b><span>A wound high in the groin — where a tourniquet can't go</span></button>
+  <button class="scen" data-sc="vein"><span class="chip dim" id="chip-vein">—</span><b>"It's just a little cut on her leg"</b><span>84, on a blood thinner · a small hole, a big puddle</span></button>
+  <button class="scen" data-sc="bike"><span class="chip dim" id="chip-bike">—</span><b>Bike crash: a 9-year-old and his mom</b><span>A child's arm, a tourniquet that hurts, and a parent who needs a job</span></button>
+  <button class="scen" data-sc="auger"><span class="chip dim" id="chip-auger">—</span><b>Farm auger: amputation</b><span>Shut the machine down first · a tourniquet · the part never delays care</span></button>
+  <button class="scen" data-sc="hunt"><span class="chip dim" id="chip-hunt">—</span><b>Hunting season: 40 minutes from help</b><span>A broadhead in the woods · tell 911 where you are · a long, cold hold</span></button>
+  <button class="scen" data-sc="fwk"><span class="chip dim" id="chip-fwk">—</span><b>Fireworks festival: many hurt, one kit</b><span>Several patients, one tourniquet, a crowd to put to work</span></button>
+  <button class="scen" data-sc="crash"><span class="chip dim" id="chip-crash">—</span><b>Two-car crash</b><span>Two people bleeding, one of you, and traffic still moving</span></button>
   <p class="legal">A practice tool. It does not replace hands-on training. Take an official in-person bleeding control course, such as the American College of Surgeons Stop the Bleed® course. Not affiliated with or endorsed by ACS or the U.S. Department of Defense.</p>
 </div>
 
@@ -185,7 +185,7 @@ body.tv{max-width:1100px}@media (min-width:1000px){body.tv{zoom:1.3}}
 
 <script>
 /* =================== core =================== */
-const APP_VERSION='0.21.5';
+const APP_VERSION='0.22.0';
 /* Screen wake lock (Milestone 1): keeps the phone from dimming or locking during a timed skill.
    On only while an activity runs: keepAwake(true) when it starts, keepAwake(false) back at the menu or on the result screen. */
 const WAKE={s:null,want:false};
@@ -209,8 +209,16 @@ function setHTML(el,html){if(el&&el._last!==html){el.innerHTML=html;el._last=htm
 function radio(who,msg,cls=''){if(S&&S.active){S.prev=S.now;S.now={who,msg,cls};if(cls==='bad')S.badN=(S.badN||0)+1;}const r=$('radio');const d=document.createElement('div');d.innerHTML=`<span class="who">${esc(who)}:</span> <span class="${cls}">${esc(msg)}</span>`;r.prepend(d);while(r.children.length>16)r.lastChild.remove();if(S.log)S.log.push({c:clock(),who,msg});}
 function ding(p,why){S.score=Math.max(0,S.score-p);S.incidents.push(why);radio('Feedback',`${why} (−${p})`,'bad');pcFx('bad');}
 function clock(at){const s=S.t0+(at===undefined?S.t:at);const h=Math.floor(s/3600)%24,m=Math.floor(s%3600/60);return (h%12||12)+':'+String(m).padStart(2,'0')+(h<12?' a.m.':' p.m.');}
+const ACTS=()=>[['lesson','lesson'],...Object.keys(STN).map(i=>['station',i]),...Object.keys(DRILLS).map(k=>['drill',k]),...Object.keys(SCN).map(k=>['scenario',k])];   /* lesson + 6 stations + 4 drills + 9 scenarios = 20 */
+function readiness(){const R=load().runs||[];const best={};R.forEach(r=>{const k=r.kind+':'+r.id;best[k]=Math.max(best[k]||0,+r.score||0);});const A=ACTS();const done=A.filter(([k,i])=>best[k+':'+i]!==undefined).length;return {done,total:A.length,pct:Math.round(done/A.length*100),best};}
+function homeRender(){const R=readiness();const runs=load().runs||[];let ndue=0;const chip=(id,k)=>{const e=$('chip-'+id);if(!e)return;const b=R.best[k+':'+id];const sp=pcSpacing(runs.filter(r=>r.kind===k&&r.id===id));const dueNow=sp.status==='due'||sp.status==='missed';if(dueNow)ndue++;
+    const t=b===undefined?'—':dueNow?(sp.status==='missed'?'Again':'Due'):String(b);if(e.textContent!==t)e.textContent=t;e.classList.toggle('dim',b===undefined);e.classList.toggle('due',dueNow);};
+  ACTS().forEach(([k,i])=>chip(i,k));
+  const t=`${R.done} of ${R.total} activities`;if($('rdy-t').textContent!==t)$('rdy-t').textContent=t;
+  const sub=R.done?`${ndue?ndue+' due for review · ':''}${['Guided','Recall','Chaos'][TIER]} mode`:'Start with the lesson, then a station. Your best scores show up here.';if($('rdy-s').textContent!==sub)$('rdy-s').textContent=sub;
+  const n=R.pct+'%';if($('rdy-n').textContent!==n)$('rdy-n').textContent=n;$('rdy-bar').style.width=R.pct+'%';}
 function showHome(){keepAwake(false);INSTHOLD=false;setTimeout(instSync,0);['game','briefov','decov','stov','lessonov','doneov','drillov'].forEach(i=>$(i).classList.add('hidden'));$('home').classList.remove('hidden');S.active=false;S.running=false;
-  document.querySelectorAll('[data-tier]').forEach(b=>b.classList.toggle('on',+b.dataset.tier===TIER));$('tierhelp').textContent=['Guided: every step listed, with coaching.','Recall: no checklist. Run it from memory.','Chaos: no checklist, and things go wrong.'][TIER];}
+  document.querySelectorAll('[data-tier]').forEach(b=>b.classList.toggle('on',+b.dataset.tier===TIER));$('tierhelp').textContent=['Guided: every step listed, with coaching.','Recall: no checklist. Run it from memory.','Chaos: no checklist, and things go wrong.'][TIER];homeRender();}
 document.querySelectorAll('[data-tier]').forEach(b=>b.onclick=()=>{TIER=+b.dataset.tier;showHome();});
 /* =================== art =================== */
 const ART={
