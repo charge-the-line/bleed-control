@@ -69,7 +69,7 @@ Verified to catch planted bugs: a station that accepts a tourniquet on the joint
 Foundation fixes: fonts served from this site, screen wake lock, finger-sized buttons. The `syntax` section (the hub: the plain list) now also proves:
 - Fonts self-hosted in `fonts/`, no Google reference, every file in the cache list.
 - Screen wake lock: requested when a lesson, station, or scenario starts, released at home or on the result screen.
-- Browser check: any visible button under 44 px tall fails the screen; the slow-tap test scrolls to the button first, as a person would.
+- Browser check: any visible button under 44 px tall or wide fails the screen, so does any text under the floor (15 px for a sentence, 13 px for a caption) and anything past the right edge, fixed elements included; the slow-tap test scrolls to the button first, as a person would.
 
 ## Milestone 3 checks (added October 2026)
 
