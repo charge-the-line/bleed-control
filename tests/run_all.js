@@ -328,4 +328,8 @@ if(want.includes('fuzz')){let crashes=0;const errs=[];const acts=['safe','call',
  {const {api,els,store}=boot({preconnect:JSON.stringify({name:'Jo Lee',org:'Station 4'})});api.$('h-prog').onclick();const pre=(els['info-b'].innerHTML.match(/id="p-name"[^>]*value="([^"]*)"/)||[])[1];els['p-name'].value='Pat Q';els['p-dept'].value='Station 9';els['p-name'].onchange();const hub=JSON.parse(store.preconnect);const own=api.load();
   report('voice','one name store: My progress reads the hub profile and writes it back (and keeps its own copy for the record)',pre==='Jo Lee'&&hub.name==='Pat Q'&&hub.org==='Station 9'&&own.name==='Pat Q',`pre ${pre} hub ${hub.name}/${hub.org}`);}
 }
+
+{// Continue opens the activity itself (milestone 8): ?scn= a scenario, ?station= a station, ?lesson=1 the lesson
+ const {boot}=require('./bc_mock.js');global.__loc={search:'?scn=garage'};const a=boot();global.__loc={search:'?station=pack'};const b=boot();global.__loc={search:'?lesson=1'};const c=boot();global.__loc={search:'?scn=nope'};const d=boot();global.__loc=undefined;
+ report('voice','deep links open the activity itself: a scenario, a station and the lesson; an unknown id is ignored',a.api.S()&&a.api.S().id==='garage'&&b.api.ST()&&b.api.ST().kind==='pack'&&c.api.LS()!==null&&!(d.api.S()&&d.api.S().id),`scn ${a.api.S()&&a.api.S().id} station ${b.api.ST()&&b.api.ST().kind} lesson ${c.api.LS()!==null}`);}
 console.log(`\n${n-failed}/${n} checks passed · ${Math.round((Date.now()-T0)/1000)} s`);process.exit(failed?1:0);
