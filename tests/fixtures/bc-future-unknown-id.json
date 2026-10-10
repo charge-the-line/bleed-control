@@ -1,0 +1,42 @@
+{
+ "runs": [
+  {
+   "kind": "scenario",
+   "id": "kitchen",
+   "score": 90,
+   "d": "2026-09-30T11:41:10.360Z",
+   "tier": 0,
+   "variant": "No kit · wound mid-forearm",
+   "died": false
+  },
+  {
+   "kind": "station",
+   "id": "tq-arm",
+   "score": 100,
+   "d": "2026-10-01T11:41:10.360Z",
+   "tier": 0
+  },
+  {
+   "kind": "drill",
+   "id": "threat",
+   "score": 75,
+   "d": "2026-10-02T11:41:10.360Z",
+   "tier": 0
+  },
+  {
+   "kind": "lesson",
+   "id": "lesson",
+   "score": 92,
+   "d": "2026-10-03T11:41:10.360Z",
+   "tier": 0
+  },
+  {
+   "kind": "scenario",
+   "id": "ghost",
+   "score": 90,
+   "d": "2026-10-10T04:29:10.360Z",
+   "tier": 0,
+   "variant": "x"
+  }
+ ]
+}

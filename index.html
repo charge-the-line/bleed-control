@@ -185,7 +185,7 @@ body.tv{max-width:1100px}@media (min-width:1000px){body.tv{zoom:1.3}}
 
 <script>
 /* =================== core =================== */
-const APP_VERSION='0.21.1';
+const APP_VERSION='0.21.2';
 /* Screen wake lock (Milestone 1): keeps the phone from dimming or locking during a timed skill.
    On only while an activity runs: keepAwake(true) when it starts, keepAwake(false) back at the menu or on the result screen. */
 const WAKE={s:null,want:false};
@@ -202,7 +202,7 @@ const mmss=s=>{s=Math.max(0,Math.round(s));return Math.floor(s/60)+':'+String(s%
 let TIER=0,S={active:false},stepsDone=[],DEC_OPEN=null,SC=null,FORCE=null;
 const pca=(f,...a)=>{try{const P=typeof window!=='undefined'&&window.PCA;if(P&&P[f])return P[f](...a);}catch(e){}};
 const KEY='bleed-control';
-function load(){try{return JSON.parse(localStorage.getItem(KEY))||{runs:[]};}catch(e){return {runs:[]};}}
+function load(){let p=null;try{p=JSON.parse(localStorage.getItem(KEY));}catch(e){}if(!p||typeof p!=='object'||Array.isArray(p))p={runs:[]};p.runs=Array.isArray(p.runs)?p.runs.filter(r=>r&&typeof r==='object'):[];return p;}/* wrong-shape data (a bad backup) never bricks the page */
 function save(p){try{localStorage.setItem(KEY,JSON.stringify(p));}catch(e){}}
 function record(kind,id,score,extra){const p=load();p.runs=(p.runs||[]).concat([pcDrillStamp(Object.assign({kind,id,score,d:new Date().toISOString(),tier:TIER},extra||{}))]).slice(-500);save(p);}
 function setHTML(el,html){if(el&&el._last!==html){el.innerHTML=html;el._last=html;}}
@@ -788,9 +788,9 @@ $('h-prog').onclick=()=>{const p=load();const R=p.runs||[];const best=(k,id)=>{c
    <div class="sec">SCENARIOS</div>${Object.keys(SCN).map(k=>line(SCN[k].title,best('scenario',k))).join('')}<div class="sec">DRILLS</div>${Object.keys(DRILLS).map(k=>line(DRILLS[k].name,best('drill',k))).join('')}
    <button id="p-csv" style="width:100%;margin-top:10px">Download practice record (CSV)</button>`);
   $('p-csv').onclick=()=>{const q=load();q.name=$('p-name').value.trim();q.dept=$('p-dept').value.trim();save(q);const nm={lesson:'Lesson',station:'Skill',scenario:'Scenario',drill:'Drill'};
-    const label=r=>r.kind==='scenario'?SCN[r.id].title:r.kind==='drill'?DRILLS[r.id].name:r.kind==='station'?STN[r.id]:'The lesson';
+    const label=r=>r.kind==='scenario'?(SCN[r.id]||{}).title||r.id:r.kind==='drill'?(DRILLS[r.id]||{}).name||r.id:r.kind==='station'?STN[r.id]||r.id:'The lesson';   // an id this page doesn't know (a newer backup) still exports
     const rows=[['Name','Organization','Type','Activity','Patient','Date','Tier','Score']].concat((q.runs||[]).map(r=>[q.name||'',q.dept||'',nm[r.kind],label(r),r.variant||'',r.d.slice(0,16).replace('T',' '),r.kind==='scenario'?['Guided','Recall','Chaos'][r.tier]:'',r.score]));
-    const csv=rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');try{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='bleed-control-practice-record.csv';a.click();}catch(e){}};};
+    const csv=pcCsv(rows);/* the core quotes every cell and defuses =, +, -, @ formulas */try{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='bleed-control-practice-record.csv';a.click();}catch(e){}};};
 $('h-learn').onclick=()=>lessonStart();$('h-drills').onclick=()=>drillMenu();
 /* =================== boot =================== */
 if('serviceWorker' in navigator&&location.protocol==='https:')window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));

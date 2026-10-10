@@ -1,0 +1,59 @@
+{
+ "runs": [
+  {
+   "kind": "scenario",
+   "id": "kitchen",
+   "score": 90,
+   "d": "2026-09-30T11:41:10.360Z",
+   "tier": 0,
+   "variant": "No kit · wound mid-forearm",
+   "died": false
+  },
+  {
+   "kind": "station",
+   "id": "tq-arm",
+   "score": 100,
+   "d": "2026-10-01T11:41:10.360Z",
+   "tier": 0
+  },
+  {
+   "kind": "drill",
+   "id": "threat",
+   "score": 75,
+   "d": "2026-10-02T11:41:10.360Z",
+   "tier": 0
+  },
+  {
+   "kind": "lesson",
+   "id": "lesson",
+   "score": 92,
+   "d": "2026-10-03T11:41:10.360Z",
+   "tier": 0
+  },
+  {
+   "kind": "scenario",
+   "id": "crash",
+   "score": 80,
+   "d": "2026-10-09T11:41:10.360Z",
+   "tier": 1,
+   "variant": "Two hurt",
+   "died": false,
+   "inst": 1
+  },
+  {
+   "kind": "station",
+   "id": "pack",
+   "score": 90,
+   "d": "2026-10-10T10:29:10.360Z",
+   "tier": 0,
+   "who": [
+    "Jo"
+   ],
+   "inst": "Capt. Lee",
+   "night": "2026-10-10T09:17:10.360Z"
+  }
+ ],
+ "name": "Max",
+ "dept": "Monitor Twp FD",
+ "inst": false
+}
