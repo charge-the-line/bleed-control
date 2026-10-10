@@ -1,13 +1,11 @@
-BLEED CONTROL — HOSTING
-Upload these together: index.html, manifest.json, sw.js, icon-192.png, icon-512.png
-(Part of Preconnect — the home page lives in the root repository.)
-(plus the tests folder and TESTING.md — optional; they don't affect the app).
+BLEED CONTROL — a Preconnect module (https://charge-the-line.github.io/bleed-control/)
+This folder is the whole app:
+  index.html, preconnect-core.js, manifest.json, sw.js, icon-192.png, icon-512.png, fonts/
+(plus tests/, TESTING.md and CLAUDE.md, which do not affect the app).
+Every one of those files must be uploaded together: the page loads preconnect-core.js first, and the type comes from fonts/.
 
-On the same GitHub account (charge-the-line):
- 1. github.com -> "+" -> New repository -> name it bleed-control -> Public -> Create
- 2. "uploading an existing file" -> drag in everything from this folder -> Commit changes
-    (do this from a computer so the tests folder uploads intact)
- 3. Settings -> Pages -> Deploy from a branch -> main, / (root) -> Save
- 4. Live in a minute or two at https://charge-the-line.github.io/bleed-control/
+GitHub Pages serves the main branch root of the charge-the-line/bleed-control repository. Committing to main deploys within a minute or two.
+Every release bumps APP_VERSION in index.html and CACHE in sw.js together; the "Current version" line in CLAUDE.md must match (the tests check all three).
 
-Releasing an update: change APP_VERSION in index.html AND the CACHE name in sw.js together.
+Install on a phone: open the link -> iPhone: Share -> Add to Home Screen; Android: menu -> Install app.
+Tests (Node.js 18 or newer): node tests/run_all.js
