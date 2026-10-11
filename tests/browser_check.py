@@ -26,7 +26,7 @@ def station(pg):
             pg.wait_for_timeout(1000)
         pg.wait_for_timeout(60)
     return not pg.is_visible('#stov')
-STEPMAP = [('Send Tyler','guide'),('cold ground','insulate'),('Machine off','safe'),('Rescue: tell 911','rescue'),('the hand wrapped','part'),('scene is safe','safe'),('Alert','call'),('911','call'),('expose','expose'),('direct pressure','press'),('raise the leg','lie'),('blood thinners','ask'),('the truth','prep'),('holds him','still'),('ourniquet','tq'),('warm','warm')]
+STEPMAP = [('Pack the wound','pack'),('Send Tyler','guide'),('cold ground','insulate'),('Machine off','safe'),('Rescue: tell 911','rescue'),('the hand wrapped','part'),('scene is safe','safe'),('Alert','call'),('911','call'),('expose','expose'),('direct pressure','press'),('raise the leg','lie'),('blood thinners','ask'),('the truth','prep'),('holds him','still'),('ourniquet','tq'),('warm','warm')]
 FWK_NEXT = "(()=>{const [g,a,r]=S.vs;const go=(i,x)=>S.sel!==i?'sel'+i:x;if(S.tubePending)return 'moveback';if(S.parentPending)return 'kid';if(!S.safe)return 'safe';if(!S.alerted)return 'call';const ne=S.vs.findIndex(x=>!x.exposed);if(ne>=0)return go(ne,'expose');if(r.pressure!=='helper')return go(2,'helper');if(g.tq<1)return go(0,'tq');if(!a.packed)return go(1,'pack');if(!S.walked)return 'walk';return document.querySelector('[data-a=\"skip\"]')?'skip':'';})()"
 def scen_real(pg, sc, force, need):   # a scenario played to the end with real taps: decisions by their visible text, the station on the diagram, the skip button when only waiting is left
     pg.goto(URL); pg.wait_for_timeout(200); pg.evaluate("window.__F=%s" % force); pg.evaluate("FORCE={'%s':window.__F}" % sc); pg.click(f'[data-sc="{sc}"]'); pg.wait_for_timeout(200); pg.click('#brief-go'); pg.wait_for_timeout(300)
@@ -45,6 +45,9 @@ def scen_real(pg, sc, force, need):   # a scenario played to the end with real t
         st, standing, pres = pg.evaluate("(()=>{const j=stepsDone.findIndex(x=>!x);return [j<0?'':S.steps[j].t,!!S.vs[0].standing,S.vs[0].pressure];})()")
         if standing: pg.click('[data-a="lie"]'); pg.wait_for_timeout(300); continue
         if pg.evaluate("S.id==='bike'&&S.momDowned&&!S.momLaid"): pg.click('[data-a="mom"]'); pg.wait_for_timeout(300); continue
+        if sc == 'crash':
+            a = pg.evaluate("(()=>{const [d1,d2]=S.vs;if(!d1.exposed)return S.sel!==0?'sel0':'expose';if(!d2.exposed)return S.sel!==1?'sel1':'expose';if(d1.tq<1)return S.sel!==0?'sel0':'tq';if(d2.pressure!=='helper')return S.sel!==1?'sel1':'helper';if(!d1.warm)return S.sel!==0?'sel0':'warm';if(!d2.warm)return S.sel!==1?'sel1':'warm';return '';})()")
+            if a: pg.locator(f'[data-a="{a}"]').first.click(); pg.wait_for_timeout(300); continue
         if pg.evaluate("S.id==='bike'&&S.momDown"): pg.click('[data-a="still"]'); pg.wait_for_timeout(300); continue
         if pres is None and pg.evaluate("S.vs[0].firstCompT!==null&&!(S.vs[0].tq>=S.vs[0].tqNeeded)"): pg.click('[data-a="press"]'); pg.wait_for_timeout(300); continue
         a = next((x for k, x in STEPMAP if k in st), None)
@@ -141,7 +144,7 @@ with sync_playwright() as p:
         pg = b.new_page(viewport={'width': 390, 'height': 800}, device_scale_factor=2, is_mobile=True, has_touch=True); pg.on('pageerror', lambda e: errs.append(str(e)))
         pg.goto(URL); pg.wait_for_timeout(200); ok = lesson_full(pg, '#h-learn') and saved(pg, 'bleed-control', "(p.runs||[]).some(r=>r.kind==='lesson'&&r.score===100)"); rows.append((390, 'ALL lesson (full)', 0 if ok else 99, True))
         for k in pg.evaluate("Object.keys(DRILLS)"):
-            pg.goto(URL); pg.wait_for_timeout(200); pg.click('#h-drills'); pg.wait_for_timeout(200); pg.click(f'[data-d="go"][data-k="{k}"]'); pg.wait_for_timeout(250); quiz_full(pg)
+            pg.goto(URL); pg.wait_for_timeout(200); pg.click('#h-drills'); pg.wait_for_timeout(200); pg.click(f'[data-d="go"][data-k="{k}"]'); pg.wait_for_timeout(250); quiz_full(pg, 'DR')
             rows.append((390, f'ALL drill {k} (full)', 0 if saved(pg, 'bleed-control', f"(p.runs||[]).some(r=>r.kind==='drill'&&r.id==='{k}'&&r.score===100)") else 99, True))
         for st in ('tq-arm','tq-leg','pack','press','self','coach'):
             pg.goto(URL); pg.wait_for_timeout(200); pg.click(f'[data-st="{st}"]'); pg.wait_for_timeout(200); ok = station(pg) and saved(pg, 'bleed-control', f"(p.runs||[]).some(r=>r.kind==='station'&&r.id==='{st}')")
