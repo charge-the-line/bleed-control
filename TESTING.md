@@ -157,3 +157,6 @@ Foundation fixes: fonts served from this site, screen wake lock, finger-sized bu
 
 ## Truth and counts (final sweep milestone 3, October 10, 2026)
 - `syntax`: the docs guard (CLAUDE.md "Current version" equals `APP_VERSION`; README.txt names `preconnect-core.js` and `fonts/`); About names every sibling module.
+
+## Every activity with real taps (milestone 10)
+`PC_ALL=1 python3 tests/browser_check.py` (milestone 10, lean finish) also plays every activity to the end with real taps at 390 px: the lesson, the four drills, the six stations and all nine scenarios on their standard layout; about 30 minutes more. Run it before a release.
