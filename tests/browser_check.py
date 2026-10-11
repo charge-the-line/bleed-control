@@ -1,3 +1,4 @@
+import os
 #!/usr/bin/env python3
 """Real-browser check (optional). Needs:  pip install playwright && playwright install chromium
 Plays the lesson's first slide, every skill station (with real taps on the diagram), and opens every scenario
@@ -53,6 +54,24 @@ def scen_real(pg, sc, force, need):   # a scenario played to the end with real t
         pg.wait_for_timeout(500)
     ok = pg.is_visible('#doneov') and pg.evaluate("+document.getElementById('done-s').dataset.final||+document.getElementById('done-s').textContent") == 100 and need(pg)
     return ok
+
+# ---- Milestone 10 (lean finish): every activity to the end with real taps at 390 px, when PC_ALL=1 ----
+def lesson_full(pg, open_sel):   # the lesson to the end: the right answer tapped by its visible text, then Next / Finish
+    pg.click(open_sel); pg.wait_for_timeout(300)
+    for _ in range(40):
+        if not pg.evaluate("!!(window.LS&&LS.cfg)"): break
+        good = pg.evaluate("LS.cfg.slides[LS.i].o.find(o=>o[1]==='good')[0]")
+        pg.locator('[data-l="ans"]', has_text=re.compile('^' + re.escape(good) + '$')).first.click(delay=120); pg.wait_for_timeout(150)
+        pg.click('#l-next', delay=120); pg.wait_for_timeout(250)
+    return pg.evaluate("!(window.LS&&LS.cfg)")
+def quiz_full(pg, q='QZ', ans='[data-q="ans"]', nxt='[data-q="next"]'):   # a quiz to the end: the right answer by its visible text, then Next / Results
+    for _ in range(40):
+        if not pg.evaluate("!!(window.%s&&%s.qs&&%s.i<%s.qs.length)" % (q, q, q, q)): break
+        a = pg.evaluate("%s.qs[%s.i].a" % (q, q)); pg.locator(ans, has_text=re.compile('^' + re.escape(a) + '$')).first.click(delay=120); pg.wait_for_timeout(120)
+        pg.locator(nxt).first.click(delay=120); pg.wait_for_timeout(120)
+    pg.wait_for_timeout(300)
+def saved(pg, key, test):   # the record on this phone proves the activity finished
+    return pg.evaluate("(()=>{const p=JSON.parse(localStorage.getItem('%s')||'{}');return %s;})()" % (key, test))
 with sync_playwright() as p:
     b = p.chromium.launch()
     for w in (320, 390):
@@ -118,6 +137,19 @@ with sync_playwright() as p:
     pg.click('#h-set'); pg.wait_for_timeout(200)
     rows.append((844, 'settings land', (pg.evaluate(OVER)+1000*pg.evaluate(SMALL)), True))
     pg.close()
+    if os.environ.get('PC_ALL'):
+        pg = b.new_page(viewport={'width': 390, 'height': 800}, device_scale_factor=2, is_mobile=True, has_touch=True); pg.on('pageerror', lambda e: errs.append(str(e)))
+        pg.goto(URL); pg.wait_for_timeout(200); ok = lesson_full(pg, '#h-learn') and saved(pg, 'bleed-control', "(p.runs||[]).some(r=>r.kind==='lesson'&&r.score===100)"); rows.append((390, 'ALL lesson (full)', 0 if ok else 99, True))
+        for k in pg.evaluate("Object.keys(DRILLS)"):
+            pg.goto(URL); pg.wait_for_timeout(200); pg.click('#h-drills'); pg.wait_for_timeout(200); pg.click(f'[data-d="go"][data-k="{k}"]'); pg.wait_for_timeout(250); quiz_full(pg)
+            rows.append((390, f'ALL drill {k} (full)', 0 if saved(pg, 'bleed-control', f"(p.runs||[]).some(r=>r.kind==='drill'&&r.id==='{k}'&&r.score===100)") else 99, True))
+        for st in ('tq-arm','tq-leg','pack','press','self','coach'):
+            pg.goto(URL); pg.wait_for_timeout(200); pg.click(f'[data-st="{st}"]'); pg.wait_for_timeout(200); ok = station(pg) and saved(pg, 'bleed-control', f"(p.runs||[]).some(r=>r.kind==='station'&&r.id==='{st}')")
+            rows.append((390, f'ALL station {st} (full)', 0 if ok else 99, True))
+        for sc, force in (('kitchen', "{kit:true,near:false}"), ('garage', "{}"), ('glass', "{}"), ('crash', "{}"), ('vein', "{site:'ankle',holds:true,kit:false,stand:false}"), ('bike', "{site:'forearm',faint:false}"), ('auger', "{amp:false,caught:false}"), ('hunt', "{arrow:false,loosen:false}"), ('fwk', "{night:false,tube:false,parent:false}")):
+            ok = scen_real(pg, sc, force, lambda pg: True); rows.append((390, f'ALL scenario {sc} (full)', 0 if ok else 99, True))
+        pg.close()
+
     b.close()
 bad = [r for r in rows if r[2] > 1 or not r[3]]
 rows=[r if len(r)==4 else (r[0],r[1],r[2],True) for r in rows]

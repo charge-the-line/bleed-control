@@ -332,4 +332,10 @@ if(want.includes('fuzz')){let crashes=0;const errs=[];const acts=['safe','call',
 {// Continue opens the activity itself (milestone 8): ?scn= a scenario, ?station= a station, ?lesson=1 the lesson
  const {boot}=require('./bc_mock.js');global.__loc={search:'?scn=garage'};const a=boot();global.__loc={search:'?station=pack'};const b=boot();global.__loc={search:'?lesson=1'};const c=boot();global.__loc={search:'?scn=nope'};const d=boot();global.__loc=undefined;
  report('voice','deep links open the activity itself: a scenario, a station and the lesson; an unknown id is ignored',a.api.S()&&a.api.S().id==='garage'&&b.api.ST()&&b.api.ST().kind==='pack'&&c.api.LS()!==null&&!(d.api.S()&&d.api.S().id),`scn ${a.api.S()&&a.api.S().id} station ${b.api.ST()&&b.api.ST().kind} lesson ${c.api.LS()!==null}`);}
+
+{// Rule 14 and rule 4, final sweep milestone 9
+ const KEEP=[/Find the wound first/,/Check (her|him) first/,/Start the pressure yourself first/,/no tourniquet here/,/Expose the wound first/,/Not around her neck/,/only tourniquet is already on/];
+ const left=[...html.matchAll(/radio\('You',([^;]{0,160}?),'bad'\);return;/g)].map(m=>m[1]).filter(t=>!KEEP.some(k=>k.test(t)));
+ report('teach','no button refuses a wrong action a person could really take: every refusal left is a wound not yet exposed, a patient not yet checked, pressure not yet started, an empty kit, or the neck "never" after its penalty',left.length===0,left.slice(0,3).join(' | ')||`${KEEP.length} prerequisites kept`);
+ report('teach','the scene buttons, station buttons, decision cards and the result row cool for half a second after they change and ignore taps meanwhile (rule 4)',/if\(el\.id==='deck'\|\|el\.id==='st-btns'\)pcCool\('#'\+el\.id\+' button',450\)/.test(html)&&/if\(b&&!pcIsCool\(b\)\)act\(b\.dataset\.a\)/.test(html)&&/if\(b&&!pcIsCool\(b\)\)stAct\(b\.dataset\.s\)/.test(html)&&/pcCool\('#dec-opts button',450\)/.test(html)&&/pcCool\('#done-row button',700\)/.test(html));}
 console.log(`\n${n-failed}/${n} checks passed · ${Math.round((Date.now()-T0)/1000)} s`);process.exit(failed?1:0);
